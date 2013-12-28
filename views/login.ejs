@@ -1,0 +1,42 @@
+<% layout('layouts/page') -%>
+<% block('title', 'Log In') -%>
+
+<style type="text/css">
+  form {
+    margin: 0 auto;
+    margin-top: 70px;
+    width: 300px;
+    height: 80px;
+    border: solid 2px #888;
+    background-color: #eee;
+    padding-top: 20px;
+    padding-bottom: 40px;
+    text-align: center;
+    font-family: sans-serif;
+  }
+</style>
+
+<%
+  var _values = (typeof values !== 'undefined') ? values : {};
+  var fields = ['username', 'first_name', 'last_name'];
+  for (var i = 0; i < fields.length; i++)
+    if (!_values[fields[i]]) _values[fields[i]] = '';
+%>
+
+<form method="post" action="/login">
+  <% if (typeof error !== 'undefined') { %>
+    <strong><%= error %></strong><br />
+  <% } %>
+
+  <label>Username:
+    <input type="text" name="username" value="<%= _values['username'] %>"/>
+  </label><br />
+  <label>First Name:
+    <input type="text" name="first_name" value="<%= _values['first_name'] %>"/>
+  </label><br />
+  <label>Last Name:
+    <input type="text" name="last_name" value="<%= _values['last_name'] %>"/>
+  </label><br />
+  <input type="submit" value="Log In" />
+</form>
+

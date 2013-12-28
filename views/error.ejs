@@ -1,0 +1,10 @@
+<% layout('layouts/page') -%>
+<% block('title', 'Error') %>
+
+<h1>Error</h1>
+<% if (config.web.debug) { %>
+  <pre><%= error.stack %></pre>
+<% } else { %>
+  <pre><%= error %></pre>
+<% } %>
+
