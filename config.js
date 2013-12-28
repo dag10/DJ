@@ -6,12 +6,10 @@ var config = {}
 
 config.web = {};
 config.auth = {};
+config.auth.webauth = {};
 
 // Port for the web server.
 config.web.port = process.env.PORT || 9867;
-
-// Directory of web templates.
-config.web.views_directory = __dirname + '/views';
 
 // Show stack trace on error page.
 config.web.debug = true;
@@ -21,6 +19,9 @@ config.web.title = 'CSH DJ';
 
 // Method of authentication ('dev' or 'webauth').
 config.auth.method = 'dev';
+
+// URL for logging out of webauth.
+config.auth.webauth.logout_url = 'https://webauth.csh.rit.edu/logout';
 
 module.exports = config;
 

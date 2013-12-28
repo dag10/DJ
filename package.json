@@ -6,7 +6,8 @@
   "dependencies": {
     "express": "3.x",
     "ejs": "0.8.5",
-    "ejs-locals": "1.0.2"
+    "ejs-locals": "1.0.2",
+    "less-middleware": "0.1.14"
   }
 }
 

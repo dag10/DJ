@@ -1,20 +1,7 @@
 <% layout('layouts/page') -%>
 <% block('title', 'Log In') -%>
-
-<style type="text/css">
-  form {
-    margin: 0 auto;
-    margin-top: 70px;
-    width: 300px;
-    height: 80px;
-    border: solid 2px #888;
-    background-color: #eee;
-    padding-top: 20px;
-    padding-bottom: 40px;
-    text-align: center;
-    font-family: sans-serif;
-  }
-</style>
+<% stylesheet('/styles/login.css') %>
+<% script('/scripts/login.js') %>
 
 <%
   var _values = (typeof values !== 'undefined') ? values : {};
@@ -23,20 +10,45 @@
     if (!_values[fields[i]]) _values[fields[i]] = '';
 %>
 
-<form method="post" action="/login">
+<div class="well" id="loginwell">
+  <h3>Please sign in.</h3>
   <% if (typeof error !== 'undefined') { %>
-    <strong><%= error %></strong><br />
+    <div class="alert alert-danger"><%= error %></div>
   <% } %>
-
-  <label>Username:
-    <input type="text" name="username" value="<%= _values['username'] %>"/>
-  </label><br />
-  <label>First Name:
-    <input type="text" name="first_name" value="<%= _values['first_name'] %>"/>
-  </label><br />
-  <label>Last Name:
-    <input type="text" name="last_name" value="<%= _values['last_name'] %>"/>
-  </label><br />
-  <input type="submit" value="Log In" />
-</form>
+  <form method="post" action="/login">
+    <div class="row">
+      <label for="inputUsername">Username</label>
+      <input
+        type="text"
+        id="inputUsername"
+        class="form-control"
+        name="username"
+        placeholder="Username"
+        value="<%= _values['username'] %>" />
+    </div>
+    <div class="row">
+      <label for="inputFirstName">First Name</label>
+      <input
+        type="text"
+        id="inputFirstName"
+        class="form-control"
+        name="first_name"
+        placeholder="First Name"
+        value="<%= _values['first_name'] %>" />
+    </div>
+    <div class="row">
+      <label for="inputLastName">Last Name</label>
+      <input
+        type="text"
+        id="inputLastName"
+        class="form-control"
+        name="last_name"
+        placeholder="Last Name"
+        value="<%= _values['last_name'] %>" />
+    </div>
+    <div class="row">
+      <input type="submit" class="btn btn-default" value="Sign In" />
+    </div>
+  </form>
+</div>
 

@@ -10,7 +10,10 @@ exports.init = function(app) {
   if (config.auth.method == 'webauth') {
     // TODO: Implement webauth.
     // https://wiki.csh.rit.edu/wiki/Member_Pages
+
     console.error('Webauth not implemented.');
+
+    config.logoutUrl = config.auth.webauth.logout_url;
 
     ret.initHandlers = function() {};
 
@@ -21,7 +24,17 @@ exports.init = function(app) {
     };
 
   } else if (config.auth.method == 'dev') {
+    config.logoutUrl = '/logout';
+
     ret.initHandlers = function() {
+      app.get('/logout', function(req, res) {
+        if (req.session && req.session.user)
+          req.session.user = null;
+        res.status(302);
+        res.setHeader('Location', '/');
+        res.end();
+      });
+
       app.get('/login', function(req, res) {
         res.render('login.ejs', {
           config: config
@@ -70,6 +83,8 @@ exports.init = function(app) {
       }
 
       // TODO: If no user.id, make sure user exists in db, or create them.
+      // Also, if they exist, make sure the first+last+full name in the db
+      // is up to date.
 
       return req.session.user;
     };

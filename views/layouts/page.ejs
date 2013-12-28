@@ -1,11 +1,36 @@
 <!doctype html>
+<%
+  if (typeof user === 'undefined') user = null;
+%>
 <html>
   <head>
     <title><%= blocks.title || config.web.title %></title>
+    <link rel="stylesheet" href="/styles/bootstrap.css" />
     <%- stylesheets %>
   </head>
   <body>
+    <nav class="navbar navbar-default" role="navigation">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="/"><%= config.web.title %></a>
+      </div>
+      <div class="collapse navbar-collapse">
+        <% if (user) { %>
+          <ul class="nav navbar-nav navbar-right">
+            <li class="dropdown">
+              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                <%= user.fullName %> <b class="caret"></b>
+              </a>
+              <ul class="dropdown-menu">
+                <li><a href="<%= config.logoutUrl %>">Log Out</a></li>
+              </ul>
+            </li>
+          </ul>
+        <% } %>
+      </div>
+    </nav>
     <%- body -%>
+    <script src="/scripts/jquery-1.10.2.js"></script>
+    <script src="/scripts/bootstrap.js"></script>
     <%- scripts %>
   </body>
 </html>
