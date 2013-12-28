@@ -1,0 +1,10 @@
+{
+  "name": "DJ",
+  "description": "A turntable.fm alternative, created for use by CSH.",
+  "version": "1.0",
+  "author": "Drew Gottlieb (dag10) <gottlieb.drew@gmail.com>",
+  "dependencies": {
+    "express": "3.x"
+  }
+}
+
