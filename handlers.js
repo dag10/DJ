@@ -13,7 +13,7 @@ exports.init = function(app, auth) {
   app.set('view engine', 'ejs');
   app.engine('ejs', require('ejs-locals'));
 
-  app.use(express.bodyParser());
+  app.use(express.bodyParser()); // TODO: Deprecated; Find alternative.
   app.use(express.cookieParser());
   app.use(express.session({secret: Math.random() + '_'}));
 
@@ -32,15 +32,6 @@ exports.init = function(app, auth) {
   app.use('/styles', express.static(tmpDir));
 
   auth.initHandlers();
-
-  app.use(function(error, req, res, next) {
-    console.error(error.stack);
-    res.status(500);
-    res.render('error.ejs', {
-      error: error,
-      config: config
-    });
-  });
 
   app.get('/', function(req, res) {
     var user = auth.getUser(req, res);
@@ -61,6 +52,15 @@ exports.init = function(app, auth) {
 
   app.get('/listen/:room', function(req, res) {
     res.send('You\'re listening to: ' + req.param('room'));
+  });
+
+  app.use(function(err, req, res, next) {
+    console.error(err.stack);
+    res.status(500);
+    res.render('error.ejs', {
+      error: err,
+      config: config
+    });
   });
 }
 

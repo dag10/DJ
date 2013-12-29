@@ -1,10 +1,13 @@
 <% layout('layouts/page') -%>
 <% block('title', 'Error') %>
+<% stylesheet('/styles/error.css') %>
 
-<h1>Error</h1>
-<% if (config.web.debug) { %>
-  <pre><%= error.stack %></pre>
-<% } else { %>
-  <pre><%= error %></pre>
-<% } %>
+<div class="well">
+  <h2>Error</h2>
+  <% if (config.web.debug) { %>
+    <pre><%= error.stack %></pre>
+  <% } else { %>
+    <pre><%= error %></pre>
+  <% } %>
+</div>
 
