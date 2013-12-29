@@ -5,13 +5,14 @@
 var config = require('../config');
 var fs = require('fs');
 var winston = require('winston');
+var migrate = require('migrate');
 
 function endsWith(str, suffix) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
 }
 
 // Loads each module in this models directory.
-exports.define = function(db, models) {
+exports.define = function(db, models, next) {
   var modules = [];
 
   // Find modules in the models directory besides the index.
@@ -37,11 +38,13 @@ exports.define = function(db, models) {
   //       recreate the tables. Perhaps I'll create a migration system
   //       at some point?
   db.sync(function(err) {
-    if (err)
+    if (err) {
       throw new Error(
           'Failed to synchronize model ' + err.model + ': ' + err);
-    else
+    } else {
       winston.info('Database synchronized.');
+      next();
+    }
   });
 };
 
