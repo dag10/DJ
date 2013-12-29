@@ -18,6 +18,16 @@ variables as headers:
 - WEBAUTH_LDAP_SN -> x-webauth-ldap-sn
 - WEBAUTH_LDAP_CN -> x-webauth-ldap-cn
 
+When running it for the first time, no migrations are necessary. Just launch
+the server and the database will be populated for you.
+
+Updating
+--
+When updating an existing installation, restart the server. When it starts,
+it will automatically run the necessary migrations.
+
+Running
+--
 To run, type `node app.js`.
 
 --
