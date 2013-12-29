@@ -19,9 +19,9 @@ exports.define = function(db, models) {
       type: 'boolean', required: true, defaultValue: false },
 
     firstVisit: {
-      type: 'text', required: true },
+      type: 'date', required: true },
     lastVisit: {
-      type: 'text', required: true }
+      type: 'date', required: true }
   }, {
     validations: {
       username: orm.enforce.unique({ ignoreCase: true })

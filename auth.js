@@ -135,7 +135,7 @@ exports.init = function(app) {
         user.firstName = session.firstName;
         user.lastName = session.lastName;
         user.fullName = session.fullName;
-        user.lastVisit = Date.now();
+        user.lastVisit = new Date();
         user.save(function(err) {
           if (err) {
             next(new Error(
@@ -152,8 +152,8 @@ exports.init = function(app) {
           firstName: session.firstName,
           lastName: session.lastName,
           fullName: session.fullName,
-          firstVisit: Date.now(),
-          lastVisit: Date.now(),
+          firstVisit: new Date(),
+          lastVisit: new Date(),
           admin: config.superadmin == session.username
         });
         user.save(function(err) {
