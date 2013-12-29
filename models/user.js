@@ -4,8 +4,10 @@
 
 var orm = require('orm');
 
+var User;
+
 exports.define = function(db, models) {
-  var User = db.define('user', {
+  User = db.define('user', {
     username: {
       type: 'text', required: true },
     firstName: {
