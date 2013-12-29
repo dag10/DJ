@@ -40,5 +40,8 @@ config.db.mysql.password = 'pass';
 // MySQL database.
 config.db.mysql.database = 'dj';
 
+// Username of permanent admin.
+config.superadmin = 'dag10';
+
 module.exports = config;
 

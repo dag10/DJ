@@ -33,21 +33,19 @@ exports.init = function(app, auth) {
 
   auth.initHandlers();
 
-  app.get('/', function(req, res) {
-    var user = auth.getUser(req, res);
-    if (!user) return;
-
-    res.render('index.ejs', {
-      user: user,
-      config: config
+  app.get('/', function(req, res, next) {
+    auth.getUser(req, res, next, function(user) {
+      res.render('index.ejs', {
+        user: user,
+        config: config
+      });
     });
   });
 
-  app.get('/play/:room', function(req, res) {
-    var user = auth.getUser(req, res);
-    if (!user) return;
-
-    res.send('You\'re playing in: ' + req.param('room'));
+  app.get('/play/:room', function(req, res, next) {
+    auth.getuser(req, res, next, function(user) {
+      res.send('You\'re playing in: ' + req.param('room'));
+    });
   });
 
   app.get('/listen/:room', function(req, res) {

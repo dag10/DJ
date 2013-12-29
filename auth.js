@@ -27,17 +27,22 @@ exports.init = function(app) {
           missing_headers.push(webauth_headers[key]);
       });
 
-      if (missing_headers.length)
+      if (missing_headers.length) {
+        req.session.user = null;
         throw new Error(
             'Missing webauth headers: ' + missing_headers + '\n\nHeaders: ' +
             util.format(req.headers));
+      }
 
-      return {
-        username: req.headers[webauth_headers.username],
-        firstName: req.headers[webauth_headers.firstname],
-        lastName: req.headers[webauth_headers.lastname],
-        fullName: req.headers[webauth_headers.fullname]
-      };
+      if (!req.session.user)
+        req.session.user = {};
+
+      req.session.user.username = req.headers[webauth_headers.username];
+      req.session.user.firstName = req.headers[webauth_headers.firstname];
+      req.session.user.lastName = req.headers[webauth_headers.lastname];
+      req.session.user.fullName = req.headers[webauth_headers.fullname];
+
+      return req.session.user;
     };
 
   } else if (config.auth.method == 'dev') {
@@ -61,7 +66,6 @@ exports.init = function(app) {
       app.post('/login', function(req, res) {
         var required_fields = ['username', 'first_name', 'last_name'];
         var valid = true;
-        console.log(req.body);
         for (var i = 0; i < required_fields.length; i++) {
           var field = required_fields[i];
           if (!req.body || !req.body[field]) {
@@ -103,15 +107,68 @@ exports.init = function(app) {
     };
   }
 
-  ret.getUser = function(req, res) {
-    var session = ret.getUserSession(req, res);
-    if (!session) return null;
+  ret.getUser = function(req, res, next, callback) {
+    var session;
+    try {
+      session = ret.getUserSession(req, res);
+    } catch (err) {
+      next(err);
+      return;
+    }
 
-    // TODO: If no user.id, make sure user exists in db, or create them.
-    // Also, if they exist, make sure the first+last+full name in the db
-    // is up to date.
-    
-    return session;
+    if (!session) return; // No session, but the active auth should have
+                          // handled the response.
+
+    req.models.user.find(
+        { username: session.username }, 1, function(err, users) {
+      if (err) {
+        next(err);
+        return;
+      }
+
+      if (users.length == 1) { // User exists
+        var user = users[0];
+        session.id = user.id;
+
+        // Update last visit time, as well as first+last+full names.
+        user.firstName = session.firstName;
+        user.lastName = session.lastName;
+        user.fullName = session.fullName;
+        user.lastVisit = Date.now();
+        user.save(function(err) {
+          if (err) {
+            next(new Error(
+                'Failed to update user entity.\n\n' + util.format(err)));
+            return;
+          } else {
+            callback(user);
+            return;
+          }
+        });
+      } else { // Must create new user
+        var user = new req.models.user({
+          username: session.username,
+          firstName: session.firstName,
+          lastName: session.lastName,
+          fullName: session.fullName,
+          firstVisit: Date.now(),
+          lastVisit: Date.now(),
+          admin: config.superadmin == session.username
+        });
+        user.save(function(err) {
+          if (err) {
+            next(new Error(
+                'Failed to create user entry.\n\n' + util.format(err)));
+            return;
+          } else {
+            console.info(
+                'Created user ' + user.id + ' (' + user.username + ')');
+            callback(user);
+            return;
+          }
+        });
+      }
+    });
   };
 
   return ret;

@@ -16,5 +16,12 @@ exports.define = function(db, models) {
     if (file == 'index.js') return;
     require('./' + file).define(db, models);
   });
+
+  db.sync(function(err) {
+    if (err)
+      throw new Error('Failed to synchronize model ' + err.model + ': ' + err);
+    else
+      console.info('Database synchronized.');
+  });
 };
 
