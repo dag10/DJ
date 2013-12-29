@@ -31,6 +31,8 @@ exports.init = function() {
     i++;
   } while (fs.existsSync(filename));
 
+  winston.info('Logging to ' + filename);
+
   // Enable file logging.
   winston.add(winston.transports.File, {
     filename: filename
