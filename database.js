@@ -13,7 +13,8 @@ exports.init = function(app, define, next) {
     password: config.db.mysql.password,
     port: '3306',
     protocol: 'mysql',
-    query: {pool: true}
+    query: {pool: true},
+    multipleStatements: true
   };
 
   var _next = next;

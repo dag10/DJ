@@ -33,17 +33,42 @@ exports.define = function(db, models, next) {
       module.associate(models);
   });
 
-  // Create any nonexistant model tables.
-  // Note: This does not update table structures. You'll need to drop and
-  //       recreate the tables. Perhaps I'll create a migration system
-  //       at some point?
-  db.sync(function(err) {
+  // Define model migrations.
+  migrate(__dirname + '/.migrate');
+  modules.forEach(function(module) {
+    if (module.migrate)
+      module.migrate(migrate, db);
+  });
+
+  // Set up migrations.
+  var set = migrate();
+  var migrated = false;
+  set.on('migration', function(migration, direction) {
+    winston.info('Migrating ' + direction + ': "' + migration.title + '"');
+    migrated = true;
+  });
+
+  // Migrate
+  set.up(function(err) {
     if (err) {
-      throw new Error(
-          'Failed to synchronize model ' + err.model + ': ' + err);
+      winston.error(err);
     } else {
-      winston.info('Database synchronized.');
-      next();
+      if (migrated)
+        winston.info('Finished running migrations.');
+
+      // Create any nonexistant model tables.
+      // Note: This does not update table structures. You'll need to drop and
+      //       recreate the tables. Perhaps I'll create a migration system
+      //       at some point?
+      db.sync(function(err) {
+        if (err) {
+          throw new Error(
+              'Failed to synchronize model ' + err.model + ': ' + err);
+        } else {
+          winston.info('Database synchronized.');
+          next();
+        }
+      });
     }
   });
 };
