@@ -8,6 +8,8 @@ Installation
 --
 Enter the root directory, and run `npm install` to install the dependencies.
 
+Then rename config.example.js to config.js and set up the configuration.
+
 To run, type `node app.js`.
 
 --
