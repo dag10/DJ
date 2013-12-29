@@ -28,9 +28,6 @@ config.auth.method = 'dev';
 // URL for logging out of webauth.
 config.auth.webauth.logout_url = 'https://webauth.csh.rit.edu/logout';
 
-// Database type ('mysql' or 'sqlite').
-config.db.type = 'mysql';
-
 // MySQL host.
 config.db.mysql.host = 'localhost';
 
