@@ -10,6 +10,9 @@ config.auth.webauth = {};
 config.db = {};
 config.db.mysql = {};
 
+// Directory for logs.
+config.log_directory = __dirname + '/logs';
+
 // Port for the web server.
 config.web.port = process.env.PORT || 9867;
 

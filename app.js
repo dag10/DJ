@@ -9,23 +9,11 @@ var handlers = require('./handlers');
 var database = require('./database');
 var models_module = require('./models');
 var winston = require('winston');
-var fs = require('fs');
+var logging = require('./logging');
+
+logging.init();
 
 var app = express();
-
-winston.remove(winston.transports.Console);
-winston.add(winston.transports.Console, {
-  colorize: true,
-  timestamp: true
-});
-
-var now = new Date();
-fs.mkdir('./logs');
-winston.add(winston.transports.File, {
-  filename: (
-      'logs/' + now.getFullYear() + '-' + (now.getMonth() + 1) + '-' +
-      now.getDate() + '.txt')
-});
 
 app.configure(function() {
   database.init(app, models_module.define);
