@@ -5,6 +5,7 @@
 var config = require('./config');
 var util = require('util');
 var winston = require('winston');
+var sanitizer = require('sanitizer');
 
 var webauth_headers = {
   username: 'x-webauth-user',
@@ -12,6 +13,13 @@ var webauth_headers = {
   lastname: 'x-webauth-ldap-sn',
   fullname: 'x-webauth-ldap-cn'
 };
+
+function sanitizeSession(session) {
+  session.username = sanitizer.escape(session.username);
+  session.firstName = sanitizer.escape(session.firstName);
+  session.lastName = sanitizer.escape(session.lastName);
+  session.fullName = sanitizer.escape(session.fullName);
+}
 
 exports.init = function(app) {
   var ret = {};
@@ -119,6 +127,8 @@ exports.init = function(app) {
 
     if (!session) return; // No session, but the active auth should have
                           // handled the response.
+
+    sanitizeSession(session);
 
     req.models.user.find(
         { username: session.username }, 1, function(err, users) {
