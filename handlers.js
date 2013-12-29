@@ -6,6 +6,7 @@ var config = require('./config');
 var express = require('express');
 var lessMiddleware = require('less-middleware');
 var os = require('os');
+var winston = require('winston');
 
 exports.init = function(app, auth) {
   app.enable('trust proxy');
@@ -53,7 +54,7 @@ exports.init = function(app, auth) {
   });
 
   app.use(function(err, req, res, next) {
-    console.error(err.stack);
+    winston.error(err.stack);
     res.status(500);
     res.render('error.ejs', {
       error: err,

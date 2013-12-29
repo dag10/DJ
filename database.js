@@ -8,6 +8,7 @@ var orm = require('orm');
 exports.init = function(app, callback) {
   if (config.db.type == 'sqlite') {
     throw Error('sqlite not supported yet');
+    // TODO: Support sqlite, maybe.
   } else if (config.db.type == 'mysql') {
     var opts = {
       host: config.db.mysql.host,

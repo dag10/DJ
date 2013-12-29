@@ -4,6 +4,7 @@
 
 var config = require('../config');
 var fs = require('fs');
+var winston = require('winston');
 
 function endsWith(str, suffix) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
@@ -21,7 +22,7 @@ exports.define = function(db, models) {
     if (err)
       throw new Error('Failed to synchronize model ' + err.model + ': ' + err);
     else
-      console.info('Database synchronized.');
+      winston.info('Database synchronized.');
   });
 };
 

@@ -4,6 +4,7 @@
 
 var config = require('./config');
 var util = require('util');
+var winston = require('winston');
 
 var webauth_headers = {
   username: 'x-webauth-user',
@@ -161,7 +162,7 @@ exports.init = function(app) {
                 'Failed to create user entry.\n\n' + util.format(err)));
             return;
           } else {
-            console.info(
+            winston.info(
                 'Created user ' + user.id + ' (' + user.username + ')');
             callback(user);
             return;
