@@ -3,24 +3,41 @@
  */
 
 var config = require('./config');
+var util = require('util');
+
+var webauth_headers = {
+  username: 'x-webauth-user',
+  firstname: 'x-webauth-ldap-givenname',
+  lastname: 'x-webauth-ldap-sn',
+  fullname: 'x-webauth-ldap-cn'
+};
 
 exports.init = function(app) {
   var ret = {};
 
   if (config.auth.method == 'webauth') {
-    // TODO: Implement webauth.
-    // https://wiki.csh.rit.edu/wiki/Member_Pages
-
-    console.error('Webauth not implemented.');
-
     config.logoutUrl = config.auth.webauth.logout_url;
 
     ret.initHandlers = function() {};
 
-    ret.getUser = function(req, res) {
-      res.status(500);
-      res.send('Webauth not implemented.');
-      return null;
+    ret.getUserSession = function(req, res) {
+      var missing_headers = [];
+      Object.keys(webauth_headers).forEach(function(key) {
+        if (!(webauth_headers[key] in req.headers))
+          missing_headers.push(webauth_headers[key]);
+      });
+
+      if (missing_headers.length)
+        throw new Error(
+            'Missing webauth headers: ' + missing_headers + '\n\nHeaders: ' +
+            util.format(req.headers));
+
+      return {
+        username: req.headers[webauth_headers.username],
+        firstName: req.headers[webauth_headers.firstname],
+        lastName: req.headers[webauth_headers.lastname],
+        fullName: req.headers[webauth_headers.fullname]
+      };
     };
 
   } else if (config.auth.method == 'dev') {
@@ -73,7 +90,7 @@ exports.init = function(app) {
       });
     }
 
-    ret.getUser = function(req, res) {
+    ret.getUserSession = function(req, res) {
       if (!req.session || !req.session.user) {
         req.session.ret_url = req.url;
         res.status(302);
@@ -82,13 +99,20 @@ exports.init = function(app) {
         return null;
       }
 
-      // TODO: If no user.id, make sure user exists in db, or create them.
-      // Also, if they exist, make sure the first+last+full name in the db
-      // is up to date.
-
       return req.session.user;
     };
   }
+
+  ret.getUser = function(req, res) {
+    var session = ret.getUserSession(req, res);
+    if (!session) return null;
+
+    // TODO: If no user.id, make sure user exists in db, or create them.
+    // Also, if they exist, make sure the first+last+full name in the db
+    // is up to date.
+    
+    return session;
+  };
 
   return ret;
 }
