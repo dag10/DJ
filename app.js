@@ -10,17 +10,19 @@ var database = require('./database');
 var models_module = require('./models');
 var winston = require('winston');
 var logging = require('./logging');
+var rooms = require('./rooms');
 
 logging.init();
 
 var app = express();
 
 app.configure(function() {
-  database.init(app, models_module.define, function() {
-    var auth = auth_module.init(app);
-    handlers.init(app, auth);
-    app.listen(config.web.port, function() {
-      winston.info('Server listening on port', config.web.port);
+  database.init(app, models_module.define, function(models) {
+    rooms.init(models, function() {
+      handlers.init(app, auth_module.init(app));
+      app.listen(config.web.port, function() {
+        winston.info('Server listening on port', config.web.port);
+      });
     });
   });
 });
