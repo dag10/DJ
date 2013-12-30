@@ -3,11 +3,15 @@
 <% stylesheet('/styles/error.css') %>
 
 <div class="well">
-  <h2>Error</h2>
-  <% if (config.web.debug) { %>
-    <pre><%= error.stack %></pre>
-  <% } else { %>
+  <h2><%= (typeof header != 'undefined' && header) ? header : 'Error' %></h2>
+  <% if (typeof error == 'string') { %>
     <pre><%= error %></pre>
+  <% } else if (typeof error == 'object') { %>
+    <% if (config.web.debug) { %>
+      <pre><%= error.stack %></pre>
+    <% } else { %>
+      <pre><%= error %></pre>
+    <% } %>
   <% } %>
 </div>
 

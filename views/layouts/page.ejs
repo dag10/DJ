@@ -1,35 +1,77 @@
 <!doctype html>
 <%
   if (typeof user === 'undefined') user = null;
+  if (typeof rooms === 'undefined') rooms = null;
+  var admin = user && user.admin;
+  var room_action = user ? 'play' : 'listen';
 %>
 <html>
   <head>
     <title><%= blocks.title || config.web.title %></title>
     <link rel="stylesheet" href="/styles/bootstrap.css" />
+    <link rel="stylesheet" href="/styles/style.css" />
     <link rel="shortcut icon" href="/images/csh_dj_small.png" />
     <%- stylesheets %>
   </head>
   <body>
     <nav class="navbar navbar-default" role="navigation">
-      <div class="navbar-header">
-        <a class="navbar-brand" href="/"><%= config.web.title %></a>
-      </div>
-      <div class="collapse navbar-collapse">
-        <% if (user) { %>
-          <ul class="nav navbar-nav navbar-right">
-            <li class="dropdown">
-              <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <%= user.fullName %> <b class="caret"></b>
-              </a>
-              <ul class="dropdown-menu">
-                <li><a href="<%= config.logoutUrl %>">Log Out</a></li>
-              </ul>
-            </li>
+      <div class="navbar-container">
+        <div class="navbar-header">
+          <a href="/">
+            <img src="/images/csh_dj_large.svg" id="navbar-logo" />
+          </a>
+        </div>
+        <div class="collapse navbar-collapse">
+          <ul class="nav navbar-nav">
+            <% if (rooms && rooms.length > 0) { %>
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  Rooms <b class="caret"></b></a>
+                <ul class="dropdown-menu room-menu">
+                  <% for (var i = 0; i < rooms.length; i++) { %>
+                    <li>
+                      <a href="/<%= room_action %>/<%= rooms[i].shortname %>">
+                      <% if (user && rooms[i].admin_id == user.id) { %>
+                        <span
+                          title="You own this room."
+                          class="glyphicon glyphicon-star">
+                        </span>
+                      <% } %>
+                      <%= rooms[i].name %>
+                      <span class="badge pull-right">
+                        <%= rooms[i].users.length %>
+                      </span>
+                    </a></li>
+                  <% } %>
+                  <% if (admin) { %>
+                    <li class="divider"></li>
+                    <li><a href="#" id="btn-new-room">
+                      <span class="glyphicon glyphicon-plus"></span>
+                      New Room
+                    </a></li>
+                  <% } %>
+                </ul>
+              </li>
+            <% } %>
           </ul>
-        <% } %>
+          <% if (user) { %>
+            <ul class="nav navbar-nav navbar-right">
+              <li class="dropdown">
+                <a href="#" class="dropdown-toggle" data-toggle="dropdown">
+                  <%= user.fullName %> <b class="caret"></b>
+                </a>
+                <ul class="dropdown-menu">
+                  <li><a href="<%= config.logoutUrl %>">Log Out</a></li>
+                </ul>
+              </li>
+            </ul>
+          <% } %>
+        </div>
       </div>
     </nav>
-    <%- body -%>
+    <div class="body-container">
+      <%- body -%>
+    </div>
     <script src="/scripts/jquery-1.10.2.js"></script>
     <script src="/scripts/bootstrap.js"></script>
     <%- scripts %>

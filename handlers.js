@@ -7,6 +7,7 @@ var express = require('express');
 var lessMiddleware = require('less-middleware');
 var os = require('os');
 var winston = require('winston');
+var rooms = require('./rooms');
 
 exports.init = function(app, auth) {
   app.enable('trust proxy');
@@ -39,19 +40,49 @@ exports.init = function(app, auth) {
     auth.getUser(req, res, next, function(user) {
       res.render('index.ejs', {
         user: user,
-        config: config
+        config: config,
+        rooms: rooms.getRooms()
       });
     });
   });
 
   app.get('/play/:room', function(req, res, next) {
-    auth.getuser(req, res, next, function(user) {
-      res.send('You\'re playing in: ' + req.param('room'));
+    auth.getUser(req, res, next, function(user) {
+      var room = rooms.getRoom(req.param('room'));
+      if (!room) {
+        res.render('error.ejs', {
+          user: user,
+          config: config,
+          rooms: rooms.getRooms(),
+          header: 'Room "' + req.param('room') + '" does not exist.'
+        });
+        return;
+      }
+      res.render('play.ejs', {
+        user: user,
+        config: config,
+        rooms: rooms.getRooms(),
+        room: room
+      });
     });
   });
 
   app.get('/listen/:room', function(req, res) {
-    res.send('You\'re listening to: ' + req.param('room'));
+    var room = rooms.getRoom(req.param('room'));
+    if (!room) {
+      res.render('error.ejs', {
+        user: user,
+        config: config,
+        rooms: rooms.getRooms(),
+        header: 'Room "' + req.param('room') + '" does not exist.'
+      });
+      return;
+    }
+    res.render('listen.ejs', {
+      config: config,
+      rooms: rooms.getRooms(),
+      room: room
+    });
   });
 
   app.use(function(err, req, res, next) {
@@ -59,7 +90,8 @@ exports.init = function(app, auth) {
     res.status(500);
     res.render('error.ejs', {
       error: err,
-      config: config
+      config: config,
+      rooms: rooms.getRooms()
     });
   });
 }
