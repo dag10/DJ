@@ -1,0 +1,29 @@
+@import 'constants.less';
+
+.navbar-container {
+  width: @site-width;
+  margin: 0 auto;
+}
+
+#navbar-logo {
+  height: 50px;
+  display: inline-block;
+  padding: 5px;
+  margin-right: 10px;
+
+  @fadetime: .1s;
+  transition: opacity @fadetime ease-in-out;
+  -moz-transition: opacity @fadetime ease-in-out;
+  -webkit-transiition: opacity @fadetime ease-in-out;
+
+  &:hover {
+    opacity: 0.8;
+  }
+}
+
+ul.room-menu {
+  li {
+    width: 220px;
+  }
+}
+
