@@ -100,5 +100,17 @@ exports.init = function(app, auth) {
       });
     });
   });
-}
+
+  app.use(function(req, res, next) {
+    auth.getUser(false, req, res, next, function(user) {
+      res.status(404);
+      res.render('error.ejs', {
+        user: user,
+        header: 'Page not found: ' + req.url,
+        config: config,
+        rooms: rooms.getRooms()
+      });
+    });
+  });
+};
 
