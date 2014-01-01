@@ -37,7 +37,7 @@ exports.init = function(app, auth) {
   auth.initHandlers();
 
   app.get('/', function(req, res, next) {
-    auth.getUser(req, res, next, function(user) {
+    auth.getUser(false, req, res, next, function(user) {
       res.render('index.ejs', {
         user: user,
         config: config,
@@ -47,7 +47,7 @@ exports.init = function(app, auth) {
   });
 
   app.get('/play/:room', function(req, res, next) {
-    auth.getUser(req, res, next, function(user) {
+    auth.getUser(true, req, res, next, function(user) {
       var room = rooms.getRoom(req.param('room'));
       if (!room) {
         res.render('error.ejs', {
@@ -67,31 +67,37 @@ exports.init = function(app, auth) {
     });
   });
 
-  app.get('/listen/:room', function(req, res) {
-    var room = rooms.getRoom(req.param('room'));
-    if (!room) {
-      res.render('error.ejs', {
+  app.get('/listen/:room', function(req, res, next) {
+    auth.getUser(false, req, res, next, function(user) {
+      var room = rooms.getRoom(req.param('room'));
+      if (!room) {
+        res.render('error.ejs', {
+          user: user,
+          config: config,
+          rooms: rooms.getRooms(),
+          header: 'Room "' + req.param('room') + '" does not exist.'
+        });
+        return;
+      }
+      res.render('listen.ejs', {
         user: user,
         config: config,
         rooms: rooms.getRooms(),
-        header: 'Room "' + req.param('room') + '" does not exist.'
+        room: room
       });
-      return;
-    }
-    res.render('listen.ejs', {
-      config: config,
-      rooms: rooms.getRooms(),
-      room: room
     });
   });
 
   app.use(function(err, req, res, next) {
-    winston.error(err.stack);
-    res.status(500);
-    res.render('error.ejs', {
-      error: err,
-      config: config,
-      rooms: rooms.getRooms()
+    auth.getUser(false, req, res, next, function(user) {
+      winston.error(err.stack);
+      res.status(500);
+      res.render('error.ejs', {
+        user: user,
+        error: err,
+        config: config,
+        rooms: rooms.getRooms()
+      });
     });
   });
 }

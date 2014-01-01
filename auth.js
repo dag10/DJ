@@ -21,15 +21,43 @@ function sanitizeSession(session) {
   session.fullName = sanitizer.escape(session.fullName);
 }
 
+function returnToReferer(req, res) {
+  res.status(302);
+  res.setHeader('Location', req.header('Referer') || '/');
+  res.end();
+}
+
+function returnToUrl(req, res) {
+  res.status(302);
+  res.setHeader('Location', req.session.ret_url || '/');
+  req.session.ret_url = null;
+  res.end();
+}
+
 exports.init = function(app) {
   var ret = {};
+
+  config.loginUrl = '/login';
 
   if (config.auth.method == 'webauth') {
     config.logoutUrl = config.auth.webauth.logout_url;
 
-    ret.initHandlers = function() {};
+    ret.initHandlers = function() {
+      app.get('/webauth', function(req, res) {
+        var session = ret.getUserSession(true, req, res);
+        if (session)
+          returnToUrl(req, res);
+      });
 
-    ret.getUserSession = function(req, res) {
+      app.get('/login', function(req, res) {
+        req.session.ret_url = req.header('Referer');
+        res.status(302);
+        res.setHeader('Location', '/webauth');
+        res.end();
+      });
+    };
+
+    ret.getUserSession = function(required, req, res) {
       var missing_headers = [];
       Object.keys(webauth_headers).forEach(function(key) {
         if (!(webauth_headers[key] in req.headers))
@@ -38,6 +66,7 @@ exports.init = function(app) {
 
       if (missing_headers.length) {
         req.session.user = null;
+        if (!required) return null;
         throw new Error(
             'Missing webauth headers: ' + missing_headers + '\n\nHeaders: ' +
             util.format(req.headers));
@@ -61,15 +90,18 @@ exports.init = function(app) {
       app.get('/logout', function(req, res) {
         if (req.session && req.session.user)
           req.session.user = null;
-        res.status(302);
-        res.setHeader('Location', '/');
-        res.end();
+        returnToReferer(req, res);
       });
 
       app.get('/login', function(req, res) {
-        res.render('login.ejs', {
-          config: config
-        });
+        if (ret.getUserSession(false, req, res)) {
+          returnToReferer(req, res);
+        } else {
+          req.session.ret_url = req.header('Referer') || '/';
+          res.render('login.ejs', {
+            config: config
+          });
+        }
       });
 
       app.post('/login', function(req, res) {
@@ -97,18 +129,19 @@ exports.init = function(app) {
           fullName: req.body.first_name + ' ' + req.body.last_name
         };
 
-        res.status(302);
-        res.setHeader('Location', req.session.ret_url || '/');
-        res.end();
+        returnToUrl(req, res);
       });
     }
 
-    ret.getUserSession = function(req, res) {
+    ret.getUserSession = function(required, req, res) {
       if (!req.session || !req.session.user) {
-        req.session.ret_url = req.url;
-        res.status(302);
-        res.setHeader('Location', '/login');
-        res.end();
+        if (required) {
+          req.session.ret_url = req.url;
+          res.status(302);
+          res.setHeader('Location', '/login');
+          res.end();
+        }
+
         return null;
       }
 
@@ -116,17 +149,20 @@ exports.init = function(app) {
     };
   }
 
-  ret.getUser = function(req, res, next, callback) {
+  ret.getUser = function(required, req, res, next, callback) {
     var session;
     try {
-      session = ret.getUserSession(req, res);
+      session = ret.getUserSession(required, req, res);
     } catch (err) {
       next(err);
       return;
     }
 
-    if (!session) return; // No session, but the active auth should have
-                          // handled the response.
+    if (!session) {
+      if (!required)
+        callback(null);
+      return;
+    }
 
     sanitizeSession(session);
 

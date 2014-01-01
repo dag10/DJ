@@ -1,5 +1,7 @@
 <% layout('layouts/page') -%>
 <% block('title', 'Rooms') -%>
-<h1>Welcome, <%= user.fullName %>!</h1>
+<% if (user) { %>
+  <h1>Welcome, <%= user.fullName %>!</h1>
+<% } %>
 Please select a room.
 
