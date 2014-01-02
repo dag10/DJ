@@ -97,7 +97,8 @@ exports.init = function(app) {
         if (ret.getUserSession(false, req, res)) {
           returnToReferer(req, res);
         } else {
-          req.session.ret_url = req.header('Referer') || '/';
+          if (!req.session.ret_url)
+            req.session.ret_url = req.header('Referer') || '/';
           res.render('login.ejs', {
             config: config
           });
