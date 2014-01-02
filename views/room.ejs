@@ -1,0 +1,41 @@
+<% layout('layouts/page') -%>
+<%
+  block('title', room.name);
+  if (user) {
+    script('/scripts/upload.js');
+    col_classes = {
+      queue: 'col-sm-3 col-sm-12 room-well',
+      users: 'col-sm-3 col-sm-12 col-sm-push-6 room-well',
+      activity: 'col-sm-6 col-sm-12 col-sm-pull-3 room-activity'
+    };
+  } else {
+    col_classes = {
+      users: 'col-sm-3 col-sm-12 room-well',
+      activity: 'col-sm-9 col-sm-12 room-activity'
+    };
+  }
+%>
+<div class="row room-container">
+  <% if (user) { %>
+    <div class="<%= col_classes.queue %>">
+      <h1>Your Queue</h1>
+      <h1 class="footer upload">
+        <a href="#" class="btn btn-default">
+          <span class="glyphicon glyphicon-cloud-upload"></span>
+          Upload Songs
+        </a>
+      </h1>
+    </div>
+  <% } %>
+  <div class="<%= col_classes.users %>">
+    <h1>Current DJs</h1>
+    Blah
+    <h1>Listeners</h1>
+    Blah
+    <h1 class="footer">0 Anonymous listeners.</h1>
+  </div>
+  <div class="<%= col_classes.activity %>">
+    <h1><%= room.name %> Activity</h1>
+  </div>
+</div>
+

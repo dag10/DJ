@@ -46,26 +46,7 @@ exports.init = function(app, auth) {
     });
   });
 
-  app.get('/play/:room', function(req, res, next) {
-    auth.getUser(true, req, res, next, function(user) {
-      var room = rooms.getRoom(req.param('room'));
-      if (!room) {
-        res.render('error.ejs', {
-          user: user,
-          config: config,
-          header: 'Room "' + req.param('room') + '" does not exist.'
-        });
-        return;
-      }
-      res.render('play.ejs', {
-        user: user,
-        config: config,
-        room: room
-      });
-    });
-  });
-
-  app.get('/listen/:room', function(req, res, next) {
+  app.get('/room/:room', function(req, res, next) {
     auth.getUser(false, req, res, next, function(user) {
       var room = rooms.getRoom(req.param('room'));
       if (!room) {
@@ -76,7 +57,7 @@ exports.init = function(app, auth) {
         });
         return;
       }
-      res.render('listen.ejs', {
+      res.render('room.ejs', {
         user: user,
         config: config,
         room: room

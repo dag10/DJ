@@ -17,9 +17,7 @@ the server and the database will be populated for you.
 Webauth
 --
 If using [webauth](http://webauth.stanford.edu) as your authentication method,
-enable webauth for the following paths:
-- /webauth
-- /play/*
+enable webauth for the only the `/webauth` location.
 
 When configuring the reverse proxy, make sure to foward the
 variables as headers:

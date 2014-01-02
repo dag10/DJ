@@ -24,22 +24,13 @@
               <%= room.users.length %>
             </div>
             <a
-              href="/play/<%= room.shortname %>"
+              href="/room/<%= room.shortname %>"
               class="btn btn-primary btn-large">
               <% if (user) { %>
-                <span class="glyphicon glyphicon-play"></span>
+                <span class="glyphicon glyphicon-play"></span> Play
               <% } else { %>
-                <span class="hover-lock">
-                  <span class="glyphicon glyphicon-play"></span>
-                  <span class="glyphicon glyphicon-lock"></span>
-                </span>
+                <span class="glyphicon glyphicon-headphones"></span> Listen
               <% } %>
-              Play
-            </a>
-            <a
-              href="/listen/<%= room.shortname %>"
-              class="btn btn-primary btn-large">
-              <span class="glyphicon glyphicon-headphones"></span> Listen
             </a>
           </div>
         </div>
