@@ -15,10 +15,10 @@
     <% for (var i = 0; i < rooms.length; i++) { var room = rooms[i]; %>
       <div class="col-sm-6 col-md-6 room-listing">
         <div>
-          <div class="room_name"><%= room.name %></div>
-          <div class="room_buttons">
+          <div class="room-name"><%= room.name %></div>
+          <div class="room-buttons">
             <div
-              class="room_label"
+              class="room-label"
               title="<%= room.users.length %> user<%= room.users.length == 1 ? '' : 's' %> in room.">
               <span class="glyphicon glyphicon-user"></span>
               <%= room.users.length %>
@@ -26,7 +26,15 @@
             <a
               href="/play/<%= room.shortname %>"
               class="btn btn-primary btn-large">
-              <span class="glyphicon glyphicon-play"></span> Play
+              <% if (user) { %>
+                <span class="glyphicon glyphicon-play"></span>
+              <% } else { %>
+                <span class="hover-lock">
+                  <span class="glyphicon glyphicon-play"></span>
+                  <span class="glyphicon glyphicon-lock"></span>
+                </span>
+              <% } %>
+              Play
             </a>
             <a
               href="/listen/<%= room.shortname %>"

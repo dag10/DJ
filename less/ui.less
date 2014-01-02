@@ -13,5 +13,37 @@
       border-color: darken(@border, @hover-darken);
     }
   }
+
+  .hover-lock {
+    position: relative;
+
+    .glyphicon {
+      opacity: 1;
+      
+      @fadetime: .15s;
+      transition: opacity @fadetime ease-in-out;
+      -moz-transition: opacity @fadetime ease-in-out;
+      -webkit-transiition: opacity @fadetime ease-in-out;
+    }
+
+    .glyphicon-lock {
+      font-size: 80%;
+      position: absolute;
+      top: 10%;
+      left: 10%;
+      opacity: 0;
+    }
+  }
+
+  &:hover .hover-lock {
+    .glyphicon {
+      opacity: 0;
+    }
+
+    .glyphicon-lock {
+      opacity: 1;
+    }
+  }
 }
+
 
