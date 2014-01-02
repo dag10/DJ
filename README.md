@@ -1,4 +1,3 @@
-
 Computer Science House DJ
 ==
 
@@ -17,10 +16,10 @@ the server and the database will be populated for you.
 Webauth
 --
 If using [webauth](http://webauth.stanford.edu) as your authentication method,
-enable webauth for the only the `/webauth` location.
+require webauth for the only the `/webauth` location.
 
 When configuring the reverse proxy, make sure to foward the
-variables as headers:
+variables as headers for **all** locations:
 - `WEBAUTH_USER` > `x-webauth-user`
 - `WEBAUTH_LDAP_GIVENNAME` > `x-webauth-ldap-givenname`
 - `WEBAUTH_LDAP_SN` > `x-webauth-ldap-sn`
