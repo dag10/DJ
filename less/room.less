@@ -1,0 +1,75 @@
+@import 'constants.less';
+
+@well-border-radius: 5px;
+
+.room-container {
+  margin-left: 0;
+  margin-right: 0;
+}
+
+.room-activity {
+  & > h1 {
+    border-bottom: solid 1px lighten(@color-grey-border, 10%);
+    margin-top: 0;
+    text-align: center;
+    padding-bottom: 10px;
+    font-size: 22px;
+  }
+}
+
+.room-well {
+  @well-header-height: 35px;
+
+  border: solid 1px @color-grey-border;
+  background-color: @color-grey-background;
+  border-radius: @well-border-radius;
+  position: relative;
+  padding-bottom: @well-header-height;
+
+  @media only screen and (max-width: 768px) {
+    margin: 10px;
+  }
+
+  & > h1 {
+    height: @well-header-height;
+    font-size: 17px;
+    margin: 0 -15px;
+    margin-bottom: 5px;
+    padding: 8px;
+    text-align: center;
+    border-color: lighten(@color-grey-border, 5%);
+    border-style: solid;
+    border-width: 1px 0;
+    background-color: darken(@color-grey-background, 5%);
+
+    &:first-child {
+      border-top: none;
+      border-top-left-radius: @well-border-radius;
+      border-top-right-radius: @well-border-radius;
+    }
+
+    &:last-child {
+      border-bottom: none;
+      border-bottom-left-radius: @well-border-radius;
+      border-bottom-right-radius: @well-border-radius;
+      margin-bottom: 0;
+    }
+
+    &.upload {
+      padding: 4px;
+
+      .btn {
+        padding-top: 2px;
+        padding-bottom: 2px;
+        width: 100%;
+      }
+    }
+
+    &.footer {
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+    }
+  }
+}
+
