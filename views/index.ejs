@@ -17,6 +17,12 @@
         <div>
           <div class="room_name"><%= room.name %></div>
           <div class="room_buttons">
+            <div
+              class="room_label"
+              title="<%= room.users.length %> user<%= room.users.length == 1 ? '' : 's' %> in room.">
+              <span class="glyphicon glyphicon-user"></span>
+              <%= room.users.length %>
+            </div>
             <a
               href="/play/<%= room.shortname %>"
               class="btn btn-primary btn-large">
