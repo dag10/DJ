@@ -17,13 +17,11 @@
         <div>
           <div class="room_name"><%= room.name %></div>
           <div class="room_buttons">
-            <% if (user) { %>
-              <a
-                href="/play/<%= room.shortname %>"
-                class="btn btn-primary btn-large">
-                <span class="glyphicon glyphicon-play"></span> Play
-              </a>
-            <% } %>
+            <a
+              href="/play/<%= room.shortname %>"
+              class="btn btn-primary btn-large">
+              <span class="glyphicon glyphicon-play"></span> Play
+            </a>
             <a
               href="/listen/<%= room.shortname %>"
               class="btn btn-primary btn-large">
