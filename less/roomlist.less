@@ -1,0 +1,28 @@
+@import 'constants.less';
+
+@side-padding: 12px;
+
+.room-listing {
+  padding: 10px @side-padding;
+
+  & > div {
+    border: solid 1px @color-grey-border;
+    background-color: @color-grey-background;
+    border-radius: 5px;
+    white-space: nowrap;
+
+    .room_name {
+      display: inline-block;
+      min-height: 45px;
+      font-size: 23px;
+      font-weight: 300;
+      padding: 5px;
+    }
+
+    .room_buttons {
+      float: right;
+      padding: 5px;
+    }
+  }
+}
+
