@@ -1,0 +1,17 @@
+@import 'constants.less';
+
+.btn {
+  &.btn-primary {
+    @background: @color-purple;
+    @border: darken(@color-purple, 5%);
+
+    background-color: @background;
+    border-color: @border;
+
+    &:hover {
+      background-color: darken(@background, @hover-darken);
+      border-color: darken(@border, @hover-darken);
+    }
+  }
+}
+

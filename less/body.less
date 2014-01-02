@@ -1,8 +1,20 @@
 @import 'constants.less';
 
 .body-container {
-  width: @site-width;
+  max-width: @site-width;
   margin: 0 auto;
   padding: 0 10px;
+  font-family: @font-family, sans-serif;
+  cursor: default;
+
+  & > h1 {
+    font-size: 25px;
+    font-weight: 300;
+    margin-bottom: 20px;
+
+    @media only screen and (max-width: 768px) {
+      font-size: 20px;
+    }
+  }
 }
 

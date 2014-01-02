@@ -1,7 +1,38 @@
 <% layout('layouts/page') -%>
 <% block('title', 'Rooms') -%>
-<% if (user) { %>
-  <h1>Welcome, <%= user.fullName %>!</h1>
+<h1>
+  <% if (user) { %>
+    Hey, <%= user.firstName %>!
+  <% } %>
+  <% if (rooms) { %>
+    <%= user ? 'Join' : 'Listen to' %> a room:
+  <% } else { %>
+    No rooms exist at the moment.
+  <% } %>
+</h1>
+<% if (rooms) { %>
+  <div class="row">
+    <% for (var i = 0; i < rooms.length; i++) { var room = rooms[i]; %>
+      <div class="col-sm-6 col-md-6 room-listing">
+        <div>
+          <div class="room_name"><%= room.name %></div>
+          <div class="room_buttons">
+            <% if (user) { %>
+              <a
+                href="/play/<%= room.shortname %>"
+                class="btn btn-primary btn-large">
+                <span class="glyphicon glyphicon-play"></span> Play
+              </a>
+            <% } %>
+            <a
+              href="/listen/<%= room.shortname %>"
+              class="btn btn-primary btn-large">
+              <span class="glyphicon glyphicon-headphones"></span> Listen
+            </a>
+          </div>
+        </div>
+      </div>
+    <% } %>
+  </div>
 <% } %>
-Please select a room.
 
