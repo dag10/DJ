@@ -30,6 +30,22 @@
     margin: 10px;
   }
 
+  @height_iterations: 1000px;
+  @height_difference: 150px;
+  @min_height: @height_difference + 100px;
+  .loopingClass (@index) when (@index > @min_height) {
+    @media only screen and (min-width: 768px) and (max-height: @index) {
+      height: @index - @height_difference;
+    }
+    .loopingClass(@index - 50px);
+  }
+  .loopingClass (0) {}
+  .loopingClass (@height_iterations);
+
+  @media only screen and (max-width: 768px) {
+    min-height: 400px;
+  }
+
   & > h1 {
     height: @well-header-height;
     font-size: 17px;
