@@ -53,7 +53,6 @@ exports.init = function(app, auth) {
         res.render('error.ejs', {
           user: user,
           config: config,
-          rooms: rooms.getRooms(),
           header: 'Room "' + req.param('room') + '" does not exist.'
         });
         return;
@@ -61,7 +60,6 @@ exports.init = function(app, auth) {
       res.render('play.ejs', {
         user: user,
         config: config,
-        rooms: rooms.getRooms(),
         room: room
       });
     });
@@ -74,7 +72,6 @@ exports.init = function(app, auth) {
         res.render('error.ejs', {
           user: user,
           config: config,
-          rooms: rooms.getRooms(),
           header: 'Room "' + req.param('room') + '" does not exist.'
         });
         return;
@@ -82,7 +79,6 @@ exports.init = function(app, auth) {
       res.render('listen.ejs', {
         user: user,
         config: config,
-        rooms: rooms.getRooms(),
         room: room
       });
     });
@@ -95,8 +91,7 @@ exports.init = function(app, auth) {
       res.render('error.ejs', {
         user: user,
         error: err,
-        config: config,
-        rooms: rooms.getRooms()
+        config: config
       });
     });
   });
@@ -107,8 +102,7 @@ exports.init = function(app, auth) {
       res.render('error.ejs', {
         user: user,
         header: 'Page not found: ' + req.url,
-        config: config,
-        rooms: rooms.getRooms()
+        config: config
       });
     });
   });
