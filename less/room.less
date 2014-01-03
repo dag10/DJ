@@ -1,6 +1,7 @@
 @import 'constants.less';
 
-@well-border-radius: 5px;
+@column-border-radius: 5px;
+@activity-width: 500px;
 
 .room-container {
   margin-left: 0;
@@ -17,18 +18,8 @@
   }
 }
 
-.room-well {
-  @well-header-height: 35px;
-
-  border: solid 1px @color-grey-border;
-  background-color: @color-grey-background;
-  border-radius: @well-border-radius;
-  position: relative;
-  padding-bottom: @well-header-height;
-
-  @media only screen and (max-width: 768px) {
-    margin: 10px;
-  }
+.fixed-column {
+  padding: 0;
 
   @height_iterations: 1000px;
   @height_difference: 150px;
@@ -46,46 +37,123 @@
     min-height: 400px;
   }
 
-  & > h1 {
-    height: @well-header-height;
-    font-size: 17px;
-    margin: 0 -15px;
-    margin-bottom: 5px;
-    padding: 8px;
-    text-align: center;
-    border-color: lighten(@color-grey-border, 5%);
-    border-style: solid;
-    border-width: 1px 0;
-    background-color: darken(@color-grey-background, 5%);
+  .column-table {
+    margin: 0;
+    padding: 0;
+    display: table;
+    width: 100%;
+    height: 100%;
+    border: solid 1px @color-grey-border;
+    border-radius: @column-border-radius;
+    background-color: @color-grey-background;
 
-    &:first-child {
-      border-top: none;
-      border-top-left-radius: @well-border-radius;
-      border-top-right-radius: @well-border-radius;
-    }
+    .column-table-row {
+      @section-padding: 5px;
+      display: table-row;
 
-    &:last-child {
-      border-bottom: none;
-      border-bottom-left-radius: @well-border-radius;
-      border-bottom-right-radius: @well-border-radius;
-      margin-bottom: 0;
-    }
+      .column-section {
+        position: relative;
+        padding: @section-padding;
+        height: 100%;
+        border-top: solid 1px lighten(@color-grey-border, 5%);
 
-    &.upload {
-      padding: 4px;
+        &, &:before, &:after {
+          @box-sizing: content-box;
+          -webkit-box-sizing: @box-sizing;
+          -moz-box-sizing: @box-sizing;
+          box-sizing: @box-sizing;
+        }
 
-      .btn {
-        padding-top: 2px;
-        padding-bottom: 2px;
-        width: 100%;
+        &:empty {
+          display: none;
+        }
+
+        h1 {
+          margin: -@section-padding;
+          font-size: 17px;
+          text-align: center;
+          background-color: darken(@color-grey-background, 5%);
+          padding: 8px;
+        }
+      }
+
+      &.stretch {
+        height: 100%;
+
+        .column-section {
+          overflow-y: auto;
+        }
+      }
+
+      &:first-child {
+        .column-section, h1 {
+          border-top: none;
+          border-top-left-radius: @column-border-radius;
+          border-top-right-radius: @column-border-radius;
+        }
+      }
+
+      &:last-child {
+        .column-section, h1 {
+          border-bottom-left-radius: @column-border-radius;
+          border-bottom-right-radius: @column-border-radius;
+        }
       }
     }
+  }
 
-    &.footer {
+  .drag-overlay {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background-color: rgba(255,255,255,0.6);
+    @shadow: inset 0 0 40px 1px rgba(0,0,0,0.1);
+    -webkit-box-shadow: @shadow;
+    box-shadow: @shadow;
+    pointer-events: none;
+
+    opacity: 0;
+    @fadetime: .1s;
+    transition: opacity @fadetime ease-in-out;
+    -moz-transition: opacity @fadetime ease-in-out;
+    -webkit-transition: opacity @fadetime ease-in-out;
+
+    & > div {
+      @height: 100px;
+      @width: 200px;
+
       position: absolute;
-      bottom: 0;
-      width: 100%;
+      top: 50%;
+      left: 50%;
+      display: block;
+      width: @width;
+      height: @height;
+      margin-top: -(@height/2);
+      margin-left: -(@width/2);
+      text-align: center;
+      vertical-align: center;
+      line-height: @height;
+      font-size: 20px;
+      font-weight: 200;
+      color: darken(@color-grey-background, 80%);
+      opacity: 0.8;
     }
   }
+
+  &.dragging .drag-overlay {
+    opacity: 1;
+  }
+
+  @media only screen and (max-width: 767px) {
+    height: 400px;
+    margin: 10px;
+  }
+}
+
+#btn-upload {
+  padding: 4px;
+  width: 100%;
 }
 

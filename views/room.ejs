@@ -2,40 +2,104 @@
 <%
   block('title', room.name);
   if (user) {
+    script('/scripts/dropzone.js');
     script('/scripts/upload.js');
     col_classes = {
-      queue: 'col-sm-3 col-sm-12 room-well',
-      users: 'col-sm-3 col-sm-12 col-sm-push-6 room-well',
+      queue: 'col-sm-3 col-sm-12',
+      users: 'col-sm-3 col-sm-12 col-sm-push-6',
       activity: 'col-sm-6 col-sm-12 col-sm-pull-3 room-activity'
     };
   } else {
     col_classes = {
-      users: 'col-sm-3 col-sm-12 room-well',
+      users: 'col-sm-3 col-sm-12',
       activity: 'col-sm-9 col-sm-12 room-activity'
     };
   }
 %>
 <div class="row room-container">
   <% if (user) { %>
-    <div class="<%= col_classes.queue %>">
-      <h1>Your Queue</h1>
-      <h1 class="footer upload">
-        <a href="#" class="btn btn-default">
-          <span class="glyphicon glyphicon-cloud-upload"></span>
-          Upload Songs
-        </a>
-      </h1>
+    <div id="queue-column" class="fixed-column <%= col_classes.queue %>">
+      <div class="column-table">
+        <div class="column-table-row">
+          <div class="column-section">
+            <h1>Your Queue</h1>
+          </div>
+        </div>
+        <div class="column-table-row stretch">
+          <div class="column-section">
+            <em>Drag songs here to upload.</em>
+            <div class="drag-overlay"><div>Upload Songs</div></div>
+          </div>
+        </div>
+        <div class="column-table-row">
+          <div class="column-section">
+            <h1>Uploads</h1>
+          </div>
+        </div>
+        <div class="column-table-row">
+          <div class="column-section" id="previews"></div>
+        </div>
+        <div class="column-table-row">
+          <div class="column-section">
+            <a href="#" class="btn btn-default" id="btn-upload">
+              <span class="glyphicon glyphicon-cloud-upload"></span>
+              Upload Songs
+            </a>
+          </div>
+        </div>
+      </div>
     </div>
   <% } %>
-  <div class="<%= col_classes.users %>">
-    <h1>Current DJs</h1>
-    Blah
-    <h1>Listeners</h1>
-    Blah
-    <h1 class="footer">0 Anonymous listeners.</h1>
+  <div id="users-column" class="fixed-column <%= col_classes.users %>">
+    <div class="column-table">
+      <div class="column-table-row">
+        <div class="column-section">
+          <h1>Current DJs</h1>
+        </div>
+      </div>
+      <div class="column-table-row">
+        <div class="column-section">
+          <em>There are no current DJs.</em>
+        </div>
+      </div>
+      <div class="column-table-row">
+        <div class="column-section">
+          <h1>Listeners</h1>
+        </div>
+      </div>
+      <div class="column-table-row stretch">
+        <div class="column-section">
+          <em>There are no current listeners.</em>
+        </div>
+      </div>
+      <div class="column-table-row">
+        <div class="column-section">
+          <h1>0 Anonymous listeners.</h1>
+        </div>
+      </div>
+    </div>
   </div>
-  <div class="<%= col_classes.activity %>">
+  <div
+    id="activity-column"
+    class="<%= col_classes.activity %>" style="position: relative;">
     <h1><%= room.name %> Activity</h1>
+  </div>
+</div>
+
+<div class="template" id="upload-preview-template">
+  <div class="dz-preview dz-file-preview">
+    <div class="dz-details">
+      <div class="dz-filename"><span data-dz-name></span></div>
+      <div class="dz-size" data-dz-size></div>
+      <img data-dz-thumbnail />
+    </div>
+    <div class="dz-progress">
+      <span class="dz-upload" data-dz-uploadprogress>
+      </span>
+    </div>
+    <div class="dz-success-mark"><span>✔</span></div>
+    <div class="dz-error-mark"><span>✘</span></div>
+    <div class="hide dz-error-message"><span data-dz-errormessage></span></div>
   </div>
 </div>
 
