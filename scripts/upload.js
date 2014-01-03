@@ -2,6 +2,7 @@ $(function() {
   var $queue_col = $('#queue-column');
   var $song_input = $('#song-form input[type=file]');
   var $uploads_header = $('#uploads-header');
+  var $uploads_container = $('#uploads-container');
 
   $queue_col.on('dragover', function(e) {
     $(this).addClass('dragging');
@@ -19,7 +20,7 @@ $(function() {
   var dropzone = new Dropzone('#queue-column', {
     url: '/song/upload',
     parallelUploads: true,
-    maxFilesize: 50,
+    maxFilesize: config.max_file_size,
     clickable: '#btn-upload',
     maxFiles: 10,
     previewsContainer: '#previews',
@@ -28,10 +29,26 @@ $(function() {
 
   dropzone.on('addedfile', function(file) {
     $uploads_header.show();
+    $uploads_container.show();
   });
 
   dropzone.on('reset', function() {
     $uploads_header.hide();
+    $uploads_container.hide();
+  });
+
+  dropzone.on('error', function(file) {
+    $(file.previewElement).find('.background').css(
+      'background-color', 'red');
+  });
+
+  dropzone.on('success', function(file) {
+    $(file.previewElement).find('.background').css(
+      'background-color', 'green');
+
+    setTimeout(function() {
+      dropzone.removeFile(file);
+    }, 4000);
   });
   
   $('#btn-close-uploads').click(function(e) {
@@ -43,5 +60,6 @@ $(function() {
   });
 
   $uploads_header.hide();
+  $uploads_container.hide();
 });
 

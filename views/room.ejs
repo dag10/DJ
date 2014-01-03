@@ -46,7 +46,9 @@
           </div>
         </div>
         <div class="column-table-row">
-          <div class="column-section" id="previews"></div>
+          <div class="column-section" id="uploads-container">
+            <ul id="previews"></ul>
+          </div>
         </div>
         <div class="column-table-row">
           <div class="column-section">
@@ -96,19 +98,12 @@
 </div>
 
 <div class="template" id="upload-preview-template">
-  <div class="dz-preview dz-file-preview">
-    <div class="dz-details">
-      <div class="dz-filename"><span data-dz-name></span></div>
-      <div class="dz-size" data-dz-size></div>
-      <img data-dz-thumbnail />
+  <li class="dz-preview dz-file-preview">
+    <div class="foreground">
+      <span data-dz-name></span> (<span data-dz-size></span>)
+      <div class="error-message" data-dz-errormessage></div>
     </div>
-    <div class="dz-progress">
-      <span class="dz-upload" data-dz-uploadprogress>
-      </span>
-    </div>
-    <div class="dz-success-mark"><span>✔</span></div>
-    <div class="dz-error-mark"><span>✘</span></div>
-    <div class="hide dz-error-message"><span data-dz-errormessage></span></div>
-  </div>
+    <div class="background background-progress" data-dz-uploadprogress></div>
+  </li>
 </div>
 

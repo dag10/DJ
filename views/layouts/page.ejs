@@ -47,6 +47,11 @@
     <div class="body-container">
       <%- body -%>
     </div>
+    <script>
+      window.config = {
+        max_file_size: <%= config.web.max_file_size %>
+      };
+    </script>
     <script src="/scripts/jquery-1.10.2.js"></script>
     <script src="/scripts/bootstrap.js"></script>
     <%- scripts %>

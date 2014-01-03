@@ -15,7 +15,9 @@ exports.init = function(app, auth) {
   app.set('view engine', 'ejs');
   app.engine('ejs', require('ejs-locals'));
 
-  app.use(express.bodyParser()); // TODO: Deprecated; Find alternative.
+  app.use(express.urlencoded({
+    limit: config.web.max_file_size + 'mb'
+  }));
   app.use(express.cookieParser());
   app.use(express.session({secret: Math.random() + '_'}));
 
@@ -44,6 +46,11 @@ exports.init = function(app, auth) {
         rooms: rooms.getRooms()
       });
     });
+  });
+
+  app.post('/song/upload', function(req, res, next) {
+    res.status(200);
+    res.end();
   });
 
   app.get('/room/:room', function(req, res, next) {

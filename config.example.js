@@ -22,6 +22,9 @@ config.web.debug = true;
 // Site title.
 config.web.title = 'CSH DJ';
 
+// Max upload file size (in mb).
+config.web.max_file_size = 50;
+
 // Method of authentication ('dev' or 'webauth').
 config.auth.method = 'dev';
 
