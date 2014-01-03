@@ -19,6 +19,7 @@
 <div class="row room-container">
   <% if (user) { %>
     <div id="queue-column" class="fixed-column <%= col_classes.queue %>">
+      <div class="drag-overlay"><div>Upload Songs</div></div>
       <div class="column-table">
         <div class="column-table-row">
           <div class="column-section">
@@ -27,13 +28,21 @@
         </div>
         <div class="column-table-row stretch">
           <div class="column-section">
-            <em>Drag songs here to upload.</em>
-            <div class="drag-overlay"><div>Upload Songs</div></div>
+            <ul>
+              <li>What does the fox say?</li>
+              <li>Nobody knows.</li>
+              <li>It's life's greatest mystery!</li>
+            </ul>
           </div>
         </div>
         <div class="column-table-row">
-          <div class="column-section">
-            <h1>Uploads</h1>
+          <div id="uploads-header" class="column-section">
+            <h1>
+              Uploads
+              <a id="btn-close-uploads" href="#" class="button">
+                <span class="glyphicon glyphicon-remove"></span>
+              </a>
+            </h1>
           </div>
         </div>
         <div class="column-table-row">

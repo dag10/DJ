@@ -1,6 +1,7 @@
 $(function() {
   var $queue_col = $('#queue-column');
   var $song_input = $('#song-form input[type=file]');
+  var $uploads_header = $('#uploads-header');
 
   $queue_col.on('dragover', function(e) {
     $(this).addClass('dragging');
@@ -15,7 +16,7 @@ $(function() {
     e.preventDefault();
   });
 
-  $queue_col.dropzone({
+  var dropzone = new Dropzone('#queue-column', {
     url: '/song/upload',
     parallelUploads: true,
     maxFilesize: 50,
@@ -24,5 +25,23 @@ $(function() {
     previewsContainer: '#previews',
     previewTemplate: $('#upload-preview-template').html()
   });
+
+  dropzone.on('addedfile', function(file) {
+    $uploads_header.show();
+  });
+
+  dropzone.on('reset', function() {
+    $uploads_header.hide();
+  });
+  
+  $('#btn-close-uploads').click(function(e) {
+    e.preventDefault();
+    dropzone.removeAllFiles(true);
+  }).tooltip({
+    title: 'Cancel',
+    trigger: 'hover'
+  });
+
+  $uploads_header.hide();
 });
 

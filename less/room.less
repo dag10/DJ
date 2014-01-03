@@ -55,6 +55,7 @@
         position: relative;
         padding: @section-padding;
         height: 100%;
+        color: darken(@color-grey-background, 60%);
         border-top: solid 1px lighten(@color-grey-border, 5%);
 
         &, &:before, &:after {
@@ -68,12 +69,37 @@
           display: none;
         }
 
-        h1 {
+        & > h1 {
+          color: black;
           margin: -@section-padding;
           font-size: 17px;
           text-align: center;
           background-color: darken(@color-grey-background, 5%);
           padding: 8px;
+          position: relative;
+
+          .button {
+            position: absolute;
+            right: 6px;
+            top: 6px;
+            padding: 2px 8px;
+            color: darken(@color-grey-background, 50%);
+
+            &:hover {
+              color: darken(@color-grey-background, 70%);
+            }
+          }
+        }
+
+        & > ul {
+          list-style: none;
+          margin: -@section-padding;
+          padding: 0;
+
+          li {
+            border-bottom: solid 1px @color-grey-border;
+            padding: 5px;
+          }
         }
       }
 
@@ -81,6 +107,7 @@
         height: 100%;
 
         .column-section {
+          overflow-x: hidden;
           overflow-y: auto;
         }
       }
@@ -108,11 +135,13 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: rgba(255,255,255,0.6);
+    background-color: rgba(255,255,255,0.9);
     @shadow: inset 0 0 40px 1px rgba(0,0,0,0.1);
     -webkit-box-shadow: @shadow;
     box-shadow: @shadow;
     pointer-events: none;
+    z-index: 20;
+    border-radius: @column-border-radius;
 
     opacity: 0;
     @fadetime: .1s;
