@@ -2,6 +2,7 @@
 <%
   if (typeof user === 'undefined') user = null;
   if (typeof rooms === 'undefined') rooms = null;
+  if (typeof hide_login === 'undefined') hide_login = null;
   var admin = user && user.admin;
 %>
 <html>
@@ -37,7 +38,7 @@
                 <li><a href="<%= config.logoutUrl %>">Log Out</a></li>
               </ul>
             </li>
-          <% } else { %>
+          <% } else if (!hide_login) { %>
             <li><a href="/login">Log In</a></li>
           <% } %>
         </ul>

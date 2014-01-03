@@ -100,7 +100,8 @@ exports.init = function(app) {
           if (!req.session.ret_url)
             req.session.ret_url = req.header('Referer') || '/';
           res.render('login.ejs', {
-            config: config
+            config: config,
+            hide_login: true
           });
         }
       });
@@ -114,7 +115,8 @@ exports.init = function(app) {
             res.render('login.ejs', {
               error: 'Missing field: ' + field,
               config: config,
-              values: req.body
+              values: req.body,
+              hide_login: true
             });
             valid = false;
             break;
