@@ -25,7 +25,7 @@ exports.define = function(db, models) {
     }
   });
 
-  models.file = File;
+  exports.File = models.file = File;
 };
 
 exports.associate = function(models) {

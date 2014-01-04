@@ -14,7 +14,7 @@ exports.define = function(db, models) {
       type: 'text' },
     album: {
       type: 'text' },
-    runtime: {
+    duration: {
       type: 'number', required: true },
     timeUploaded: {
       type: 'date', required: true }
@@ -24,7 +24,7 @@ exports.define = function(db, models) {
     }
   });
 
-  models.song = Song;
+  exports.Song = models.song = Song;
 };
 
 exports.associate = function(models) {
@@ -32,7 +32,7 @@ exports.associate = function(models) {
     reverse: 'songs'
   });
   Song.hasOne('file', models.file, {
-    autoFetch: true, required: true
+    autoFetch: true
   });
   Song.hasOne('artwork', models.file, {
     autoFetch: true

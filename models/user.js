@@ -30,6 +30,6 @@ exports.define = function(db, models) {
     }
   });
 
-  models.user = User;
+  exports.User = models.user = User;
 };
 

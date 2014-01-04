@@ -22,7 +22,7 @@ exports.define = function(db, models) {
     }
   });
 
-  models.room = Room;
+  exports.Room = models.room = Room;
 };
 
 exports.associate = function(models) {
