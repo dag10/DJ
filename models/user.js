@@ -27,6 +27,11 @@ exports.define = function(db, models) {
   }, {
     validations: {
       username: orm.enforce.unique({ ignoreCase: true })
+    },
+    methods: {
+      getLogName: function() {
+        return this.fullName + ' (' + this.username + ')';
+      }
     }
   });
 

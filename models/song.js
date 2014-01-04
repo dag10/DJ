@@ -21,6 +21,19 @@ exports.define = function(db, models) {
   }, {
     validations: {
       name: orm.enforce.unique({ ignoreCase: true })
+    },
+    methods: {
+      getLogName: function() {
+        return this.title + ' (' + this.id + ')';
+      }
+    },
+    hooks: {
+      beforeRemove: function() {
+        if (this.file)
+          this.file.remove();
+        if (this.artwork)
+          this.artwork.remove();
+      }
     }
   });
 

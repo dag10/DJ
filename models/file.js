@@ -3,6 +3,7 @@
  */
 
 var orm = require('orm');
+var fs_ = require('../fs');
 
 var File;
 
@@ -19,8 +20,14 @@ exports.define = function(db, models) {
       filename_local: orm.enforce.unique({ ignoreCase: true })
     },
     methods: {
-      getLocalFilename: function() {
-        return this.id + '_' + this.filename;
+      getLogName: function() {
+        return this.directory + '/' + this.filename + ' (' + this.id + ')';
+      }
+    },
+    hooks: {
+      beforeRemove: function() {
+        fs_.unlink(
+            upload.upload_dir + '/' + this.directory + '/' + this.filename);
       }
     }
   });
