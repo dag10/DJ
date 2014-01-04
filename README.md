@@ -16,7 +16,6 @@ the server and the database will be populated for you.
 Install the following packages with your system's package manager:
 - exiftool
 - lame
-- flac
 - ffmpeg
 
 Webauth
