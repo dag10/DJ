@@ -14,7 +14,6 @@ When running it for the first time, no migrations are necessary. Just launch
 the server and the database will be populated for you.
 
 Install the following packages with your system's package manager:
-- exiftool
 - lame
 - ffmpeg
 
