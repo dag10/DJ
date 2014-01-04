@@ -31,8 +31,7 @@ exports.associate = function(models) {
   Song.hasOne('uploader', models.person, {
     reverse: 'songs'
   });
-  Song.hasOne('original_file', models.file);
-  Song.hasOne('converted_file', models.file, {
+  Song.hasOne('file', models.file, {
     autoFetch: true, required: true
   });
   Song.hasOne('artwork', models.file, {
