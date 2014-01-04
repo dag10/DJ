@@ -21,12 +21,20 @@
 .fixed-column {
   padding: 0;
 
+  #previews {
+    overflow: auto;
+    max-height: 200px;
+  }
+
   @height_iterations: 1000px;
   @height_difference: 150px;
   @min_height: @height_difference + 100px;
   .loopingClass (@index) when (@index > @min_height) {
     @media only screen and (min-width: 768px) and (max-height: @index) {
       height: @index - @height_difference;
+      #previews {
+        max-height: @index - @height_difference - 300px;
+      }
     }
     .loopingClass(@index - 50px);
   }
