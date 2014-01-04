@@ -51,11 +51,11 @@ exports.initHandlers = function(app, auth) {
           return;
         }
 
-        songs.addSong(file.path, user, function(song, err) {
+        songs.addSong(
+            file.path, user, file.originalFilename, function(song, err) {
           if (err) {
             next(err);
           } else {
-            winston.info('ADDED SONG:' + require('util').format(song));
             res.status(200);
             res.end();
           }
