@@ -13,6 +13,9 @@ config.db.mysql = {};
 // Directory for logs.
 config.log_directory = __dirname + '/logs';
 
+// Directory for uploads.
+config.uploads_directory = __dirname + '/uploads';
+
 // Port for the web server.
 config.web.port = process.env.PORT || 9867;
 

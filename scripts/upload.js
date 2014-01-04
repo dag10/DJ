@@ -17,6 +17,10 @@ $(function() {
     e.preventDefault();
   });
 
+  $('#btn-upload').click(function(e) {
+    e.preventDefault();
+  });
+
   var dropzone = new Dropzone('#queue-column', {
     url: '/song/upload',
     parallelUploads: true,

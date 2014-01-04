@@ -153,9 +153,11 @@ exports.init = function(app) {
   }
 
   ret.getUser = function(required, req, res, next, callback) {
+    var html = req.accepts('text/html');
+
     var session;
     try {
-      session = ret.getUserSession(required, req, res);
+      session = ret.getUserSession(required && html, req, res);
     } catch (err) {
       next(err);
       return;
@@ -164,6 +166,8 @@ exports.init = function(app) {
     if (!session) {
       if (!required)
         callback(null);
+      else if (!html)
+        next(new Error('You must be logged in.'));
       return;
     }
 

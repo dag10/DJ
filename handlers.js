@@ -8,6 +8,7 @@ var lessMiddleware = require('less-middleware');
 var os = require('os');
 var winston = require('winston');
 var rooms = require('./rooms');
+var upload = require('./upload');
 
 exports.init = function(app, auth) {
   app.enable('trust proxy');
@@ -37,6 +38,7 @@ exports.init = function(app, auth) {
   app.use('/styles', express.static(tmpDir));
 
   auth.initHandlers();
+  upload.initHandlers(app, auth);
 
   app.get('/', function(req, res, next) {
     auth.getUser(false, req, res, next, function(user) {
@@ -46,11 +48,6 @@ exports.init = function(app, auth) {
         rooms: rooms.getRooms()
       });
     });
-  });
-
-  app.post('/song/upload', function(req, res, next) {
-    res.status(200);
-    res.end();
   });
 
   app.get('/room/:room', function(req, res, next) {
@@ -74,24 +71,38 @@ exports.init = function(app, auth) {
 
   app.use(function(err, req, res, next) {
     auth.getUser(false, req, res, next, function(user) {
-      winston.error(err.stack);
       res.status(500);
-      res.render('error.ejs', {
-        user: user,
-        error: err,
-        config: config
-      });
+      if (req.accepts('text/html')) {
+        res.render('error.ejs', {
+          user: user,
+          error: err,
+          config: config
+        });
+      } else if (req.accepts('application/json')) {
+        res.json({ error: err.message });
+      } else {
+        res.send(err.message);
+        res.end();
+      }
     });
   });
 
   app.use(function(req, res, next) {
     auth.getUser(false, req, res, next, function(user) {
       res.status(404);
-      res.render('error.ejs', {
-        user: user,
-        header: 'Page not found: ' + req.url,
-        config: config
-      });
+      var err_msg = 'Page not found: ' + req.url;
+      if (req.accepts('text/html')) {
+        res.render('error.ejs', {
+          user: user,
+          header: err_msg,
+          config: config
+        });
+      } else if (req.accepts('application/json')) {
+        res.json({ error: err_msg });
+      } else {
+        res.send(err_msg);
+        res.end();
+      }
     });
   });
 };
