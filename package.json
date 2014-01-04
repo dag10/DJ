@@ -13,7 +13,9 @@
     "winston": "0.7.2",
     "migrate": "0.1.3",
     "sanitizer": "0.1.1",
-    "multiparty": "3.1.1"
+    "multiparty": "3.1.1",
+    "exif2": "0.0.1",
+    "ffmpeg-node": "0.0.1"
   }
 }
 

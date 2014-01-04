@@ -17,8 +17,10 @@ exports.init = function() {
   });
 
   // Ensure log directory exists.
-  if (!fs.existsSync(log_dir))
+  if (!fs.existsSync(log_dir)) {
     fs.mkdir(log_dir);
+    winston.info('Created directory: ' + log_dir);
+  }
 
   // Figure out what the next available log filename is.
   var now = new Date();

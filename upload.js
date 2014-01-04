@@ -6,6 +6,7 @@ var config = require('./config');
 var winston = require('winston');
 var fs = require('fs');
 var multiparty = require('multiparty');
+var songs = require('./songs');
 
 var song_path = 'songs';
 var converted_song_path = 'converted_songs';
@@ -17,20 +18,13 @@ var converted_song_dir = upload_dir + '/' + converted_song_path;
 var artwork_dir = upload_dir + '/' + artwork_path;
 
 exports.song_path = song_path;
-exports.converted_song_path = converted_song_path;
 exports.artwork_path = artwork_path;
 exports.upload_dir = upload_dir;
 exports.song_dir = song_dir;
-exports.converted_song_dir = converted_song_dir;
 exports.artwork_dir = artwork_dir;
 
-var generateShortName = function(name) {
-  return name.toLowerCase().replace(/[\s\-]+/g, '-').replace(/[^\w\-\.]/g, '');
-};
-
 exports.init = function() {
-  // Make sure each upload directory exists.
-  [upload_dir, song_dir, converted_song_dir, artwork_dir].forEach(
+  [upload_dir, song_dir, artwork_dir].forEach(
     function(dir) {
       if (!fs.existsSync(dir)) {
         fs.mkdir(dir);
@@ -51,18 +45,21 @@ exports.initHandlers = function(app, auth) {
       });
 
       form.on('file', function(name, file) {
-        var shortname = generateShortName(file.originalFilename);
-        winston.info(user.fullName + ' uploaded: ' + shortname);
-        winston.info('Path: ' + file.path);
-
         if (file.size > config.web.max_file_size * 1048576) {
           next(new Error(
-            'File exceeds ' + config.web.max_file_size + ' MiB.'));
+              'File exceeds ' + config.web.max_file_size + ' MiB.'));
           return;
         }
 
-        res.status(200);
-        res.end();
+        songs.addSong(file.path, user, function(song, err) {
+          if (err) {
+            next(err);
+          } else {
+            winston.info('ADDED SONG:' + require('util').format(song));
+            res.status(200);
+            res.end();
+          }
+        });
       });
 
       form.on('error', next);
