@@ -19,9 +19,9 @@
           <div class="room-buttons">
             <div
               class="room-label"
-              title="<%= room.users.length %> user<%= room.users.length == 1 ? '' : 's' %> in room.">
+              title="<%= room.numUsers() %> user<%= room.numUsers() == 1 ? '' : 's' %> in room.">
               <span class="glyphicon glyphicon-user"></span>
-              <%= room.users.length %>
+              <%= room.numUsers() %>
             </div>
             <a
               href="/room/<%= room.shortname %>"

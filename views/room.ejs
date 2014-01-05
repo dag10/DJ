@@ -1,6 +1,8 @@
-<% layout('layouts/page') -%>
 <%
+  layout('layouts/page');
   block('title', room.name);
+  script('/socket.io/socket.io.js');
+  script('/scripts/room.js');
   if (user) {
     script('/scripts/dropzone.js');
     script('/scripts/upload.js');
@@ -85,7 +87,7 @@
       </div>
       <div class="column-table-row">
         <div class="column-section">
-          <h1>0 Anonymous listeners.</h1>
+          <h1><span id="num-anonymous">0 Anonymous listeners.</span></h1>
         </div>
       </div>
     </div>
@@ -106,4 +108,12 @@
     <div class="background background-progress" data-dz-uploadprogress></div>
   </li>
 </div>
+
+<script>
+  window.room = {
+    name: '<%= room.name %>',
+    shortname: '<%= room.shortname %>'
+  };
+  window.userhash = '<%= userhash %>';
+</script>
 

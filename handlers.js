@@ -9,6 +9,7 @@ var os = require('os');
 var winston = require('winston');
 var rooms = require('./rooms');
 var upload = require('./upload');
+var socket = require('./socket');
 
 exports.init = function(app, auth) {
   app.enable('trust proxy');
@@ -53,19 +54,20 @@ exports.init = function(app, auth) {
   app.get('/room/:room', function(req, res, next) {
     auth.getUser(false, req, res, next, function(user) {
       var room = rooms.getRoom(req.param('room'));
-      if (!room) {
+      if (room) {
+        res.render('room.ejs', {
+          user: user,
+          config: config,
+          userhash: user ? user.hash() : '',
+          room: room
+        });
+      } else {
         res.render('error.ejs', {
           user: user,
           config: config,
           header: 'Room "' + req.param('room') + '" does not exist.'
         });
-        return;
       }
-      res.render('room.ejs', {
-        user: user,
-        config: config,
-        room: room
-      });
     });
   });
 

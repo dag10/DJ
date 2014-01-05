@@ -12,17 +12,22 @@ var winston = require('winston');
 var logging = require('./logging');
 var rooms = require('./rooms');
 var upload = require('./upload');
+var socket = require('./socket');
+var http = require('http');
 
 logging.init();
 
 var app = express();
+var server = http.createServer(app);
+
+socket.init(server);
 
 app.configure(function() {
   database.init(app, models_module.define, function(models) {
     rooms.init(models, function() {
       upload.init();
       handlers.init(app, auth_module.init(app));
-      app.listen(config.web.port, function() {
+      server.listen(config.web.port, function() {
         winston.info('Server listening on port', config.web.port);
       });
     });

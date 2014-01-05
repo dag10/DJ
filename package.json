@@ -14,7 +14,8 @@
     "migrate": "0.1.3",
     "sanitizer": "0.1.1",
     "multiparty": "3.1.1",
-    "fluent-ffmpeg": "1.5.2"
+    "fluent-ffmpeg": "1.5.2",
+    "socket.io": "0.9.15"
   }
 }
 
