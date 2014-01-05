@@ -3,8 +3,16 @@
  */
 
 var orm = require('orm');
+var crypto = require('crypto');
 
+var secret = Math.random() + '_hash';
 var User;
+
+exports.hashUser = function(username) {
+  return crypto.createHash('sha1')
+    .update(username + '_' + secret)
+    .digest('hex');
+};
 
 exports.define = function(db, models) {
   User = db.define('user', {
@@ -31,6 +39,9 @@ exports.define = function(db, models) {
     methods: {
       getLogName: function() {
         return this.fullName + ' (' + this.username + ')';
+      },
+      hash: function() {
+        return exports.hashUser(this.username);
       }
     }
   });
