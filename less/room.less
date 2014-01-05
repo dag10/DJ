@@ -20,10 +20,11 @@
 
 .fixed-column {
   padding: 0;
+  height: 850px;
 
   #previews {
     overflow: auto;
-    max-height: 200px;
+    max-height: 550px;
   }
 
   @height_iterations: 1000px;
@@ -43,6 +44,9 @@
 
   @media only screen and (max-width: 768px) {
     min-height: 400px;
+    #preview {
+      max-height: 200px;
+    }
   }
 
   .column-table {
