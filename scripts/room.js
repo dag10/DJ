@@ -46,7 +46,7 @@ $(function() {
   // Handle the server telling us how many anonymous users are connected.
   socket.on('room:num_anonymous', function(num) {
     var s = num == 1 ? '' : 's';
-    $('#num-anonymous').text(num + ' Anonymous listener' + s + '.');
+    $('#num-anonymous').text(num + ' Anonymous listener' + s);
   });
 
   socket.on('error', error);
