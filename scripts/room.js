@@ -44,6 +44,8 @@ $(function() {
   });
 
   // Handle the server telling us how many anonymous users are connected.
+  // TODO: Use Backbone.js to manage this for us as a view.
+  // TODO: Create a master reset() function to reset all backbone models.
   socket.on('room:num_anonymous', function(num) {
     var s = num == 1 ? '' : 's';
     $('#num-anonymous').text(num + ' Anonymous listener' + s);

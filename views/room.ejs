@@ -2,6 +2,8 @@
   layout('layouts/page');
   block('title', room.name);
   script('/socket.io/socket.io.js');
+  script('/scripts/underscore-min.js');
+  script('/scripts/backbone-min.js');
   script('/scripts/room.js');
   if (user) {
     script('/scripts/dropzone.js');
