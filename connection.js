@@ -61,11 +61,17 @@ exports.createConnection = function(socket) {
     if (conn.room) {
       fn({ error: 'You are already in a room.' });
     } else if (room) {
-      room.addConnection(conn);
       fn({ name: room.name, shortname: room.shortname });
+      room.addConnection(conn);
     } else {
       fn({ error: 'Room not found.' });
     }
+  });
+
+  // Handle request to leave room.
+  socket.on('room:leave', function(fn) {
+    fn();
+    rooms.removeConnection(conn);
   });
 
   // Handle client disconnect.
