@@ -41,6 +41,10 @@ exports.addRoom = function(room) {
   };
 
   room.addConnection = function(connection) {
+    connection.room = room;
+    room.connections.push(connection);
+    connection.sendNumAnonymous(room.num_anonymous);
+
     if (connection.user) {
       var user = connection.user;
       var oldconn = connectionsByUsername[user.username];
@@ -54,15 +58,15 @@ exports.addRoom = function(room) {
       winston.info('An anonymous listener joined room: ' + room.name);
       updateNumAnonymous(room.num_anonymous + 1);
     }
-
-    connection.room = room;
-    room.connections.push(connection);
-    connection.sendNumAnonymous(room.num_anonymous);
   };
 
   room.removeConnection = function(connection) {
     if (!connection.room || connection.room != room) return;
     connection.room = null;
+
+    var i = room.connections.indexOf(connection);
+    if (i >= 0) room.connections.splice(i, 1);
+    else winston.error('hrmm');
 
     if (connection.user) {
       delete connectionsByUsername[connection.user.username];
@@ -73,10 +77,6 @@ exports.addRoom = function(room) {
       winston.info('An anonymous listener left room: ' + room.name);
       updateNumAnonymous(room.num_anonymous - 1);
     }
-
-    var i = room.connections.indexOf(connection);
-    if (i >= 0) room.connections.splice(i, 1);
-    else winston.error('hrmm');
   };
 
   rooms.push(room);

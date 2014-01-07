@@ -72,7 +72,9 @@ $(function() {
             this.handleError(data.error);
           } else {
             console.log('Joined room: ' + data.name);
-            this.set({ room: new models.Room(data) });
+            var room = new models.Room(data);
+            room.set({ connection: this });
+            this.set({ room: room });
           }
         }, this));
       }, this);
@@ -84,10 +86,12 @@ $(function() {
     },
 
     leaveRoom: function(next) {
-      this.get('socket').emit('room:leave', function() {
+      this.get('socket').emit('room:leave', _.bind(function() {
         console.log('Left room.');
+        if (this.has('room'))
+          this.get('room').reset();
         if (_.isFunction(next)) next();
-      });
+      }, this));
     },
 
     /* Socket Handlers */
@@ -100,18 +104,18 @@ $(function() {
         this.authenticate();
       else
         this.joinRoom();
+
+      this.trigger('connect');
     },
 
     handleDisconnect: function() {
       console.log('Disconnected.');
 
       this.set({ connected: false });
-      if (this.has('room')) {
-        this.get('room').destroy();
-        this.unset('room');
-      }
+      if (this.has('room'))
+        this.get('room').reset();
 
-      this.trigger('disconnected');
+      this.trigger('disconnect');
     },
 
     handleError: function(err) {
@@ -120,6 +124,7 @@ $(function() {
     },
 
     handleKick: function(msg) {
+      this.get('socket').disconnect();
       alert('You were kicked:\n' + msg);
     },
 

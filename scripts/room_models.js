@@ -8,6 +8,12 @@ $(function() {
 
     initialize: function(options) {
       console.log('Initialized room:', options);
+    },
+
+    reset: function() {
+      this.set({
+        anonymous_listeners: 0
+      });
     }
   });
 });
