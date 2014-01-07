@@ -72,9 +72,13 @@ $(function() {
             this.handleError(data.error);
           } else {
             console.log('Joined room: ' + data.name);
-            var room = new models.Room(data);
-            room.set({ connection: this });
-            this.set({ room: room });
+            data.connected = true;
+            if (!this.has('room')) {
+              data.connect = this;
+              this.set({ room: new models.Room(data) });
+            } else {
+              this.get('room').set(data);
+            }
           }
         }, this));
       }, this);

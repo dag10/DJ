@@ -7,13 +7,18 @@ $(function() {
           'change:anonymous_listeners', this.renderNumAnonymous, this);
       this.model.on(
           'change:name', this.updateRoomName, this);
+      this.model.on(
+          'change:connected', this.renderRoomName, this);
+      this.model.on(
+          'change:connected', this.renderAlert, this);
 
       this.render();
     },
 
     render: function() {
       this.renderNumAnonymous();
-      this.updateRoomName();
+      this.renderRoomName();
+      this.renderAlert();
     },
 
     renderNumAnonymous: function() {
@@ -22,10 +27,22 @@ $(function() {
       $('#num-anonymous').text(num + ' Anonymous Listener' + s);
     },
 
-    updateRoomName: function() {
+    renderRoomName: function() {
       var name = this.model.escape('name');
+
       $('.room-name').text(name);
-      window.document.title = name;
+
+      if (this.model.get('connected'))
+        window.document.title = name;
+      else
+        window.document.title = 'Disconnected';
+    },
+
+    renderAlert: function() {
+      if (this.model.get('connected'))
+        $('.room-alert').text('');
+      else
+        $('.room-alert').text('Disconnected.');
     }
   });
 });

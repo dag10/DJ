@@ -3,7 +3,8 @@ $(function() {
 
   window.models.Room = Backbone.Model.extend({
     defaults: {
-      anonymous_listeners: 0
+      anonymous_listeners: 0,
+      connected: false
     },
 
     initialize: function(options) {
@@ -12,7 +13,8 @@ $(function() {
 
     reset: function() {
       this.set({
-        anonymous_listeners: 0
+        anonymous_listeners: 0,
+        connected: false
       });
     }
   });

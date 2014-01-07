@@ -24,6 +24,9 @@
   }
 %>
 <div class="row room-container">
+  <div class="alert alert-danger room-alert"></div>
+</div>
+<div class="row room-container">
   <% if (user) { %>
     <div id="queue-column" class="fixed-column <%= col_classes.queue %>">
       <div class="drag-overlay"><div>Upload Songs</div></div>
