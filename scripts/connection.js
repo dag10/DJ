@@ -30,6 +30,10 @@ $(function() {
         socket.on('kick', _.bind(this.handleKick, this));
         socket.on(
           'room:num_anonymous', _.bind(this.handleNumAnonymous, this));
+        socket.on('room:user:join', _.bind(this.handleUserJoin, this));
+        socket.on('room:user:leave', _.bind(this.handleUserLeave, this));
+        socket.on('room:user:update', _.bind(this.handleUserUpdate, this));
+        socket.on('room:users', _.bind(this.handleUserList, this));
       }, this);
 
       if (this.get('connected')) {
@@ -134,6 +138,23 @@ $(function() {
 
     handleNumAnonymous: function(num) {
       this.get('room').set({ anonymous_listeners: num });
+    },
+
+    handleUserJoin: function(user) {
+      this.get('room').addUser(user);
+    },
+
+    handleUserLeave: function(user) {
+      this.get('room').removeUser(user.username);
+    },
+
+    handleUserUpdate: function(user) {
+      this.get('room').getUser(user.username).set(user);
+    },
+
+    handleUserList: function(users) {
+      var room = this.get('room');
+      room.setUsers(users);
     }
   });
 });

@@ -1,7 +1,7 @@
 $(function() {
-  window.views = {};
+  var views = window.views = {};
 
-  window.views.Room = Backbone.View.extend({
+  views.Room = Backbone.View.extend({
     initialize: function() {
       this.model.on(
           'change:anonymous_listeners', this.renderNumAnonymous, this);
@@ -48,6 +48,77 @@ $(function() {
           'You were kicked: ' + this.model.get('kick_message'));
       else
         $('.room-alert').text('Disconnected.');
+    }
+  });
+
+  views.User = Backbone.View.extend({
+    render: function() {
+      this.$el.text(this.model.get('fullName'));
+
+      return this;
+    }
+  });
+
+  views.Users = Backbone.View.extend({
+    initialize: function() {
+      this.userViews = [];
+
+      this.collection.each(this.add);
+      this.collection.on('add', this.add, this);
+      this.collection.on('remove', this.remove, this);
+      this.collection.on('reset', this.reset, this);
+      this.collection.on('sort', this.render, this);
+
+      this.render();
+    },
+
+    reset: function() {
+      _.each(this.userViews, function(userView) {
+        userView.remove();
+      });
+
+      this.userViews = [];
+      this.render();
+    },
+
+    add: function(user) {
+      var userView = new views.User({
+        tagName: 'li',
+        model: user
+      });
+
+      this.userViews.push(userView);
+      this.render();
+    },
+
+    remove: function(user) {
+      this.userViews = _(this.userViews).without(this.getViewForUser(user));
+      this.render();
+    },
+
+    getViewForUser: function(user) {
+      return _(this.userViews).select(function(userView) {
+        return userView.model === user;
+      })[0];
+    },
+
+    render: function() {
+      var $ul = this.$('ul');
+      var $placeholder = this.$('.section-empty');
+
+      var scrollTop = this.el.scrollTop;
+
+      if (this.collection.length === 0)
+        $placeholder.show();
+      else
+        $placeholder.hide();
+
+      $ul.empty();
+      this.collection.forEach(function(user) {
+        $ul.append(this.getViewForUser(user).render().el);
+      }, this);
+
+      this.el.scrollTop = scrollTop;
     }
   });
 });

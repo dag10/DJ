@@ -33,6 +33,28 @@ exports.createConnection = function(socket) {
     conn.socket.emit('room:num_anonymous', num);
   };
 
+  // Sends a user that joined the room.
+  conn.sendJoinedUser = function(user) {
+    conn.socket.emit('room:user:join', user);
+  };
+
+  // Sends a user that left the room.
+  conn.sendLeftUser = function(user) {
+    conn.socket.emit('room:user:leave', user);
+  };
+
+  // Sends a user that was updated.
+  conn.sendUpdatedUser = function(user) {
+    conn.socket.emit('room:user:update', user);
+  };
+
+  // Sends a list of all users in the room.
+  conn.sendUserList = function(users) {
+    conn.socket.emit('room:users', users);
+  };
+
+  /* Sockets Handlers */
+
   // Handle client auth request.
   socket.on('auth', function(data, fn) {
     if (conn.user) {

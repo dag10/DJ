@@ -10,17 +10,21 @@ $(function() {
 
   models.Users = Backbone.Collection.extend({
     model: models.User,
+    //comparator: 'username',
 
     initialize: function() {
+      this.comparator = 'username';
       this.on('add', this.userAdded, this);
       this.on('remove', this.userRemoved, this);
     },
 
     userAdded: function(user) {
       user.collection = this;
+      user.on('change:username', this.sort, this);
     },
 
     userRemoved: function(user) {
+      user.off('change:username', this.sort);
       if (user.collection === this)
         user.collection = null;
     },
@@ -53,8 +57,17 @@ $(function() {
 
     reset: function() {
       this.set(this.defaults);
+      this.resetUsers();
+    },
+
+    resetUsers: function() {
       this.get('listeners').reset();
       this.get('djs').reset();
+    },
+
+    setUsers: function(users) {
+      this.resetUsers();
+      users.forEach(_.bind(this.addUser, this));
     },
 
     addUser: function(user) {
@@ -82,6 +95,9 @@ $(function() {
     },
 
     userDjChanged: function(user) {
+      var djs = this.get('djs');
+      var listeners = this.get('listeners');
+
       var dj = user.get('dj');
       if (dj) {
         listeners.remove(user);

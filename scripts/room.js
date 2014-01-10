@@ -14,9 +14,19 @@ $(function() {
     var room = conn.get('room');
     if (!room) return;
 
-    new window.views.Room({
+    new views.Room({
       model: room,
       el: $('body')[0]
+    });
+
+    new views.Users({
+      collection: room.get('djs'),
+      el: $('#dj-section')[0]
+    });
+
+    new views.Users({
+      collection: room.get('listeners'),
+      el: $('#listener-section')[0]
     });
   });
 
