@@ -10,7 +10,7 @@ $(function() {
 
   models.Users = Backbone.Collection.extend({
     model: models.User,
-    //comparator: 'username',
+    comparator: 'username',
 
     initialize: function() {
       this.comparator = 'username';

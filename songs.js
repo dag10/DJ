@@ -32,7 +32,7 @@ var changeExtension = function(file, extension) {
 exports.addSong = function(path, user, name, callback) {
   if (!fs.existsSync(path)) {
     var err = new Error('Song path does not exist.');
-    winston.error(err);
+    winston.error(err.message);
     callback(err);
     return;
   }
