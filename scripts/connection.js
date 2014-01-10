@@ -1,5 +1,6 @@
 $(function() {
   var error = function(msg) {
+    console.error(msg);
     $('.room-alert').text('Error: ' + msg);
   };
 
@@ -24,7 +25,8 @@ $(function() {
     /* Model */
 
     defaults: {
-      connected: false
+      connected: false,
+      reconnect_attempts: 0
     },
 
     initialize: function() {
@@ -41,6 +43,11 @@ $(function() {
 
         this.set({ socket: socket });
         socket.on('connect', _.bind(this.handleConnect, this));
+        socket.on(
+          'connect_failed', _.bind(this.handleConnectFailed, this));
+        socket.on(
+          'reconnect_failed', _.bind(this.handleConnectFailed, this));
+        socket.on('reconnecting', _.bind(this.handleReconnecting, this));
         socket.on('disconnect', _.bind(this.handleDisconnect, this));
         socket.on('error', _.bind(this.handleError, this));
         socket.on('kick', _.bind(this.handleKick, this));
@@ -137,13 +144,20 @@ $(function() {
     handleConnect: function() {
       console.log('Connected.');
 
-      this.set({ connected: true });
+      this.set({
+        connected: true,
+        reconnect_attempts: 0
+      });
       if (this.has('username') && this.has('userhash'))
         this.authenticate();
       else
         this.joinRoom();
 
       this.trigger('connect');
+    },
+
+    handleConnectFailed: function() {
+      error('Failed to connect to server.');
     },
 
     handleDisconnect: function() {
@@ -154,6 +168,17 @@ $(function() {
         this.get('room').reset();
 
       this.trigger('disconnect');
+    },
+
+    handleReconnecting: function() {
+      var attempts = this.get('reconnect_attempts') + 1;
+      $('.room-alert').text(
+        'Disconnected. Attempting to reconnect. (' + attempts + ')');
+      this.set({ reconnect_attempts: attempts });
+
+      // Constant reconnection attempt interval, unlimited attempts.
+      this.get('socket').socket.reconnectionDelay = 5000;
+      this.get('socket').socket.reconnectionAttempts = 1;
     },
 
     handleError: function(err) {
