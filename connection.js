@@ -102,8 +102,8 @@ exports.createConnection = function(socket) {
 
   // Handle request to become DJ.
   socket.on('room:dj:begin', function(fn) {
-    if (!conn.room)
-      return { error: 'You\'re not in a room.' };
+    if (!ensureAuth(fn)) return;
+    if (!conn.room) return { error: 'You\'re not in a room.' };
 
     var err = conn.room.makeDJ(conn.user.username);
     fn( err ? { error: err } : {} );
@@ -111,8 +111,8 @@ exports.createConnection = function(socket) {
 
   // Handle request to stop being a DJ.
   socket.on('room:dj:end', function(fn) {
-    if (!conn.room)
-      return { error: 'You\'re not in a room.' };
+    if (!ensureAuth(fn)) return;
+    if (!conn.room) return { error: 'You\'re not in a room.' };
 
     var err = conn.room.endDJ(conn.user.username);
     fn( err ? { error: err } : {} );

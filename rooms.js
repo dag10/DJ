@@ -157,6 +157,8 @@ exports.addRoom = function(room) {
     conn.dj = true;
     conn.djOrder = room.djConnections.length - 1;
     room.broadcastUserUpdate(connectionUserData(conn));
+
+    winston.info(conn.user.getLogName() + ' became a DJ in: ' + room.name);
   };
 
   room.endDJ = function(username) {
@@ -171,6 +173,9 @@ exports.addRoom = function(room) {
     room.updateDJOrder();
     room.broadcastUserUpdate(connectionUserData(conn));
     room.broadcastDJs();
+
+    winston.info(
+      conn.user.getLogName() + ' is no longer a DJ in: ' + room.name);
   };
 
   rooms.push(room);
