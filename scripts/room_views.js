@@ -33,14 +33,19 @@ $(function() {
       $('.room-name').text(name);
 
       if (this.model.get('connected'))
-        window.document.title = name;
+        document.title = name;
+      else if (this.model.has('kick_message'))
+        document.title = 'Kicked';
       else
-        window.document.title = 'Disconnected';
+        document.title = 'Disconnected';
     },
 
     renderAlert: function() {
       if (this.model.get('connected'))
         $('.room-alert').text('');
+      else if (this.model.has('kick_message'))
+        $('.room-alert').text(
+          'You were kicked: ' + this.model.get('kick_message'));
       else
         $('.room-alert').text('Disconnected.');
     }

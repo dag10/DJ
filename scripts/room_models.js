@@ -44,6 +44,13 @@ $(function() {
       djs: new models.Users()
     },
 
+    initialize: function() {
+      this.on('change:connected', function() {
+        if (this.get('connected'))
+          this.unset('kick_message');
+      }, this);
+    },
+
     reset: function() {
       this.set(this.defaults);
       this.get('listeners').reset();

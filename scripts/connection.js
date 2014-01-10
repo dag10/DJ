@@ -128,8 +128,8 @@ $(function() {
     },
 
     handleKick: function(msg) {
+      this.get('room').set({ kick_message: msg || 'No reason supplied.' });
       this.get('socket').disconnect();
-      alert('You were kicked:\n' + msg);
     },
 
     handleNumAnonymous: function(num) {

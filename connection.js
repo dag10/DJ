@@ -9,6 +9,8 @@ var user_model = require('./models/user');
 exports.createConnection = function(socket) {
   var conn = { socket: socket };
 
+  /* Utilities */
+
   var ensureAuth = function(fn) {
     if (conn.user) {
       return true;
@@ -17,6 +19,8 @@ exports.createConnection = function(socket) {
       return false;
     }
   };
+
+  /* Commands */
 
   // Kicks the client, then terminates the connection.
   conn.kick = function(msg) {
@@ -38,7 +42,7 @@ exports.createConnection = function(socket) {
     } else if (!data.username || !data.hash) {
       fn({ error: 'Missing auth data.' });
     } else if (data.hash !== user_model.hashUser(data.username)) {
-      fn({ error: 'Invalid hash.' });
+      fn({ error: 'Failed to authenticate. Please reload.' });
     } else {
       user_model.User.find(
           { username: data.username }, 1, function(err, users) {
