@@ -9,12 +9,10 @@ var multiparty = require('multiparty');
 var songs = require('./songs');
 
 var song_path = 'songs';
-var converted_song_path = 'converted_songs';
 var artwork_path = 'artwork';
 
 var upload_dir = config.uploads_directory;
 var song_dir = upload_dir + '/' + song_path;
-var converted_song_dir = upload_dir + '/' + converted_song_path;
 var artwork_dir = upload_dir + '/' + artwork_path;
 
 exports.song_path = song_path;
