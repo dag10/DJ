@@ -1,6 +1,22 @@
 $(function() {
   var error = function(msg) {
-    alert('Error: ' + msg);
+    $('.room-alert').text('Error: ' + msg);
+  };
+
+  var headerErrorTimeout = {};
+  var headerError = function(header, msg) {
+    if (headerErrorTimeout[header])
+      clearTimeout(headerErrorTimeout[header]);
+
+    var $error = header.find('.error');
+    $error.text(msg).slideDown();
+
+    headerErrorTimeout[header] = setTimeout(function() {
+      delete headerErrorTimeout[header];
+      $error.slideUp(function() {
+        $error.text('');
+      });
+    }, 4000);
   };
 
   window.Connection = Backbone.Model.extend({
@@ -99,6 +115,20 @@ $(function() {
         if (this.has('room'))
           this.get('room').reset();
         if (_.isFunction(next)) next();
+      }, this));
+    },
+
+    beginDJ: function() {
+      this.get('socket').emit('room:dj:begin', _.bind(function(data) {
+        if (data.error)
+          headerError($('#dj-header'), data.error);
+      }, this));
+    },
+
+    endDJ: function() {
+      this.get('socket').emit('room:dj:end', _.bind(function(data) {
+        if (data.error)
+          headerError($('#dj-header'), data.error);
       }, this));
     },
 

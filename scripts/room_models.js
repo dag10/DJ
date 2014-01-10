@@ -10,7 +10,6 @@ $(function() {
 
   models.Users = Backbone.Collection.extend({
     model: models.User,
-    comparator: 'username',
 
     initialize: function() {
       this.comparator = 'username';
@@ -49,6 +48,8 @@ $(function() {
     },
 
     initialize: function() {
+      this.get('listeners').comparator = 'username';
+      this.get('djs').comparator = 'djOrder';
       this.on('change:connected', function() {
         if (this.get('connected'))
           this.unset('kick_message');

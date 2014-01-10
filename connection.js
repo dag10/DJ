@@ -100,6 +100,24 @@ exports.createConnection = function(socket) {
     rooms.removeConnection(conn);
   });
 
+  // Handle request to become DJ.
+  socket.on('room:dj:begin', function(fn) {
+    if (!conn.room)
+      return { error: 'You\'re not in a room.' };
+
+    var err = conn.room.makeDJ(conn.user.username);
+    fn( err ? { error: err } : {} );
+  });
+
+  // Handle request to stop being a DJ.
+  socket.on('room:dj:end', function(fn) {
+    if (!conn.room)
+      return { error: 'You\'re not in a room.' };
+
+    var err = conn.room.endDJ(conn.user.username);
+    fn( err ? { error: err } : {} );
+  });
+
   // Handle client disconnect.
   socket.on('disconnect', function() {
     rooms.removeConnection(conn);
