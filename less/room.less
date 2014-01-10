@@ -31,7 +31,7 @@
   padding: 0;
   height: 850px;
 
-  #previews {
+  #previews, #dj-list {
     overflow: auto;
     max-height: 550px;
   }
@@ -42,7 +42,7 @@
   .loopingClass (@index) when (@index > @min_height) {
     @media only screen and (min-width: 768px) and (max-height: @index) {
       height: @index - @height_difference;
-      #previews {
+      #previews, #dj-list {
         max-height: @index - @height_difference - 300px;
       }
     }
