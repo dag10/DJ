@@ -44,12 +44,14 @@ $(function() {
       anonymous_listeners: 0,
       connected: false,
       listeners: new models.Users(),
+      dj: false,
       djs: new models.Users()
     },
 
     initialize: function() {
       this.get('listeners').comparator = 'username';
       this.get('djs').comparator = 'djOrder';
+      this.set({ username: this.get('connection').get('username') });
       this.on('change:connected', function() {
         if (this.get('connected'))
           this.unset('kick_message');
@@ -107,12 +109,23 @@ $(function() {
         djs.remove(user);
         listeners.add(user);
       }
+
+      if (user.get('username') === this.get('username'))
+        this.set({ dj: dj });
     },
 
     getUser: function(username) {
       var djs = this.get('djs');
       var listeners = this.get('listeners');
       return djs.getUser(username) || listeners.getUser(username);
+    },
+
+    beginDJ: function() {
+      this.get('connection').beginDJ();
+    },
+
+    endDJ: function() {
+      this.get('connection').endDJ();
     }
   });
 });

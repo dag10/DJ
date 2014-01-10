@@ -106,8 +106,12 @@
             padding: 2px 8px;
             color: darken(@color-grey-background, 50%);
 
-            &:hover {
+            &:hover:not(.disabled) {
               color: darken(@color-grey-background, 70%);
+            }
+
+            &.disabled {
+              color: darken(@color-grey-background, 30%);
             }
           }
 
@@ -279,5 +283,9 @@
 #btn-upload {
   padding: 4px;
   width: 100%;
+}
+
+#btn-begin-dj, #btn-end-dj {
+  display: none;
 }
 

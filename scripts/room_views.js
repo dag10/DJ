@@ -2,6 +2,11 @@ $(function() {
   var views = window.views = {};
 
   views.Room = Backbone.View.extend({
+    events: {
+      'click #btn-begin-dj': 'beginDJ',
+      'click #btn-end-dj': 'endDJ'
+    },
+
     initialize: function() {
       this.model.on(
           'change:anonymous_listeners', this.renderNumAnonymous, this);
@@ -11,14 +16,67 @@ $(function() {
           'change:connected', this.renderRoomName, this);
       this.model.on(
           'change:connected', this.renderAlert, this);
+      this.model.on(
+          'change:dj change:connected', this.renderDJButton, this);
+
+      this.$('#btn-begin-dj').tooltip({
+        title: 'Play Music',
+        trigger: 'hover',
+        placement: 'left',
+        delay: {
+          show: 400,
+          hide: 0
+        }
+      });
+
+      this.$('#btn-end-dj').tooltip({
+        title: 'Stop Playing Music',
+        trigger: 'hover',
+        placement: 'left',
+        delay: {
+          show: 400,
+          hide: 0
+        }
+      });
 
       this.render();
+    },
+
+    beginDJ: function(e) {
+      this.model.beginDJ();
+      e.preventDefault();
+    },
+
+    endDJ: function(e) {
+      this.model.endDJ();
+      e.preventDefault();
     },
 
     render: function() {
       this.renderNumAnonymous();
       this.renderRoomName();
       this.renderAlert();
+      this.renderDJButton();
+    },
+
+    renderDJButton: function() {
+      var $placeholder = this.$('#btn-dj-placeholder');
+      var $begin = this.$('#btn-begin-dj');
+      var $end = this.$('#btn-end-dj');
+      
+      if (!this.model.get('connected')) {
+        $placeholder.show();
+        $begin.hide();
+        $end.hide();
+      } else if (this.model.get('dj')) {
+        $placeholder.hide();
+        $begin.hide();
+        $end.show();
+      } else {
+        $placeholder.hide();
+        $end.hide();
+        $begin.show();
+      }
     },
 
     renderNumAnonymous: function() {

@@ -79,7 +79,21 @@
     <div class="column-table">
       <div class="column-table-row">
         <div class="column-section">
-          <h1 id="dj-header">Current DJs<div class="error"></div></h1>
+          <h1 id="dj-header">
+            Current DJs
+            <div class="error"></div>
+            <% if (user) { %>
+              <span class="button disabled" id="btn-dj-placeholder">
+                <span class="glyphicon glyphicon-play"></span>
+              </span>
+              <a id="btn-begin-dj" href="#" class="button">
+                <span class="glyphicon glyphicon-play"></span>
+              </a>
+              <a id="btn-end-dj" href="#" class="button">
+                <span class="glyphicon glyphicon-stop"></span>
+              </a>
+            <% } %>
+          </h1>
         </div>
       </div>
       <div class="column-table-row">

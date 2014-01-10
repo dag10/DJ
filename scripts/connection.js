@@ -94,7 +94,7 @@ $(function() {
             console.log('Joined room: ' + data.name);
             data.connected = true;
             if (!this.has('room')) {
-              data.connect = this;
+              data.connection = this;
               this.set({ room: new models.Room(data) });
             } else {
               this.get('room').set(data);
