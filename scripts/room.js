@@ -6,7 +6,7 @@ $(function() {
   if (window.user) {
     connection.set({
       username: user.username,
-      userhash: userhash
+      userhash: user.hash
     });
   }
 

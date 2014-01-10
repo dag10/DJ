@@ -25,7 +25,11 @@
       <div class="navbar-container">
         <div class="navbar-header">
           <a href="/">
-            <img src="/images/csh_dj_large.svg" id="navbar-logo" />
+            <img
+              src="/images/csh_dj_large.svg"
+              id="navbar-logo"
+              alt="<%= config.web.title %>"
+              />
           </a>
         </div>
         <ul class="nav navbar-nav navbar-right">
@@ -56,7 +60,8 @@
           username: '<%= user.username %>',
           firstName: '<%= user.firstName %>',
           lastName: '<%= user.lastName %>',
-          fullName: '<%= user.fullName %>'
+          fullName: '<%= user.fullName %>',
+          hash: '<%= user.hash() %>'
         };
       <% } %>
     </script>

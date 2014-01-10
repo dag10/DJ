@@ -24,7 +24,8 @@ $(function() {
     renderNumAnonymous: function() {
       var num = this.model.get('anonymous_listeners');
       var s = num == 1 ? '' : 's';
-      $('#num-anonymous').text(num + ' Anonymous Listener' + s);
+      $('#num-anonymous').html(
+        '<h1>' + num + ' Anonymous Listener' + s + '</h1>');
     },
 
     renderRoomName: function() {
