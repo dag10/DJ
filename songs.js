@@ -10,6 +10,7 @@ var upload = require('./upload');
 var ffmpeg = require('fluent-ffmpeg');
 var file_model = require('./models/file');
 var song_model = require('./models/song');
+var queues = require('./queues');
 
 var generateShortName = function(name) {
   return name.toLowerCase()
@@ -165,13 +166,23 @@ exports.addSong = function(path, user, name, callback) {
                       return;
                     }
 
-                    if (user)
+                    if (user) {
                       winston.info(
                         user.getLogName() + ' uploaded ' + song.getLogName());
-                    else
-                      winston.info('Song added: ' + song.getLogName());
 
-                    callback(song, null);
+                      queues.addSongToQueue(song, user, function(data) {
+                        if (data.error) {
+                          winston.error(data.error.message);
+                          abort(new Error(
+                            'Failed to enqueue song ' + song.id), null);
+                        } else {
+                          callback(song, null);
+                        }
+                      });
+                    } else {
+                      winston.info('Song added: ' + song.getLogName());
+                      callback(song, null);
+                    }
                   });
                 };
 
