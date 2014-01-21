@@ -19,9 +19,6 @@ exports.define = function(db, models) {
     timeUploaded: {
       type: 'date', required: true }
   }, {
-    validations: {
-      name: orm.enforce.unique({ ignoreCase: true })
-    },
     methods: {
       getLogName: function() {
         return this.title + ' (' + this.id + ')';

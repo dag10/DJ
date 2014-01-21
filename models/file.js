@@ -4,6 +4,7 @@
 
 var orm = require('orm');
 var fs_ = require('../fs');
+var upload = require('../upload');
 
 var File;
 
