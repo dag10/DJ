@@ -51,11 +51,6 @@ exports.addSong = function(path, user, name, callback) {
     else
       winston.error(err.message);
     callback(null, new Error('Failed to convert file.'));
-    fs_.unlink(path);
-    fs_.unlink(newpath);
-    screenshots.forEach(function(name) {
-      fs_.unlink(upload.artwork_dir + '/' + name);
-    });
     if (song) {
       var songid = song.id;
       song.remove(function(err) {
@@ -85,6 +80,11 @@ exports.addSong = function(path, user, name, callback) {
               'Abort; Deleted artwork file entity: ' + artwork_fileid);
       });
     }
+    fs_.unlink(path, true);
+    fs_.unlink(newpath, true);
+    screenshots.forEach(function(name) {
+      fs_.unlink(upload.artwork_dir + '/' + name, true);
+    });
   };
 
   // Convert file to mp3.
