@@ -26,7 +26,8 @@ $(function() {
 
     defaults: {
       connected: false,
-      reconnect_attempts: 0
+      reconnect_attempts: 0,
+      queue: new models.Queue()
     },
 
     initialize: function() {
@@ -144,6 +145,8 @@ $(function() {
     handleConnect: function() {
       console.log('Connected.');
 
+      this.get('queue').reset();
+
       this.set({
         connected: true,
         reconnect_attempts: 0
@@ -163,6 +166,7 @@ $(function() {
     handleDisconnect: function() {
       console.log('Disconnected.');
 
+      this.get('queue').reset();
       this.set({ connected: false });
       if (this.has('room'))
         this.get('room').reset();

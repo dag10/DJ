@@ -39,6 +39,32 @@ $(function() {
     }
   });
 
+  models.Song = Backbone.Model.extend();
+
+  models.QueuedSong = Backbone.Model.extend({
+    defaults: {
+      order: 0
+    }
+  });
+
+  models.Queue = Backbone.Collection.extend({
+    model: models.QueuedSong,
+
+    initialize: function() {
+      this.comparator = 'order';
+      this.on('add', this.songAdded, this);
+      this.on('remove', this.songRemoved, this);
+    },
+
+    songAdded: function(song) {
+      song.on('change:order', this.sort, this);
+    },
+
+    songRemove: function(song) {
+      song.off('change:order', this.sort);
+    }
+  });
+
   models.Room = Backbone.Model.extend({
     defaults: {
       anonymous_listeners: 0,
