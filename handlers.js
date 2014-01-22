@@ -37,6 +37,7 @@ exports.init = function(app, auth) {
   app.use('/scripts', express.static(__dirname + '/scripts'));
   app.use('/fonts', express.static(__dirname + '/fonts'));
   app.use('/styles', express.static(tmpDir));
+  app.use('/artwork', express.static(upload.artwork_dir));
 
   auth.initHandlers();
   upload.initHandlers(app, auth);
