@@ -180,5 +180,75 @@ $(function() {
       this.el.scrollTop = scrollTop;
     }
   });
+
+  views.QueuedSong = Backbone.View.extend({
+    render: function() {
+      this.$el.text(this.model.get('title'));
+
+      return this;
+    }
+  });
+
+  views.Queue = Backbone.View.extend({
+    initialize: function() {
+      this.views = [];
+
+      this.collection.each(this.add);
+      this.collection.on('add', this.add, this);
+      this.collection.on('remove', this.remove, this);
+      this.collection.on('reset', this.reset, this);
+      this.collection.on('sort', this.render, this);
+
+      this.render();
+    },
+
+    reset: function() {
+      _.each(this.views, function(view) {
+        view.remove();
+      });
+
+      this.views = [];
+      this.render();
+    },
+
+    add: function(queuedSong) {
+      this.views.push(new views.QueuedSong({
+        tagName: 'li',
+        model: queuedSong
+      }));
+      this.render();
+    },
+
+    remove: function(queuedSong) {
+      this.views = _(this.views).without(
+        this.getViewForQueuedSong(queuedSong));
+      this.render();
+    },
+
+    getViewForQueuedSong: function(queuedSong) {
+      return _(this.views).select(function(view) {
+        return view.model === queuedSong;
+      })[0];
+    },
+
+    render: function() {
+      var $ul = this.$('ul');
+      var $placeholder = this.$('.section-empty');
+
+      var scrollTop = this.el.scrollTop;
+
+      if (this.collection.length === 0)
+        $placeholder.show();
+      else
+        $placeholder.hide();
+
+      $ul.empty();
+      this.collection.forEach(function(queuedSong) {
+        $ul.append(this.getViewForQueuedSong(queuedSong).render().el);
+      }, this);
+
+      this.el.scrollTop = scrollTop;
+    }
+  });
 });
 

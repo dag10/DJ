@@ -10,6 +10,11 @@ $(function() {
     });
   }
 
+  new views.Queue({
+    collection: connection.get('queue'),
+    el: $('#queue-section')[0]
+  });
+
   connection.on('change:room', function(conn) {
     var room = conn.get('room');
     if (!room) return;
