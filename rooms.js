@@ -92,7 +92,7 @@ exports.addRoom = function(room) {
   };
 
   room.getConnection = function(username) {
-    return connectionsByUsername[username];
+    return room.connectionsByUsername[username];
   };
 
   room.updateDJOrder = function() {
