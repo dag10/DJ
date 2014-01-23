@@ -131,7 +131,7 @@ exports.addRoom = function(room) {
 
   room.removeConnection = function(connection) {
     if (!connection.has('room') || connection.get('room') != room) return;
-    connection.unset(room);
+    connection.unset('room');
 
     if (connection.get('isDJ'))
       room.endDJ(connection.get('user').username);
