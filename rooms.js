@@ -7,6 +7,9 @@ var winston = require('winston');
 var models;
 var rooms = [];
 var roomsByShortname = {};
+
+// This is an object mapping a username to a connection object for a user
+// in a room. Connections that are not in a room will not be in this object.
 var connectionsByUsername = {};
 
 exports.init = function(_models, next) {
@@ -27,15 +30,15 @@ exports.addRoom = function(room) {
 
   // Returns an object with sendable user data for a connection.
   var connectionUserData = function(connection) {
-    var user = connection.user;
+    var user = connection.get('user');
 
     return {
       username: user.username,
       firstName: user.firstName,
       lastName: user.lastName,
       fullName: user.fullName,
-      dj: connection.dj,
-      djOrder: connection.djOrder,
+      dj: connection.get('isDJ'),
+      djOrder: connection.get('djOrder'),
       admin: user.admin
     };
   };
@@ -97,16 +100,18 @@ exports.addRoom = function(room) {
 
   room.updateDJOrder = function() {
     for (var i = 0; i < room.djConnections.length; i++)
-      room.djConnections[i].djOrder = i;
+      room.djConnections[i].set({ djOrder: i });
   };
 
   room.addConnection = function(connection) {
-    connection.room = room;
     room.connections.push(connection);
-    connection.dj = false;
+    connection.set({
+      room: room,
+      isDJ: false
+    });
 
-    if (connection.user) {
-      var user = connection.user;
+    if (connection.has('user')) {
+      var user = connection.get('user');
       var oldconn = connectionsByUsername[user.username];
       if (oldconn) oldconn.kick('You have joined another room: ' + room.name);
 
@@ -125,20 +130,21 @@ exports.addRoom = function(room) {
   };
 
   room.removeConnection = function(connection) {
-    if (!connection.room || connection.room != room) return;
-    connection.room = null;
+    if (!connection.has('room') || connection.get('room') != room) return;
+    connection.unset(room);
 
-    if (connection.dj)
-      room.endDJ(connection.user.username);
+    if (connection.get('isDJ'))
+      room.endDJ(connection.get('user').username);
 
     var i = room.connections.indexOf(connection);
     room.connections.splice(i, 1);
 
-    if (connection.user) {
-      delete connectionsByUsername[connection.user.username];
-      delete room.connectionsByUsername[connection.user.username];
+    if (connection.has('user')) {
+      var user = connection.get('user');
+      delete connectionsByUsername[user.username];
+      delete room.connectionsByUsername[user.username];
 
-      winston.info(connection.user.getLogName() + ' left room: ' + room.name);
+      winston.info(user.getLogName() + ' left room: ' + room.name);
       room.broadcastUserLeft(connectionUserData(connection));
     } else {
       winston.info('An anonymous listener left room: ' + room.name);
@@ -149,25 +155,29 @@ exports.addRoom = function(room) {
   room.makeDJ = function(username) {
     var conn = room.connectionsByUsername[username];
     if (!conn) return 'User not found.';
-    if (conn.dj) return 'User is already DJ.';
+    if (conn.get('isDJ')) return 'User is already DJ.';
     if (room.djConnections.length >= room.slots)
       return 'All DJ slots are full.';
 
     room.djConnections.push(conn);
-    conn.dj = true;
-    conn.djOrder = room.djConnections.length - 1;
-    room.broadcastUserUpdate(connectionUserData(conn));
+    conn.set({
+      isDJ: true,
+      djOrder: room.djConnections.length - 1
+    });
 
-    winston.info(conn.user.getLogName() + ' became a DJ in: ' + room.name);
+    room.broadcastUserUpdate(connectionUserData(conn));
+    winston.info(
+      conn.get('user').getLogName() + ' became a DJ in: ' + room.name);
   };
 
   room.endDJ = function(username) {
     var conn = room.connectionsByUsername[username];
     if (!conn) return 'User not found.';
-    if (!conn.dj) return 'User is not a DJ.';
+    if (!conn.get('isDJ')) return 'User is not a DJ.';
 
-    conn.dj = false;
-    delete conn.djOrder;
+    conn.set({ isDJ: false });
+    conn.unset('djOrder');
+
     var i = room.djConnections.indexOf(conn);
     room.djConnections.splice(i, 1);
     room.updateDJOrder();
@@ -175,7 +185,7 @@ exports.addRoom = function(room) {
     room.broadcastDJs();
 
     winston.info(
-      conn.user.getLogName() + ' is no longer a DJ in: ' + room.name);
+      conn.get('user').getLogName() + ' is no longer a DJ in: ' + room.name);
   };
 
   rooms.push(room);
@@ -194,7 +204,7 @@ exports.getRooms = function() {
 };
 
 exports.removeConnection = function(connection) {
-  if (connection.room)
-    connection.room.removeConnection(connection);
+  if (connection.has('room'))
+    connection.get('room').removeConnection(connection);
 };
 

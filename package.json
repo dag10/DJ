@@ -15,7 +15,9 @@
     "sanitizer": "0.1.1",
     "multiparty": "3.1.1",
     "fluent-ffmpeg": "1.5.2",
-    "socket.io": "0.9.15"
+    "socket.io": "0.9.15",
+    "underscore": "1.5.2",
+    "backbone": "1.1.0"
   }
 }
 
