@@ -13,11 +13,12 @@ $(function() {
       this.model.on(
           'change:name', this.updateRoomName, this);
       this.model.on(
-          'change:connected', this.renderRoomName, this);
+          'change:connected change:kick_message', this.renderRoomName, this);
       this.model.on(
-          'change:connected', this.renderAlert, this);
+          'change:connected change:kick_message', this.renderAlert, this);
       this.model.on(
-          'change:dj change:connected', this.renderDJButton, this);
+          'change:dj change:connected change:kick_message',
+          this.renderDJButton, this);
 
       this.$('#btn-begin-dj').tooltip({
         title: 'Play Music',

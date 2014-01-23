@@ -191,8 +191,10 @@ $(function() {
     },
 
     handleKick: function(msg) {
-      this.get('room').set({ kick_message: msg || 'No reason supplied.' });
-      this.get('socket').disconnect();
+      if (this.has('room')) {
+        this.get('room').reset();
+        this.get('room').set({ kick_message: msg || 'No reason supplied.' });
+      }
     },
 
     handleNumAnonymous: function(num) {
