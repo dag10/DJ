@@ -16,6 +16,12 @@ module.exports = Backbone.Model.extend({
   initialize: function() {
     this.on('change:socket', this.bindSocketHandlers, this);
     this.bindSocketHandlers();
+
+    // Store username locally for faster lookups in collections
+    this.on('change:user', function() {
+      if (this.has('user'))
+        this.set({ username: this.get('user').username });
+    }, this);
   },
 
   bindSocketHandlers: function() {
@@ -28,6 +34,9 @@ module.exports = Backbone.Model.extend({
     this.socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
     this.socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
     this.socket.on('disconnect', _.bind(this.handleDisconnect, this));
+    
+    // Set our id
+    this.set({ id: this.socket.id });
   },
 
   ensureAuth: function(fn) {
