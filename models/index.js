@@ -57,9 +57,8 @@ exports.define = function(db, models, next) {
         winston.info('Finished running migrations.');
 
       // Create any nonexistant model tables.
-      // Note: This does not update table structures. You'll need to drop and
-      //       recreate the tables. Perhaps I'll create a migration system
-      //       at some point?
+      // Note: This does not update table structures. You'll need to define
+      //       migrations with SQL to update the table structures.
       db.sync(function(err) {
         if (err) {
           throw new Error(
