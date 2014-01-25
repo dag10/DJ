@@ -2,7 +2,7 @@
  * Global socket connections manager.
  */
 
-var ConnectionManager = require('./logic/connection/connection_manager');
+var ConnectionManager = require('./connection_manager');
 
 module.exports = new ConnectionManager();
 
