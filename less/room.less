@@ -129,10 +129,6 @@
           margin: -@section-padding;
           padding: 0;
 
-          &:empty {
-            display: none;
-          }
-
           li {
             @padding: 5px;
             border-bottom: solid 1px lighten(@color-grey-border, 8%);
@@ -178,6 +174,7 @@
       .section-empty {
         font-style: italic;
         color: darken(@color-grey-background, 40%);
+        margin-top: @section-padding;
 
         &.center {
           @height: 160px;
