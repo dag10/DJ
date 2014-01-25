@@ -5,7 +5,7 @@
 var winston = require('winston');
 var _ = require('underscore');
 var Backbone = require('backbone');
-var ConnectionManager = require('./connection_manager');
+var ConnectionManager = require('./logic/connection/connection_manager');
 var BackboneDBModel = require('./backbone_db_model');
 var connections = require('./connections');
 
