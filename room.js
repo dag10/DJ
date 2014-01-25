@@ -7,6 +7,7 @@ var _ = require('underscore');
 var Backbone = require('backbone');
 var ConnectionManager = require('./connection_manager');
 var BackboneDBModel = require('./backbone_db_model');
+var connections = require('./connections');
 
 module.exports = BackboneDBModel.extend({
   initialize: function(entity) {
@@ -90,7 +91,12 @@ module.exports = BackboneDBModel.extend({
 
   addConnection: function(conn) {
     if (conn.authenticated()) {
-      // TODO: Kick user in another room.
+      var instances = connections.connectionsForUsername(
+        conn.user().username);
+      instances.forEach(_.bind(function(connection) {
+        if (connection.get('room'))
+          connection.kick('You joined another room: ' + this.get('name'));
+      }, this));
     }
 
     this.connections().add(conn);
