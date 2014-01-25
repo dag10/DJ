@@ -3,7 +3,7 @@
  */
 
 var winston = require('winston');
-var queued_song_model = require('./models/queued_song');
+var queued_song_model = require('../../models/queued_song');
 
 exports.addSongToQueue = function(song, user, callback) {
   var queuedSong = new queued_song_model.QueuedSong({

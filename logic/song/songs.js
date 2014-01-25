@@ -10,7 +10,7 @@ var upload = require('./upload');
 var ffmpeg = require('fluent-ffmpeg');
 var file_model = require('../../models/file');
 var song_model = require('../../models/song');
-var queues = require('../../queues');
+var queues = require('./queues');
 
 var generateShortName = function(name) {
   return name.toLowerCase()
