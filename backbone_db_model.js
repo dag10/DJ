@@ -51,7 +51,6 @@ module.exports = Backbone.Model.extend({
           updated = true;
       }, this));
       if (updated) this.save();
-      else winston.info('No update!');
     }, this);
   },
 
