@@ -16,7 +16,7 @@ module.exports = Backbone.Collection.extend({
 
   // Returns an array of connections for a username.
   connectionsForUsername: function(username) {
-    return this.find({ username: username });
+    return this.where({ username: username });
   },
 
   // Returns the first connection with a username, or null.

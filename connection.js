@@ -83,7 +83,9 @@ module.exports = Backbone.Model.extend({
   // Kicks the client from their room.
   kick: function(msg) {
     this.socket().emit('kick', msg);
-    rooms.removeConnection(this);
+
+    if (this.has('room'))
+      this.get('room').removeConnection(this);
   },
 
   // Sends the number of anonymous users in their room.
