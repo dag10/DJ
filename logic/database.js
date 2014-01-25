@@ -2,7 +2,7 @@
  * Initializes the database connection.
  */
 
-var config = require('./config');
+var config = require('../config');
 var orm = require('orm');
 
 exports.init = function(app, define, next) {
