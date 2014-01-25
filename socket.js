@@ -7,9 +7,7 @@ var socketio = require('socket.io');
 var winston = require('winston');
 var user_model = require('./models/user');
 var Connection = require('./connection');
-var ConnectionManager = require('./connection_manager');
-
-exports.connections = new ConnectionManager();
+var connections = require('./connections');
 
 exports.init = function(server) {
   var io = socketio.listen(server, {
@@ -34,7 +32,7 @@ exports.init = function(server) {
       socket: socket 
     });
 
-    exports.connections.add(conn);
+    connections.add(conn);
   });
 };
 
