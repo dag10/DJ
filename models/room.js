@@ -19,6 +19,11 @@ exports.define = function(db, models) {
   }, {
     validations: {
       name: orm.enforce.unique({ ignoreCase: true })
+    },
+    methods: {
+      getLogName: function() {
+        return this.name + ' (' + this.shortname + ')';
+      }
     }
   });
 
