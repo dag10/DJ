@@ -17,7 +17,7 @@ exports.addSongToQueue = function(song, user, callback) {
       callback({ error: err });
     } else {
       winston.info(
-        'Added song "' + song.getLogName() + " to queue of user: " +
+        'Added song "' + song.getLogName() + '" to queue of user: ' +
         user.getLogName());
       exports.reorderQueue(user, function(err) {
         if (err)
