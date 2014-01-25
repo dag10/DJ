@@ -7,7 +7,7 @@ var express = require('express');
 var lessMiddleware = require('less-middleware');
 var os = require('os');
 var winston = require('winston');
-var rooms = require('../../rooms');
+var rooms = require('../room/rooms');
 var upload = require('../song/upload');
 var socket = require('../../socket');
 

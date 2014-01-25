@@ -2,7 +2,7 @@
  * Manages a socket.io connection for a user in a room.
  */
 
-var rooms = require('../../rooms');
+var rooms = require('../room/rooms');
 var winston = require('winston');
 var user_model = require('../../models/user');
 var _ = require('underscore');
