@@ -19,8 +19,15 @@ module.exports = Backbone.Model.extend({
     return this.get('entity');
   },
 
+  getLogName: function() {
+    var entity = this.entity();
+    if (entity && typeof entity.getLogName === 'function')
+      return entity.getLogName();
+    return null;
+  },
+
   entityChanged: function() {
-    var entity = this.get('entity');
+    var entity = this.entity();
 
     // Copy db model attributes to backbone model.
     this.set(entity, { silent: true });
@@ -38,7 +45,7 @@ module.exports = Backbone.Model.extend({
   },
 
   sync: function(method, model) {
-    this.get('entity').save(_.bind(function(err) {
+    this.entity().save(_.bind(function(err) {
       if (err) {
         winston.error('Failed to save model: ' + this.get('model'));
       } else {
