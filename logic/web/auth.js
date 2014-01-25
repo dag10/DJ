@@ -2,7 +2,7 @@
  * Authentication functions.
  */
 
-var config = require('./config');
+var config = require('../../config');
 var util = require('util');
 var winston = require('winston');
 var sanitizer = require('sanitizer');

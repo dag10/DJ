@@ -2,7 +2,7 @@
  * The entry point for the app server.
  */
 
-var auth_module = require('./auth');
+var auth_module = require('./logic/web/auth');
 var config = require('./config');
 var express = require('express');
 var handlers = require('./handlers');
