@@ -7,12 +7,12 @@ var Backbone = require('backbone');
 
 module.exports = Backbone.Collection.extend({
   initialize: function() {
-    this.on('add', function(connection) {
-      connection.once('disconnect', _.bind(function() {
-        this.remove(connection);
-      }, this));
-    }, this);
+    this._numAuthenticated = 0;
+    this.on('add', this.connectionAdded, this);
+    this.on('remove', this.connectionRemoved, this);
   },
+
+  /* Getters */
 
   // Returns an array of connections for a username.
   connectionsForUsername: function(username) {
@@ -27,9 +27,54 @@ module.exports = Backbone.Collection.extend({
     return null;
   },
 
-  // Whether a connection with a username exists
+  // Whether a connection with a username exists.
   hasConnectionForUsername: function(username) {
     return this.connectionForUsername(username) !== null;
+  },
+
+  // Returns the number of connections.
+  numConnections: function() {
+    return this.length;
+  },
+
+  // Returns the number of authenticated connections.
+  numAuthenticated: function() {
+    return this._numAuthenticated;
+  },
+
+  // Returns the number of anonymous connections.
+  numAnonymous: function() {
+    return this.length - this._numAuthenticated;
+  },
+
+  /* Handlers */
+
+  // Handle a connection being added.
+  connectionAdded: function(conn) {
+    if (conn.authenticated())
+      this._numAuthenticated++;
+
+    // Updated authenticated count if this connection's authentication changes
+    conn.on('change:authenticated', function() {
+      var wasAuthenticated = conn.previous('authenticated');
+      var isAuthenticated = conn.authenticated();
+
+      if (wasAuthenticated && !isAuthenticated)
+        this._numAuthenticated--;
+      else if (!wasAuthenticated && isAuthenticated)
+        this._numAuthenticated++;
+    }, this);
+
+    // Remove the connection once it's disconnected.
+    conn.once('disconnect', function() {
+      this.remove(conn);
+    }, this);
+  },
+
+  // Handle a connection being removed.
+  connectionRemoved: function(conn) {
+    if (conn.authenticated())
+      this._numAuthenticated--;
   }
 });
 
