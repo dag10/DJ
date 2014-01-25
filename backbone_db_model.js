@@ -2,6 +2,7 @@
  * A base Backbone model that encapsulates a db model.
  */
 
+var winston = require('winston');
 var _ = require('underscore');
 var Backbone = require('backbone');
 
@@ -19,11 +20,15 @@ module.exports = Backbone.Model.extend({
     return this.get('entity');
   },
 
+  tableName: function() {
+    return this.entity().model().table;
+  },
+
   getLogName: function() {
     var entity = this.entity();
     if (entity && typeof entity.getLogName === 'function')
       return entity.getLogName();
-    return null;
+    return 'Unknown (' + this.tableName + ')';
   },
 
   entityChanged: function() {
@@ -35,21 +40,25 @@ module.exports = Backbone.Model.extend({
 
     // When one of these attributes is changed in the backbone model, update
     // and save the db model if autosave is enabled.
-    this.off('change', this.save);
-    Object.keys(entity).forEach(_.bind(function(key) {
-      this.on('change:' + key, function() {
-        if (this.get('autosave'))
-          this.save();
-      }, this);
-    }, this));
+    var dbAttributes = Object.keys(entity.model().allProperties);
+    this.on('change', function() {
+      if (!this.get('autosave')) return;
+      var updated = false;
+      var changedAttributes = Object.keys(this.changedAttributes());
+      _.intersection(
+        dbAttributes, changedAttributes).forEach(_.bind(function(attr) {
+          entity[attr] = this.get(attr);
+          updated = true;
+      }, this));
+      if (updated) this.save();
+      else winston.info('No update!');
+    }, this);
   },
 
   sync: function(method, model) {
     this.entity().save(_.bind(function(err) {
       if (err) {
-        winston.error('Failed to save model: ' + this.get('model'));
-      } else {
-        winston.info('Saved model: ' + this.get('model')); // TODO delete
+        winston.error('Failed to save model: ' + this.tableName());
       }
     }, this));
   }
