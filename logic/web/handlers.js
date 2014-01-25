@@ -2,18 +2,20 @@
  * Handlers for express web requests.
  */
 
-var config = require('./config');
+var config = require('../../config');
 var express = require('express');
 var lessMiddleware = require('less-middleware');
 var os = require('os');
 var winston = require('winston');
-var rooms = require('./rooms');
-var upload = require('./upload');
-var socket = require('./socket');
+var rooms = require('../../rooms');
+var upload = require('../../upload');
+var socket = require('../../socket');
+
+var base_dir = __dirname + '/../..';
 
 exports.init = function(app, auth) {
   app.enable('trust proxy');
-  app.set('views', __dirname + '/views');
+  app.set('views', base_dir + '/views');
   app.set('view engine', 'ejs');
   app.engine('ejs', require('ejs-locals'));
 
@@ -25,17 +27,17 @@ exports.init = function(app, auth) {
 
   var tmpDir = os.tmpDir();
   app.use(lessMiddleware({
-    src: __dirname + '/less',
+    src: base_dir + '/less',
     dest: tmpDir,
     prefix: '/styles',
     compress: !config.web.debug,
     force: config.web.debug
   }));
 
-  app.use('/styles', express.static(__dirname + '/styles'));
-  app.use('/images', express.static(__dirname + '/images'));
-  app.use('/scripts', express.static(__dirname + '/scripts'));
-  app.use('/fonts', express.static(__dirname + '/fonts'));
+  app.use('/styles', express.static(base_dir + '/styles'));
+  app.use('/images', express.static(base_dir + '/images'));
+  app.use('/scripts', express.static(base_dir + '/scripts'));
+  app.use('/fonts', express.static(base_dir + '/fonts'));
   app.use('/styles', express.static(tmpDir));
   app.use('/artwork', express.static(upload.artwork_dir));
 
