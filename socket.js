@@ -6,7 +6,7 @@ var config = require('./config');
 var socketio = require('socket.io');
 var winston = require('winston');
 var user_model = require('./models/user');
-var Connection = require('./connection');
+var Connection = require('./logic/connection/connection');
 var connections = require('./connections');
 
 exports.init = function(server) {
