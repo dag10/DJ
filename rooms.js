@@ -7,7 +7,7 @@ var _ = require('underscore');
 var Backbone = require('backbone');
 var ConnectionManager = require('./logic/connection/connection_manager');
 var room_model = require('./models/room');
-var Room = require('./room');
+var Room = require('./logic/room/room');
 
 var RoomManager = Backbone.Collection.extend({
   model: Room,
