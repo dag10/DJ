@@ -124,7 +124,7 @@ module.exports = BackboneDBModel.extend({
       winston.info('An anonymous listener joined room: ' + this.getLogName());
     }
 
-    // Send this user room all data.
+    // Send this user all room data.
     conn.sendUserList(this.getAuthenticatedConnections());
     conn.sendNumAnonymous(this.numAnonymous());
 
