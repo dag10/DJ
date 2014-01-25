@@ -30,6 +30,8 @@ exports.define = function(db, models) {
           this.file.remove();
         if (this.artwork)
           this.artwork.remove();
+
+        // TODO: Delete queued_song entities for this song.
       }
     }
   });
