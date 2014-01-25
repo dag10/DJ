@@ -111,18 +111,23 @@ $(function() {
         }, this));
       }, this);
 
-      if (this.has('room'))
-        this.leaveRoom(join);
-      else
+      if (this.has('room') && this.get('room').get('connected')) {
+        this.get('room').once('change:connected', join);
+        this.leaveRoom();
+      } else {
         join();
+      }
     },
 
-    leaveRoom: function(next) {
-      this.get('socket').emit('room:leave', _.bind(function() {
-        console.log('Left room.');
-        if (this.has('room'))
-          this.get('room').reset();
-        if (_.isFunction(next)) next();
+    leaveRoom: function() {
+      this.get('socket').emit('room:leave', _.bind(function(err) {
+        if (err) {
+          error(err.error);
+        } else {
+          console.log('Left room.');
+          if (this.has('room'))
+            this.get('room').reset();
+        }
       }, this));
     },
 
