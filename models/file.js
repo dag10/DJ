@@ -3,7 +3,7 @@
  */
 
 var orm = require('orm');
-var fs_ = require('../fs');
+var fs_ = require('../utils/fs');
 var upload = require('../upload');
 
 var File;
