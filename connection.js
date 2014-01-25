@@ -10,7 +10,7 @@ var Backbone = require('backbone');
 
 module.exports = Backbone.Model.extend({
   defaults: {
-    isDJ: false
+    authenticated: false
   },
 
   initialize: function() {
@@ -20,27 +20,42 @@ module.exports = Backbone.Model.extend({
     // Store username locally for faster lookups in collections
     this.on('change:user', function() {
       if (this.has('user'))
-        this.set({ username: this.get('user').username });
+        this.set({ username: this.user().username });
     }, this);
   },
 
   bindSocketHandlers: function() {
-    // Store socket in object for easier access.
-    this.socket = this.get('socket');
+    var socket = this.socket();
 
-    this.socket.on('auth', _.bind(this.handleAuthRequest, this));
-    this.socket.on('room:join', _.bind(this.handleRoomJoinRequest, this));
-    this.socket.on('room:leave', _.bind(this.handleRoomLeaveRequest, this));
-    this.socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
-    this.socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
-    this.socket.on('disconnect', _.bind(this.handleDisconnect, this));
+    socket.on('auth', _.bind(this.handleAuthRequest, this));
+    socket.on('room:join', _.bind(this.handleRoomJoinRequest, this));
+    socket.on('room:leave', _.bind(this.handleRoomLeaveRequest, this));
+    socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
+    socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
+    socket.on('disconnect', _.bind(this.handleDisconnect, this));
     
     // Set our id
-    this.set({ id: this.socket.id });
+    this.set({ id: socket.id });
   },
 
+  /* Convienence Getters */
+
+  socket: function() {
+    return this.get('socket');
+  },
+
+  authenticated: function() {
+    return this.get('authenticated');
+  },
+
+  user: function() {
+    return this.get('user') || null;
+  },
+
+  /* Utilities */
+
   ensureAuth: function(fn) {
-    if (this.has('user')) {
+    if (this.authenticated()) {
       return true;
     } else {
       fn({ error: 'You are not authenticated.' });
@@ -48,42 +63,61 @@ module.exports = Backbone.Model.extend({
     }
   },
 
+  // Returns an object with sendable user data.
+  userData: function() {
+    var user = this.user() || {};
+
+    return {
+      username: user.username,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      fullName: user.fullName,
+      dj: this.get('isDJ') || false,
+      djOrder: this.get('djOrder'),
+      admin: user.admin
+    };
+  },
+
+  /* Socket Commands */
+
   // Kicks the client from their room.
   kick: function(msg) {
-    this.socket.emit('kick', msg);
+    this.socket().emit('kick', msg);
     rooms.removeConnection(this);
   },
 
-  // Sends the number of anonymous users in the room.
+  // Sends the number of anonymous users in their room.
   sendNumAnonymous: function(num) {
-    this.socket.emit('room:num_anonymous', num);
+    this.socket().emit('room:num_anonymous', num);
   },
 
-  // Sends a user that joined the room.
-  sendJoinedUser: function(user) {
-    this.socket.emit('room:user:join', user);
+  // Sends a user that joined their room.
+  sendJoinedUser: function(conn) {
+    this.socket().emit('room:user:join', conn.userData());
   },
 
-  // Sends a user that left the room.
-  sendLeftUser: function(user) {
-    this.socket.emit('room:user:leave', user);
+  // Sends a user that left their room.
+  sendLeftUser: function(conn) {
+    this.socket().emit('room:user:leave', conn.userData());
   },
 
-  // Sends a user that was updated.
-  sendUpdatedUser: function(user) {
-    this.socket.emit('room:user:update', user);
+  // Sends a user that was updated in their room.
+  sendUpdatedUser: function(conn) {
+    this.socket().emit('room:user:update', conn.userData());
   },
 
-  // Sends a list of all users in the room.
-  sendUserList: function(users) {
-    this.socket.emit('room:users', users);
+  // Sends a list of all users in their room.
+  sendUserList: function(conns) {
+    this.socket().emit('room:users', _.map(conns, function(conn) {
+      return conn.userData();
+    }));
   },
 
   /* Sockets Handlers */
 
   // Handle client auth request.
   handleAuthRequest: function(data, fn) {
-    if (this.has('user')) {
+    if (this.authenticated()) {
       fn({ error: 'You are already authenticated.' });
     } else if (this.has('room')) {
       fn({ error: 'You\'re already anonymously in a room.' });
@@ -91,14 +125,18 @@ module.exports = Backbone.Model.extend({
       fn({ error: 'Missing auth data.' });
     } else if (data.hash !== user_model.hashUser(data.username)) {
       fn({ error: 'Failed to authenticate. Please reload.' });
+      this.socket().disconnect();
     } else {
       user_model.User.find(
           { username: data.username }, 1, _.bind(function(err, users) {
         if (err) {
           fn(err.message);
         } else if (users.length === 1) {
-          this.set({ user: users[0] });
-          winston.info(this.get('user').getLogName() + ' authed via socket!');
+          this.set({
+            authenticated: true,
+            user: users[0]
+          });
+          winston.info(this.user().getLogName() + ' authed via socket!');
           fn({ success: true });
         } else {
           fn({ error: 'User not found.' });
@@ -109,11 +147,11 @@ module.exports = Backbone.Model.extend({
 
   // Handle request to join room.
   handleRoomJoinRequest: function(shortname, fn) {
-    var room = rooms.getRoom(shortname);
+    var room = rooms.roomForShortname(shortname);
     if (this.has('room')) {
       fn({ error: 'You are already in a room.' });
     } else if (room) {
-      fn({ name: room.name, shortname: room.shortname });
+      fn({ name: room.get('name'), shortname: room.get('shortname') });
       room.addConnection(this);
     } else {
       fn({ error: 'Room not found.' });
@@ -122,8 +160,12 @@ module.exports = Backbone.Model.extend({
 
   // Handle request to leave room.
   handleRoomLeaveRequest: function(fn) {
-    fn();
-    rooms.removeConnection(this);
+    if (this.has('room')) {
+      this.get('room').removeConnection(this);
+      fn();
+    } else {
+      fn({ error: 'You are not in a room.' });
+    }
   },
 
   // Handle request to become DJ.
@@ -131,7 +173,7 @@ module.exports = Backbone.Model.extend({
     if (!this.ensureAuth(fn)) return;
     if (!this.has('room')) return { error: 'You\'re not in a room.' };
 
-    var err = this.get('room').makeDJ(this.get('user').username);
+    var err = this.get('room').makeDJ(this);
     fn( err ? { error: err } : {} );
   },
 
@@ -140,7 +182,7 @@ module.exports = Backbone.Model.extend({
     if (!this.ensureAuth(fn)) return;
     if (!this.has('room')) return { error: 'You\'re not in a room.' };
 
-    var err = this.get('room').endDJ(this.get('user').username);
+    var err = this.get('room').endDJ(this);
     fn( err ? { error: err } : {} );
   },
 
@@ -148,10 +190,8 @@ module.exports = Backbone.Model.extend({
   handleDisconnect: function() {
     this.trigger('disconnect');
 
-    rooms.removeConnection(this);
-
     if (this.has('user'))
-      winston.info(this.get('user').getLogName() + ' disconnected.');
+      winston.info(this.user().getLogName() + ' disconnected.');
     else
       winston.info('Anonymous listener disconnected.');
   }

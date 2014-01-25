@@ -10,12 +10,12 @@
     No rooms exist at the moment.
   <% } %>
 </h1>
-<% if (rooms) { %>
+<% if (rooms) { var room_models = rooms.models; %>
   <div class="row">
-    <% for (var i = 0; i < rooms.length; i++) { var room = rooms[i]; %>
+    <% for (var i = 0; i < room_models.length; i++) { var room = room_models[i]; %>
       <div class="col-sm-6 col-md-6 room-listing">
         <div>
-          <div class="room-name"><%= room.name %></div>
+          <div class="room-name"><%= room.get('name') %></div>
           <div class="room-buttons">
             <div
               class="room-label"
@@ -24,7 +24,7 @@
               <%= room.numUsers() %>
             </div>
             <a
-              href="/room/<%= room.shortname %>"
+              href="/room/<%= room.get('shortname') %>"
               class="btn btn-primary btn-large">
               <% if (user) { %>
                 <span class="glyphicon glyphicon-play"></span> Play

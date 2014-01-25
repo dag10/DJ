@@ -141,8 +141,8 @@
 
 <script>
   window.room = {
-    name: '<%= room.name %>',
-    shortname: '<%= room.shortname %>'
+    name: '<%= room.get('name') %>',
+    shortname: '<%= room.get('shortname') %>'
   };
 </script>
 

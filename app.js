@@ -24,13 +24,14 @@ socket.init(server);
 
 app.configure(function() {
   database.init(app, models_module.define, function(models) {
-    rooms.init(models, function() {
+    rooms.once('load', function() {
       upload.init();
       handlers.init(app, auth_module.init(app));
       server.listen(config.web.port, function() {
         winston.info('Server listening on port', config.web.port);
       });
     });
+    rooms.loadRooms();
   });
 });
 

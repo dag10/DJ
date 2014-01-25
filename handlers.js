@@ -47,14 +47,14 @@ exports.init = function(app, auth) {
       res.render('index.ejs', {
         user: user,
         config: config,
-        rooms: rooms.getRooms()
+        rooms: rooms
       });
     });
   });
 
   app.get('/room/:room', function(req, res, next) {
     auth.getUser(false, req, res, next, function(user) {
-      var room = rooms.getRoom(req.param('room'));
+      var room = rooms.roomForShortname(req.param('room'));
       if (room) {
         res.render('room.ejs', {
           user: user,
