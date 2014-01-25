@@ -4,7 +4,7 @@
 
 var orm = require('orm');
 var fs_ = require('../utils/fs');
-var upload = require('../upload');
+var upload = require('../logic/song/upload');
 
 var File;
 

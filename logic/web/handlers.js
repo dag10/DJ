@@ -8,7 +8,7 @@ var lessMiddleware = require('less-middleware');
 var os = require('os');
 var winston = require('winston');
 var rooms = require('../../rooms');
-var upload = require('../../upload');
+var upload = require('../song/upload');
 var socket = require('../../socket');
 
 var base_dir = __dirname + '/../..';

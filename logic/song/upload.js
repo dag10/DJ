@@ -2,11 +2,11 @@
  * Handles song uploads.
  */
 
-var config = require('./config');
+var config = require('../../config');
 var winston = require('winston');
 var fs = require('fs');
 var multiparty = require('multiparty');
-var songs = require('./logic/song/songs');
+var songs = require('./songs');
 
 var song_path = 'songs';
 var artwork_path = 'artwork';

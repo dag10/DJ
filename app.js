@@ -11,7 +11,7 @@ var models_module = require('./models');
 var winston = require('winston');
 var logging = require('./utils/logging');
 var rooms = require('./rooms');
-var upload = require('./upload');
+var upload = require('./logic/song/upload');
 var socket = require('./socket');
 var http = require('http');
 
