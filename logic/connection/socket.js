@@ -2,12 +2,12 @@
  * Manages socket.io communication.
  */
 
-var config = require('./config');
+var config = require('../../config');
 var socketio = require('socket.io');
 var winston = require('winston');
-var user_model = require('./models/user');
-var Connection = require('./logic/connection/connection');
-var connections = require('./logic/connection/connections');
+var user_model = require('../../models/user');
+var Connection = require('../connection/connection');
+var connections = require('../connection/connections');
 
 exports.init = function(server) {
   var io = socketio.listen(server, {

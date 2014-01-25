@@ -9,7 +9,7 @@ var os = require('os');
 var winston = require('winston');
 var rooms = require('../room/rooms');
 var upload = require('../song/upload');
-var socket = require('../../socket');
+var socket = require('../connection/socket');
 
 var base_dir = __dirname + '/../..';
 

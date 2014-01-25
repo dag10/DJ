@@ -12,7 +12,7 @@ var winston = require('winston');
 var logging = require('./utils/logging');
 var rooms = require('./logic/room/rooms');
 var upload = require('./logic/song/upload');
-var socket = require('./socket');
+var socket = require('./logic/connection/socket');
 var http = require('http');
 
 logging.init();
