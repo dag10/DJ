@@ -3,14 +3,14 @@
  */
 
 var winston = require('winston');
-var config = require('./config');
+var config = require('../../config');
 var fs = require('fs');
-var fs_ = require('./utils/fs');
-var upload = require('./upload');
+var fs_ = require('../../utils/fs');
+var upload = require('../../upload');
 var ffmpeg = require('fluent-ffmpeg');
-var file_model = require('./models/file');
-var song_model = require('./models/song');
-var queues = require('./queues');
+var file_model = require('../../models/file');
+var song_model = require('../../models/song');
+var queues = require('../../queues');
 
 var generateShortName = function(name) {
   return name.toLowerCase()
