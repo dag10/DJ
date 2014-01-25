@@ -2,7 +2,7 @@
  * Utility functions for logging.
  */
 
-var config = require('./config');
+var config = require('../config');
 var winston = require('winston');
 var fs = require('fs');
 
