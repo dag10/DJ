@@ -11,55 +11,118 @@ module.exports = Backbone.Model.extend({
     autosave: true
   },
 
-  initialize: function(entity) {
+  initialize: function() {
+    this.on('change', this.handleChange, this);
     this.on('change:entity', this.entityChanged, this);
-    this.set({ entity: entity });
+    this.on('change:id', this.idChanged, this);
+
+    if (this.entity()) {
+      this.entityChanged();
+    } else if (this.id) {
+      this.idChanged();
+    }
   },
 
   entity: function() {
     return this.get('entity');
   },
 
+  model: function() {
+    return this.get('model');
+  },
+
   tableName: function() {
-    return this.entity().model().table;
+    if (this.model())
+      return this.model().table;
+    else
+      return 'unknown';
   },
 
   getLogName: function() {
     var entity = this.entity();
     if (entity && typeof entity.getLogName === 'function')
       return entity.getLogName();
-    return 'Unknown (' + this.tableName + ')';
+    return 'Unknown (' + this.tableName() + ')';
+  },
+
+  idChanged: function() {
+    this.fetch();
   },
 
   entityChanged: function() {
     var entity = this.entity();
+    this.set({ id: entity.id }, { silent: true });
 
     // Copy db model attributes to backbone model.
     this.set(entity, { silent: true });
-    this.set({ model: entity.model });
+  },
+  
+  handleChange: function() {
+    if (this.get('autosave') && this.entity())
+      this.save();
+  },
 
-    // When one of these attributes is changed in the backbone model, update
-    // and save the db model if autosave is enabled.
-    var dbAttributes = Object.keys(entity.model().allProperties);
-    this.on('change', function() {
-      if (!this.get('autosave')) return;
+  sync: function(method, model) {
+    if (!this.model()) {
+      winston.error('No model set, can\'t sync backbone db model.');
+      return false;
+    }
+
+    var dbAttributes = Object.keys(this.model().allProperties);
+
+    if (method === 'create' || (method === 'update' && !this.entity())) {
+      var attributesToSet = {};
+      dbAttributes.forEach(_.bind(function(attr) {
+        attributesToSet[attr] = this.get(attr);
+      }, this));
+      this.model().create([attributesToSet], _.bind(function(err, entities) {
+        if (err) {
+          winston.error(
+            'Failed to save model ' + this.tableName() + ': ' + err);
+        } else {
+          this.set({ entity: entities[0] });
+          this.trigger('save');
+        }
+      }, this));
+    } else if (method === 'update') {
       var updated = false;
       var changedAttributes = Object.keys(this.changedAttributes());
+      var entity = this.entity();
       _.intersection(
         dbAttributes, changedAttributes).forEach(_.bind(function(attr) {
           entity[attr] = this.get(attr);
           updated = true;
       }, this));
-      if (updated) this.save();
-    }, this);
-  },
-
-  sync: function(method, model) {
-    this.entity().save(_.bind(function(err) {
-      if (err) {
-        winston.error('Failed to save model: ' + this.tableName());
+      if (updated) {
+        this.entity().save(_.bind(function(err) {
+          if (err)
+            winston.error('Failed to save model: ' + this.tableName());
+          else
+            this.trigger('save');
+        }, this));
       }
-    }, this));
+    } else if (method === 'delete') {
+      if (this.entity()) {
+        winston.info(
+          'Deleted entity from backbone db model: ' + this.getLogName());
+        this.entity().remove();
+      }
+    } else if (method === 'read') {
+      if (this.has('id')) {
+        this.model().get(this.id, _.bind(function(err, entity) {
+          if (err) {
+            winston.error('Error reading model from database: ' + err);
+          } else {
+            this.set({ entity: entity });
+            this.trigger('load');
+          }
+        }, this));
+      } else {
+        winston.error(
+          'Can\'t read backbone db model because no id is set. Model: ' +
+          this.tableName());
+      }
+    }
   }
 });
 

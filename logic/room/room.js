@@ -4,17 +4,24 @@
 
 var winston = require('winston');
 var _ = require('underscore');
-var Backbone = require('backbone');
+var room_model = require('../../models/room');
 var ConnectionManager = require('../connection/connection_manager');
 var BackboneDBModel = require('../backbone_db_model');
 var connections = require('../connection/connections');
 
 module.exports = BackboneDBModel.extend({
-  initialize: function(entity) {
-    this.constructor.__super__.initialize.apply(this, arguments);
-    this.set({ connections: new ConnectionManager() });
+  initialize: function() {
+    this.set({
+      connections: new ConnectionManager()
+    });
+
     this.connections().on('add', this.connectionAdded, this);
     this.connections().on('remove', this.connectionRemoved, this);
+    this.constructor.__super__.initialize.apply(this, arguments);
+  },
+
+  model: function() {
+    return room_model.Room;
   },
 
   /* Utilities */

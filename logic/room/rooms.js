@@ -22,7 +22,7 @@ var RoomManager = Backbone.Collection.extend({
   loadRooms: function() {
     room_model.Room.find({}, _.bind(function(err, roomResults) {
       roomResults.forEach(_.bind(function(entity) {
-        this.add(new Room(entity));
+        this.add(new Room({ entity: entity }));
       }, this));
       this.trigger('load');
     }, this));
@@ -40,7 +40,7 @@ var RoomManager = Backbone.Collection.extend({
     winston.info('Room added: ' + room.getLogName());
   },
 
-  roomRemoved: function() {
+  roomRemoved: function(room) {
     winston.info('Room removed: ' + room.getLogName());
   }
 });
