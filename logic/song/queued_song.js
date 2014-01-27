@@ -15,17 +15,19 @@ module.exports = BackboneDBModel.extend({
   },
 
   toJSON: function() {
-    var data = {
-      order: this.get('order')
-    };
-
     var song = this.get('song');
 
-    Object.keys(song).forEach(function(song_key) {
-      data[song_key] = song[song_key];
-    });
+    var artwork_file = song.artwork;
 
-    return data;
+    return {
+      order: this.get('order'),
+      title: song.title,
+      artist: song.artist,
+      album: song.album,
+      duration: song.duration,
+      id: song.id,
+      artwork_path: (artwork_file ? '/artwork/' + artwork_file.filename : null)
+    };
   }
 });
 
