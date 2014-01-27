@@ -183,9 +183,10 @@ $(function() {
   });
 
   views.QueuedSong = Backbone.View.extend({
-    render: function() {
-      this.$el.text(this.model.get('title'));
+    template: Handlebars.compile($('#queue-item-template').html()), 
 
+    render: function() {
+      this.$el.html(this.template(this.model.attributes));
       return this;
     }
   });

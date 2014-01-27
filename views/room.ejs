@@ -4,6 +4,7 @@
   script('/socket.io/socket.io.js');
   script('/scripts/underscore-min.js');
   script('/scripts/backbone-min.js');
+  script('/scripts/handlebars.js');
   script('/scripts/room_models.js');
   script('/scripts/room_views.js');
   script('/scripts/connection.js');
@@ -129,7 +130,7 @@
   </div>
 </div>
 
-<div class="template" id="upload-preview-template">
+<script type="text/template" id="upload-preview-template">
   <li class="dz-preview dz-file-preview">
     <div class="foreground">
       <span data-dz-name></span> (<span data-dz-size></span>)
@@ -137,7 +138,20 @@
     </div>
     <div class="background background-progress" data-dz-uploadprogress></div>
   </li>
-</div>
+</script>
+
+<script type="text/x-handlebars-template" id="queue-item-template">
+  <div class="artwork" style="background-image: url('{{artwork_path}}')">
+  </div>
+
+  <div class="fg">
+    <span class="title">{{title}}</span>
+    <span class="artist">{{artist}}</span>
+    {{#if album}}
+      <span class="album">- {{album}}</span>
+    {{/if}}
+  </div>
+</script>
 
 <script>
   window.room = {

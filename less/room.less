@@ -222,6 +222,47 @@
           border-bottom-right-radius: @column-border-radius;
         }
       }
+
+      #queue-section {
+        li {
+          @height: 40px;
+          @inner-height: @height - 10px;
+
+          position: relative;
+          height: @height;
+
+          .artwork {
+            width: @inner-height;
+            height: @inner-height;
+            background-color: darken(@color-grey-background, 10%);
+            background-size: contain;
+            display: inline-block;
+          }
+
+          .fg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: inline-block;
+            margin-left: @height;
+            line-height: 18px;
+            font-size: 13px;
+
+            .title {
+              display: block;
+              font-weight: 300;
+              color: darken(@color-grey-background, 60%);
+            }
+
+            .artist, .album {
+              font-weight: 200;
+              color: darken(@color-grey-background, 30%);
+            }
+          }
+        }
+      }
     }
   }
 
