@@ -30,8 +30,11 @@ exports.define = function(db, models) {
           this.file.remove();
         if (this.artwork)
           this.artwork.remove();
-
-        // TODO: Delete queued_song entities for this song.
+        this.getQueueings(function(err, queued_songs) {
+          queued_songs.forEach(function(queued_song) {
+            queued_song.remove();
+          });
+        });
       }
     }
   });
