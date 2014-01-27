@@ -226,9 +226,12 @@ $(function() {
 
     handleQueue: function(queued_songs) {
       var queue = this.get('queue');
+      queue.trigger('update:start');
+      queue.reset();
       queued_songs.forEach(_.bind(function(song) {
         queue.add(song);
       }, this));
+      queue.trigger('update:finish');
     }
   });
 });

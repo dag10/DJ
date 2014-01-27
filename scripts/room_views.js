@@ -200,6 +200,8 @@ $(function() {
       this.collection.on('remove', this.remove, this);
       this.collection.on('reset', this.reset, this);
       this.collection.on('sort', this.render, this);
+      this.collection.on('update:start', this.updateStarted, this);
+      this.collection.on('update:finish', this.updateFinished, this);
 
       this.render();
     },
@@ -233,11 +235,20 @@ $(function() {
       })[0];
     },
 
+    updateStarted: function() {
+      this.scrollTop = this.el.scrollTop;
+    },
+
+    updateFinished: function() {
+      var scrollTop = this.scrollTop || 0;
+      if (scrollTop > 0)
+        scrollTop += $(this.el.children[0].children[0]).outerHeight();
+      this.el.scrollTop = scrollTop;
+    },
+
     render: function() {
       var $ul = this.$('ul');
       var $placeholder = this.$('.section-empty');
-
-      var scrollTop = this.el.scrollTop;
 
       if (this.collection.length === 0)
         $placeholder.show();
@@ -248,8 +259,6 @@ $(function() {
       this.collection.forEach(function(queuedSong) {
         $ul.append(this.getViewForQueuedSong(queuedSong).render().el);
       }, this);
-
-      this.el.scrollTop = scrollTop;
     }
   });
 });
