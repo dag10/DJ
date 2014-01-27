@@ -58,6 +58,7 @@ $(function() {
         socket.on('room:user:leave', _.bind(this.handleUserLeave, this));
         socket.on('room:user:update', _.bind(this.handleUserUpdate, this));
         socket.on('room:users', _.bind(this.handleUserList, this));
+        socket.on('queue', _.bind(this.handleQueue, this));
       }, this);
 
       if (this.get('connected')) {
@@ -191,8 +192,8 @@ $(function() {
     },
 
     handleError: function(err) {
+      console.error('Received error:', err);
       error(err);
-      this.disconnect();
     },
 
     handleKick: function(msg) {
@@ -221,6 +222,13 @@ $(function() {
     handleUserList: function(users) {
       var room = this.get('room');
       room.setUsers(users);
+    },
+
+    handleQueue: function(queued_songs) {
+      var queue = this.get('queue');
+      queued_songs.forEach(_.bind(function(song) {
+        queue.add(song);
+      }, this));
     }
   });
 });

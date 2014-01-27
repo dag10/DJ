@@ -7,6 +7,7 @@ var winston = require('winston');
 var user_model = require('../../models/user');
 var _ = require('underscore');
 var Backbone = require('backbone');
+var queues = require('../song/queues');
 
 module.exports = Backbone.Model.extend({
   defaults: {
@@ -115,6 +116,17 @@ module.exports = Backbone.Model.extend({
     }));
   },
 
+  // Sends a queue to the user.
+  sendQueue: function() {
+    queues.getQueue(this.user().id, _.bind(function(ret) {
+      if (ret instanceof Error) {
+        this.socket().emit('error', 'Failed to get queue.');
+      } else {
+        this.socket().emit('queue', ret.toJSON());
+      }
+    }, this));
+  },
+
   /* Sockets Handlers */
 
   // Handle client auth request.
@@ -140,6 +152,7 @@ module.exports = Backbone.Model.extend({
           });
           winston.info(this.user().getLogName() + ' authed via socket!');
           fn({ success: true });
+          this.sendQueue();
         } else {
           fn({ error: 'User not found.' });
         }
