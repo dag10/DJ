@@ -17,6 +17,7 @@ module.exports = Backbone.Model.extend({
   initialize: function() {
     this.on('change:socket', this.bindSocketHandlers, this);
     this.bindSocketHandlers();
+    this.on('change:queue', this.queueChanged, this);
 
     // Store username locally for faster lookups in collections
     this.on('change:user', function() {
@@ -79,6 +80,28 @@ module.exports = Backbone.Model.extend({
     };
   },
 
+  /* Queue */
+
+  fetchQueue: function() {
+    queues.getQueue(this.user().id, _.bind(function(ret) {
+      if (ret instanceof Error) {
+        winston.error('Failed to fetch queue: ' + ret.message);
+        this.socket().emit('error', 'Failed to get queue.');
+      } else {
+        this.set({ queue: ret });
+      }
+    }, this));
+  },
+
+  queueChanged: function() {
+    var queue = this.get('queue');
+    if (!queue) return;
+    queue.on('add remove reset sync load', function() {
+      this.sendQueue(queue);
+    }, this);
+    this.sendQueue(queue);
+  },
+
   /* Socket Commands */
 
   // Kicks the client from their room.
@@ -117,14 +140,8 @@ module.exports = Backbone.Model.extend({
   },
 
   // Sends a queue to the user.
-  sendQueue: function() {
-    queues.getQueue(this.user().id, _.bind(function(ret) {
-      if (ret instanceof Error) {
-        this.socket().emit('error', 'Failed to get queue.');
-      } else {
-        this.socket().emit('queue', ret.toJSON());
-      }
-    }, this));
+  sendQueue: function(queue) {
+    this.socket().emit('queue', queue.toJSON());
   },
 
   /* Sockets Handlers */
@@ -152,7 +169,7 @@ module.exports = Backbone.Model.extend({
           });
           winston.info(this.user().getLogName() + ' authed via socket!');
           fn({ success: true });
-          this.sendQueue();
+          this.fetchQueue();
         } else {
           fn({ error: 'User not found.' });
         }
