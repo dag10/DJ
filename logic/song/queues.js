@@ -4,6 +4,31 @@
 
 var winston = require('winston');
 var queued_song_model = require('../../models/queued_song');
+var connections = require('../connection/connections');
+var Queue = require('./queue');
+
+var queues = {};
+
+exports.getQueue = function(user_id, callback) {
+  if (queues[user_id]) {
+    callback(queues[user_id]);
+    return;
+  }
+
+  var queue = new Queue();
+
+  queue.once('load', function() {
+    queues[user_id] = queue;
+    callback(queue);
+  });
+
+  queue.once('error', function(err) {
+    callback(err);
+  });
+
+  queue.user_id = user_id;
+  queue.fetch();
+};
 
 exports.addSongToQueue = function(song, user, callback) {
   var queuedSong = new queued_song_model.QueuedSong({
@@ -44,6 +69,7 @@ exports.reorderQueue = function(user, callback) {
       callback(err);
     } else {
       winston.info('Reordered queue for: ' + user.getLogName());
+      // TODO alert user instances of queue change
       callback();
     }
   });
