@@ -31,6 +31,9 @@ $(function() {
     },
 
     initialize: function() {
+      this.get('queue').on('orderChanged', function(queued_song) {
+        this.sendQueuedSongOrder(queued_song.id, queued_song.get('order'));
+      }, this);
       this.connect();
     },
 
@@ -144,6 +147,13 @@ $(function() {
         if (data.error)
           headerError($('#dj-header'), data.error);
       }, this));
+    },
+
+    sendQueuedSongOrder: function(queued_song_id, order) {
+      this.get('socket').emit('queue:change:order', [
+        queued_song_id,
+        order
+      ]);
     },
 
     /* Socket Handlers */

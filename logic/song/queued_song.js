@@ -8,10 +8,27 @@ var queued_song_model = require('../../models/queued_song');
 module.exports = BackboneDBModel.extend({
   initialize: function() {
     this.constructor.__super__.initialize.apply(this, arguments);
+    this.on('change:order', function() {
+      var old = this.previous('order');
+      var curr = this.get('order');
+      console.log('ORDER CHANGED FROM ' + old + ' to ' + curr);
+    }, this);
   },
 
   model: function() {
     return queued_song_model.QueuedSong;
+  },
+
+  incrementOrder: function() {
+    this.set({
+      order: this.get('order') + 1
+    });
+  },
+
+  decrementOrder: function() {
+    this.set({
+      order: this.get('order') - 1
+    });
   },
 
   toJSON: function() {
@@ -25,7 +42,8 @@ module.exports = BackboneDBModel.extend({
       artist: song.artist,
       album: song.album,
       duration: song.duration,
-      id: song.id,
+      id: this.id,
+      song_id: song.id,
       artwork_path: (artwork_file ? '/artwork/' + artwork_file.filename : null)
     };
   }

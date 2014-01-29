@@ -34,6 +34,7 @@ module.exports = Backbone.Model.extend({
     socket.on('room:leave', _.bind(this.handleRoomLeaveRequest, this));
     socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
     socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
+    socket.on('queue:change:order', _.bind(this.handleQueuedSongOrder, this));
     socket.on('disconnect', _.bind(this.handleDisconnect, this));
     
     // Set our id
@@ -226,6 +227,11 @@ module.exports = Backbone.Model.extend({
       winston.info(this.user().getLogName() + ' disconnected.');
     else
       winston.info('Anonymous listener disconnected.');
+  },
+
+  // Handle queue song order change.
+  handleQueuedSongOrder: function(data) {
+    this.get('queue').updateSongOrder(data[0], data[1]);
   }
 });
 

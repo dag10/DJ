@@ -38,6 +38,32 @@ module.exports = Backbone.Collection.extend({
     this.trigger('reorder');
   },
 
+  updateSongOrder: function(queued_song_id, order) {
+    var target_queued_song = this.get(queued_song_id);
+    var original_order = target_queued_song.get('order');
+    var moved_down = order > original_order; // directionally, not numerically
+
+    if (queued_song_id === original_order)
+      return;
+
+    this.map(function(queued_song) {
+      if (
+          !moved_down &&
+          queued_song.id !== queued_song_id &&
+          queued_song.get('order') >= order &&
+          queued_song.get('order') < original_order) {
+        queued_song.incrementOrder();
+      } else if (
+          moved_down &&
+          queued_song.id !== queued_song_id &&
+          queued_song.get('order') <= order &&
+          queued_song.get('order') > original_order) {
+        queued_song.decrementOrder();
+      }
+    });
+    this.get(queued_song_id).set({ order: order });
+  },
+
   sync: function(method, model) {
     if (!this.user_id) {
       winston.error('Can\'t fetch queue; no user_id set.');
@@ -66,7 +92,9 @@ module.exports = Backbone.Collection.extend({
             this.trigger('change');
           }, this);
           this.add(new_queued_song, { silent: true });
-          if (--songs_left <= 0) this.trigger('load');
+          if (--songs_left <= 0) {
+            this.trigger('load');
+          }
         }, this));
       }, this));
     }, this));
