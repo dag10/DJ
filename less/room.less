@@ -73,6 +73,7 @@
       display: table-row;
 
       .column-section {
+        @section-header-bg: darken(@color-grey-background, 5%);
         position: relative;
         padding: @section-padding;
         height: 100%;
@@ -90,12 +91,16 @@
           display: none;
         }
 
+        &.section-header {
+          background-color: @section-header-bg;
+        }
+
         & > h1 {
           color: black;
           margin: -@section-padding;
           font-size: 17px;
           text-align: center;
-          background-color: darken(@color-grey-background, 5%);
+          background-color: @section-header-bg;
           padding: 8px;
           position: relative;
 
@@ -131,6 +136,7 @@
 
           li {
             @padding: 5px;
+            background-color: @color-grey-background;
             border-bottom: solid 1px lighten(@color-grey-border, 8%);
             padding: @padding;
             position: relative;
