@@ -183,25 +183,48 @@ $(function() {
   });
 
   views.QueuedSong = Backbone.View.extend({
+    tagName: 'li',
+
     template: Handlebars.compile($('#queue-item-template').html()), 
 
+    events: {
+      'drop': 'drop'
+    },
+
+    drop: function(event, index) {
+      this.$el.trigger('sorted', [this.model, index]);
+    },
+
     render: function() {
+      this.undelegateEvents();
       this.$el.html(this.template(this.model.attributes));
+      this.delegateEvents();
       return this;
     }
   });
 
   views.Queue = Backbone.View.extend({
+    events: {
+      'sorted': 'sorted'
+    },
+
     initialize: function() {
       this.views = [];
 
-      this.collection.each(this.add);
+      this.collection.each(_.bind(this.add, this));
       this.collection.on('add', this.add, this);
       this.collection.on('remove', this.remove, this);
       this.collection.on('reset', this.reset, this);
       this.collection.on('sort', this.render, this);
       this.collection.on('update:start', this.updateStarted, this);
       this.collection.on('update:finish', this.updateFinished, this);
+
+      this.$('ul').sortable({
+        axis: 'y',
+        stop: function(event, ui) {
+          ui.item.trigger('drop', ui.item.index());
+        }
+      });
 
       this.render();
     },
@@ -217,7 +240,6 @@ $(function() {
 
     add: function(queuedSong) {
       this.views.push(new views.QueuedSong({
-        tagName: 'li',
         model: queuedSong
       }));
       this.render();
@@ -259,6 +281,12 @@ $(function() {
       this.collection.forEach(function(queuedSong) {
         $ul.append(this.getViewForQueuedSong(queuedSong).render().el);
       }, this);
+    },
+
+    sorted: function(event, model, position) {
+      model.set({ 
+        order: position + 1
+      });
     }
   });
 });

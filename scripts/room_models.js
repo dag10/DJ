@@ -58,6 +58,9 @@ $(function() {
 
     songAdded: function(song) {
       song.on('change:order', this.sort, this);
+      song.on('change:order', function(queued_song) {
+        this.trigger('orderChanged', queued_song);
+      }, this);
     },
 
     songRemove: function(song) {
