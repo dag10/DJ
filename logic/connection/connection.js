@@ -97,9 +97,11 @@ module.exports = Backbone.Model.extend({
   queueChanged: function() {
     var queue = this.get('queue');
     if (!queue) return;
-    queue.on('add remove reset sync load', function() {
+    queue.on('reset', function() {
       this.sendQueue(queue);
     }, this);
+    queue.on('songChanged add', this.sendQueuedSong, this);
+    queue.on('remove', this.sendQueuedSongRemoved, this);
     this.sendQueue(queue);
   },
 
@@ -143,6 +145,16 @@ module.exports = Backbone.Model.extend({
   // Sends a queue to the user.
   sendQueue: function(queue) {
     this.socket().emit('queue', queue.toJSON());
+  },
+
+  // Sends a queued song that was added or updated.
+  sendQueuedSong: function(queued_song) {
+    this.socket().emit('queue:song', queued_song.toJSON());
+  },
+
+  // Sends an alert that a queued song was removed from the queue.
+  sendQueuedSongRemoved: function(queued_song) {
+    this.socket().emit('queue:song:remove', queued_song.id);
   },
 
   /* Sockets Handlers */

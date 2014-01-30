@@ -284,9 +284,7 @@ $(function() {
     },
 
     sorted: function(event, model, position) {
-      model.set({ 
-        order: position + 1
-      });
+      model.changePosition(position + 1);
     }
   });
 });

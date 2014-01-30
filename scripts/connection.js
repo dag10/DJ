@@ -31,8 +31,10 @@ $(function() {
     },
 
     initialize: function() {
-      this.get('queue').on('orderChanged', function(queued_song) {
-        this.sendQueuedSongOrder(queued_song.id, queued_song.get('order'));
+      this.get('queue').on('changeOrder', function(data) {
+        var queued_song = data[0];
+        var order = data[1];
+        this.sendQueuedSongOrder(queued_song.id, order);
       }, this);
       this.connect();
     },
@@ -62,6 +64,9 @@ $(function() {
         socket.on('room:user:update', _.bind(this.handleUserUpdate, this));
         socket.on('room:users', _.bind(this.handleUserList, this));
         socket.on('queue', _.bind(this.handleQueue, this));
+        socket.on('queue:song', _.bind(this.handleQueuedSong, this));
+        socket.on(
+          'queue:song:remove', _.bind(this.handleQueuedSongRemoved, this));
       }, this);
 
       if (this.get('connected')) {
@@ -242,6 +247,15 @@ $(function() {
         queue.add(song);
       }, this));
       queue.trigger('update:finish');
+    },
+
+    handleQueuedSong: function(queued_song) {
+      this.get('queue').addOrUpdate(queued_song);
+    },
+
+    handleQueuedSongRemoved: function(queued_song_id) {
+      var queue = this.get('queue');
+      queue.remove(queue.get(queued_song_id));
     }
   });
 });

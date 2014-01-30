@@ -44,6 +44,10 @@ $(function() {
   models.QueuedSong = Backbone.Model.extend({
     defaults: {
       order: 0
+    },
+
+    changePosition: function(position) {
+      this.trigger('changeOrder', [ this, position ]);
     }
   });
 
@@ -58,13 +62,22 @@ $(function() {
 
     songAdded: function(song) {
       song.on('change:order', this.sort, this);
-      song.on('change:order', function(queued_song) {
-        this.trigger('orderChanged', queued_song);
+      song.on('changeOrder', function(data) {
+        this.trigger('changeOrder', data);
       }, this);
     },
 
     songRemove: function(song) {
       song.off('change:order', this.sort);
+    },
+
+    addOrUpdate: function(queued_song_data) {
+      var existing_model = this.get(queued_song_data.id);
+      if (existing_model) {
+        existing_model.set(queued_song_data);
+      } else {
+        this.add(queued_song_data);
+      }
     }
   });
 

@@ -12,9 +12,16 @@ module.exports = Backbone.Collection.extend({
   model: QueuedSong,
 
   initialize: function() {
+    this.on('add', this.songAdded, this);
     this.on('add remove', this.reorder, this);
   },
-  
+
+  songAdded: function(queued_song) {
+    queued_song.on('change', function() {
+      this.trigger('songChanged', queued_song);
+    }, this);
+  },
+
   addSongEntity: function(song_entity) {
     var queued_song = new QueuedSong({
       song: song_entity,
@@ -88,10 +95,7 @@ module.exports = Backbone.Collection.extend({
           if (artwork && !err)
             queued_song.song.artwork = artwork;
           var new_queued_song = new QueuedSong({ entity: queued_song });
-          new_queued_song.on('change', function() {
-            this.trigger('change');
-          }, this);
-          this.add(new_queued_song, { silent: true });
+          this.add(new_queued_song);
           if (--songs_left <= 0) {
             this.trigger('load');
           }
