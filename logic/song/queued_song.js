@@ -11,7 +11,6 @@ module.exports = BackboneDBModel.extend({
     this.on('change:order', function() {
       var old = this.previous('order');
       var curr = this.get('order');
-      console.log('ORDER CHANGED FROM ' + old + ' to ' + curr);
     }, this);
   },
 

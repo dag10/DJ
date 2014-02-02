@@ -187,12 +187,30 @@ $(function() {
 
     template: Handlebars.compile($('#queue-item-template').html()), 
 
+    initialize: function() {
+      this.model.on('reindex', this.reindex, this);
+    },
+
     events: {
       'drop': 'drop'
     },
 
     drop: function(event, index) {
       this.$el.trigger('sorted', [this.model, index]);
+    },
+
+    reindex: function(newIndex) {
+      var currIndex = this.$el.index();
+      var parent = this.$el.parent();
+      if (currIndex === newIndex) return;
+      this.$el.remove();
+
+      if (newIndex > 0)
+        this.$el.insertAfter(parent.children().eq(newIndex - 1));
+      else
+        this.$el.insertBefore(parent.children().first());
+
+      this.render();
     },
 
     render: function() {
@@ -215,7 +233,6 @@ $(function() {
       this.collection.on('add', this.add, this);
       this.collection.on('remove', this.remove, this);
       this.collection.on('reset', this.reset, this);
-      this.collection.on('sort', this.render, this);
       this.collection.on('update:start', this.updateStarted, this);
       this.collection.on('update:finish', this.updateFinished, this);
 

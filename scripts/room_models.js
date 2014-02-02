@@ -46,8 +46,22 @@ $(function() {
       order: 0
     },
 
+    initialize: function() {
+      this.on('change:order', this.orderChanged, this);
+    },
+
     changePosition: function(position) {
       this.trigger('changeOrder', [ this, position ]);
+    },
+
+    orderChanged: function() {
+      var oldIndex = this.collection.indexOf(this);
+      this.collection.sort({ silent: true });
+      var newIndex = this.collection.indexOf(this);
+
+      if (newIndex !== oldIndex) {
+        this.trigger('reindex', newIndex);
+      }
     }
   });
 
@@ -68,7 +82,8 @@ $(function() {
     },
 
     songRemove: function(song) {
-      song.off('change:order', this.sort);
+      song.off('change:order');
+      song.off('changeOrder');
     },
 
     addOrUpdate: function(queued_song_data) {
