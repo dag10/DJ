@@ -27,7 +27,7 @@ module.exports = Backbone.Collection.extend({
       song: song_entity,
       song_id: song_entity.id,
       user_id: this.user_id,
-      order: 0
+      order: -1
     });
     queued_song.on('save', function() {
       this.add(queued_song);
