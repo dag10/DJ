@@ -9,40 +9,32 @@ var queued_song_model = require('../../models/queued_song');
 var QueuedSong = require('./queued_song');
 
 module.exports = Backbone.Collection.extend({
+  comparator: 'order',
   model: QueuedSong,
 
   initialize: function() {
     this.on('add', this.songAdded, this);
-    this.on('add remove', this.reorder, this);
   },
 
   songAdded: function(queued_song) {
+    queued_song.on('change:order', this.sort, this);
     queued_song.on('change', function() {
       this.trigger('songChanged', queued_song);
     }, this);
   },
 
-  addSongEntity: function(song_entity) {
+  addSongEntity: function(song_entity, callback) {
     var queued_song = new QueuedSong({
       song: song_entity,
       song_id: song_entity.id,
       user_id: this.user_id,
-      order: -1
+      order: this.length + 1
     });
     queued_song.on('save', function() {
       this.add(queued_song);
+      callback(queued_song);
     }, this);
     queued_song.save();
-  },
-
-  reorder: function() {
-    var index = 1;
-    this.sortBy(function(queued_song) {
-      return queued_song.get('order');
-    }).forEach(function(queued_song) {
-      queued_song.set({ order: index++ });
-    });
-    this.trigger('reorder');
   },
 
   updateSongOrder: function(queued_song_id, order) {
@@ -50,10 +42,10 @@ module.exports = Backbone.Collection.extend({
     var original_order = target_queued_song.get('order');
     var moved_down = order > original_order; // directionally, not numerically
 
-    if (queued_song_id === original_order)
+    if (order === original_order)
       return;
 
-    this.map(function(queued_song) {
+    this.forEach(function(queued_song) {
       if (
           !moved_down &&
           queued_song.id !== queued_song_id &&
@@ -81,13 +73,13 @@ module.exports = Backbone.Collection.extend({
     queued_song_model.QueuedSong.find({
       user_id: this.user_id
     }, _.bind(function(err, queued_songs) {
+      this.reset();
       var songs_left = queued_songs.length;
       if (songs_left === 0) {
         this.trigger('load');
         return;
       }
       queued_songs.forEach(_.bind(function(queued_song) {
-        this.reset();
 
         // Because autoFetch doesn't seem to work (godammit), we'll manually
         // fetch the artwork file entity.

@@ -8,10 +8,6 @@ var queued_song_model = require('../../models/queued_song');
 module.exports = BackboneDBModel.extend({
   initialize: function() {
     this.constructor.__super__.initialize.apply(this, arguments);
-    this.on('change:order', function() {
-      var old = this.previous('order');
-      var curr = this.get('order');
-    }, this);
   },
 
   model: function() {

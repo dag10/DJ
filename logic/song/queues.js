@@ -36,10 +36,9 @@ exports.addSongToQueue = function(song, user, callback) {
       return;
     }
 
-    queue.once('reorder', function() {
+    queue.addSongEntity(song, function(queued_song) {
       callback({});
     });
-    queue.addSongEntity(song);
   });
 };
 
