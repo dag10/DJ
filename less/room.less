@@ -245,6 +245,13 @@
             background-size: contain;
             display: inline-block;
             border-radius: 3px;
+
+            &.playing {
+              @box-shadow: 0px 0px 7px 0px @color-purple;
+              -webkit-box-shadow: @box-shadow;
+              -moz-box-shadow: @box-shadow;
+              box-shadow: @box-shadow;
+            }
           }
 
           .fg {
@@ -269,6 +276,25 @@
               font-weight: 200;
               color: darken(@color-grey-background, 30%);
             }
+
+            &.playing {
+              .title, .artist, .album {
+                color: white;
+              }
+            }
+          }
+
+          &.playing {
+            @color1: @color-purple;
+            @color2: lighten(@color-purple, 20%);
+            background: @color1;
+            background: -moz-linear-gradient(left,  @color1 0%, @color2 100%);
+            background: -webkit-gradient(linear, left top, right top, color-stop(0%,@color1), color-stop(100%,@color2));
+            background: -webkit-linear-gradient(left,  @color1 0%,@color2 100%);
+            background: -o-linear-gradient(left,  @color1 0%,@color2 100%);
+            background: -ms-linear-gradient(left,  @color1 0%,@color2 100%);
+            background: linear-gradient(to right,  @color1 0%,@color2 100%);
+            filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='@color1', endColorstr='@color2',GradientType=1 );
           }
         }
       }

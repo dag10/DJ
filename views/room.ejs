@@ -142,11 +142,13 @@
 </script>
 
 <script type="text/x-handlebars-template" id="queue-item-template">
-  <div class="artwork" style="background-image: url('{{artwork_path}}')">
+  <div
+    class="artwork {{#if playing}}playing{{/if}}"
+    style="{{#if artwork_path}}background-image: url('{{artwork_path}}'){{/if}}">
   </div>
 
-  <div class="fg" title="&quot;{{title}}&quot; by {{artist}} on {{album}}">
-    <span class="title">{{title}}</span>
+  <div class="fg {{#if playing}}playing{{/if}}" title="&quot;{{title}}&quot; by {{artist}} on {{album}}">
+    <span class="title">{{#if playing}}&#9658; {{/if}}{{title}}</span>
     <span class="artist">{{artist}}</span>
     {{#if album}}
       <span class="album">- {{album}}</span>

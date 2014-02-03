@@ -189,6 +189,7 @@ $(function() {
 
     initialize: function() {
       this.model.on('reindex', this.reindex, this);
+      this.model.on('change:playing', this.render, this);
     },
 
     events: {
@@ -217,6 +218,12 @@ $(function() {
       this.undelegateEvents();
       this.$el.html(this.template(this.model.attributes));
       this.delegateEvents();
+
+      if (this.model.get('playing'))
+        this.$el.addClass('playing');
+      else
+        this.$el.removeClass('playing');
+
       return this;
     }
   });

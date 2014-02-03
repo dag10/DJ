@@ -6,6 +6,10 @@ var BackboneDBModel = require('../backbone_db_model');
 var queued_song_model = require('../../models/queued_song');
 
 module.exports = BackboneDBModel.extend({
+  defaults: {
+    playing: false
+  },
+
   initialize: function() {
     this.constructor.__super__.initialize.apply(this, arguments);
   },
@@ -37,6 +41,7 @@ module.exports = BackboneDBModel.extend({
       artist: song.artist,
       album: song.album,
       duration: song.duration,
+      playing: this.get('playing'),
       id: this.id,
       song_id: song.id,
       artwork_path: (artwork_file ? '/artwork/' + artwork_file.filename : null)

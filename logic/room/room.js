@@ -213,6 +213,10 @@ module.exports = BackboneDBModel.extend({
       var nextQueuedSong = currentDJ.get('queue').getNextSong();
       if (nextQueuedSong) {
         this.playback().play(nextQueuedSong.entity().song, currentDJ);
+        this.playback().once('play stop', function() {
+          nextQueuedSong.set({ playing: false });
+        }, this);
+        nextQueuedSong.set({ playing: true });
       } else {
         this.endDJ(currentDJ);
       }
