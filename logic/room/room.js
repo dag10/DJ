@@ -213,7 +213,7 @@ module.exports = BackboneDBModel.extend({
       var nextQueuedSong = currentDJ.get('queue').getNextSong();
       if (nextQueuedSong) {
         this.playback().play(nextQueuedSong.entity().song, currentDJ);
-        this.playback().once('stop', function() {
+        this.playback().once('end', function() {
           nextQueuedSong.set({ playing: false });
           currentDJ.get('queue').rotate();
         }, this);
@@ -222,7 +222,7 @@ module.exports = BackboneDBModel.extend({
         this.endDJ(currentDJ);
       }
     } else {
-      this.playback().stop();
+      this.playback().stop(false);
     }
   },
 

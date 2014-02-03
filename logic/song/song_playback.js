@@ -14,7 +14,7 @@ module.exports = Backbone.Model.extend({
 
   play: function(song_entity, dj) {
     if (this.playing())
-      this.stop();
+      this._stop();
 
     this.set({
       song: song_entity,
@@ -26,13 +26,18 @@ module.exports = Backbone.Model.extend({
     this.trigger('play');
   },
 
-  stop: function() {
+  _stop: function() {
     this.set({ playing: false });
     
     this.unset('song');
     this.unset('dj');
     this.unset('timeStarted');
 
+    this.trigger('end');
+  },
+
+  stop: function() {
+    this._stop();
     this.trigger('stop');
   },
 
