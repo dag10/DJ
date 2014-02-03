@@ -241,8 +241,6 @@ $(function() {
       this.collection.on('add', this.add, this);
       this.collection.on('remove', this.remove, this);
       this.collection.on('reset', this.reset, this);
-      this.collection.on('update:start', this.updateStarted, this);
-      this.collection.on('update:finish', this.updateFinished, this);
 
       this.$('ul').sortable({
         axis: 'y',
@@ -282,17 +280,6 @@ $(function() {
       return _(this.views).select(function(view) {
         return view.model === queuedSong;
       })[0];
-    },
-
-    updateStarted: function() {
-      this.scrollTop = this.el.scrollTop;
-    },
-
-    updateFinished: function() {
-      var scrollTop = this.scrollTop || 0;
-      if (scrollTop > 0)
-        scrollTop += $(this.el.children[0].children[0]).outerHeight();
-      this.el.scrollTop = scrollTop;
     },
 
     render: function() {
