@@ -13,6 +13,9 @@ module.exports = Backbone.Model.extend({
   /* Playback Control */
 
   play: function(song_entity, dj) {
+    if (this.playing())
+      this.stop();
+
     this.set({
       song: song_entity,
       dj: dj,

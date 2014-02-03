@@ -41,6 +41,10 @@ module.exports = Backbone.Collection.extend({
     queued_song.save();
   },
 
+  rotate: function() {
+    this.updateSongOrder(this.getNextSong().id, this.length);
+  },
+
   updateSongOrder: function(queued_song_id, order) {
     var target_queued_song = this.get(queued_song_id);
     var original_order = target_queued_song.get('order');
