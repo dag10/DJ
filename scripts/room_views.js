@@ -218,6 +218,7 @@ $(function() {
       this.undelegateEvents();
       this.$el.html(this.template(this.model.attributes));
       this.delegateEvents();
+      this.$el.disableSelection();
 
       if (this.model.get('playing'))
         this.$el.addClass('playing');
@@ -245,6 +246,8 @@ $(function() {
 
       this.$('ul').sortable({
         axis: 'y',
+        items: 'li:not(.playing)',
+        cancel: 'li.playing',
         stop: function(event, ui) {
           ui.item.trigger('drop', ui.item.index());
         }
