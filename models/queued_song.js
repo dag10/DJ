@@ -16,6 +16,7 @@ exports.define = function(db, models) {
 };
 
 exports.associate = function(models) {
+  QueuedSong.associations = ['user', 'song'];
   QueuedSong.hasOne('user', models.user, {
     reverse: 'queuedSongs'
   });

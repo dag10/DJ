@@ -69,6 +69,9 @@ module.exports = Backbone.Model.extend({
     }
 
     var dbAttributes = Object.keys(this.model().allProperties);
+    
+    if (this.model().associations)
+      dbAttributes = dbAttributes.concat(this.model().associations);
 
     if (method === 'create' || (method === 'update' && !this.entity())) {
       var attributesToSet = {};

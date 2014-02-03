@@ -31,6 +31,7 @@ exports.define = function(db, models) {
 };
 
 exports.associate = function(models) {
+  Room.associations = ['admin'];
   Room.hasOne('admin', models.person, {
     reverse: 'rooms'
   });

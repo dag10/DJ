@@ -37,6 +37,7 @@ exports.define = function(db, models) {
 };
 
 exports.associate = function(models) {
+  File.associations = ['uploader'];
   File.hasOne('uploader', models.person, {
     reverse: 'files'
   });

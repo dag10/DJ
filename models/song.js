@@ -43,6 +43,7 @@ exports.define = function(db, models) {
 };
 
 exports.associate = function(models) {
+  Song.associations = ['uploader', 'file', 'artwork'];
   Song.hasOne('uploader', models.person, {
     reverse: 'songs'
   });
