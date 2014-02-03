@@ -8,12 +8,24 @@ var room_model = require('../../models/room');
 var ConnectionManager = require('../connection/connection_manager');
 var BackboneDBModel = require('../backbone_db_model');
 var connections = require('../connection/connections');
+var SongPlayback = require('../song/song_playback.js');
 
 module.exports = BackboneDBModel.extend({
   initialize: function() {
     this.set({
-      connections: new ConnectionManager()
+      connections: new ConnectionManager(),
+      playback: new SongPlayback()
     });
+
+    this.playback().on('play', function() {
+      winston.info(
+        this.getLogName() + ' started playing song: ' +
+        this.playback().song().getLogName());
+    }, this);
+
+    this.playback().on('stop', function() {
+      winston.info(this.getLogName() + ' is no longer playing a song.');
+    }, this);
 
     this.connections().on('add', this.connectionAdded, this);
     this.connections().on('remove', this.connectionRemoved, this);
@@ -47,6 +59,10 @@ module.exports = BackboneDBModel.extend({
     return this.get('connections');
   },
 
+  playback: function() {
+    return this.get('playback');
+  },
+
   numUsers: function() {
     return this.connections().numAuthenticated();
   },
@@ -61,6 +77,14 @@ module.exports = BackboneDBModel.extend({
 
   getDJs: function() {
     return this.connections().where({ isDJ: true });
+  },
+
+  getCurrentDJ: function() {
+    var djs = this.getDJs();
+    if (!djs) return null;
+    return _.sortBy(djs, function(conn) {
+      return conn.get('djOrder');
+    })[0];
   },
 
   numDJs: function() {
@@ -179,6 +203,24 @@ module.exports = BackboneDBModel.extend({
       this.broadcastUserUpdate(conn);
   },
 
+  /* Song Management */
+
+  playNextSong: function() {
+    // TODO: Rotate DJ order here
+
+    var currentDJ = this.getCurrentDJ();
+    if (currentDJ) {
+      var nextQueuedSong = currentDJ.get('queue').getNextSong();
+      if (nextQueuedSong) {
+        this.playback().play(nextQueuedSong.entity().song, currentDJ);
+      } else {
+        this.endDJ(currentDJ);
+      }
+    } else {
+      this.playback().stop();
+    }
+  },
+
   /* DJ Management */
 
   makeDJ: function(conn) {
@@ -190,11 +232,16 @@ module.exports = BackboneDBModel.extend({
       return 'User is already DJ.';
     if (numDJs >= this.get('slots'))
       return 'All DJ slots are full.';
+    if (conn.get('queue').length === 0)
+      return 'Your queue cannot be empty.';
 
     conn.set({
       djOrder: numDJs + 1,
       isDJ: true
     });
+
+    if (!this.playback().playing())
+      this.playNextSong();
   },
 
   endDJ: function(conn) {
@@ -208,6 +255,9 @@ module.exports = BackboneDBModel.extend({
     conn.set({ isDJ: false });
     conn.unset('djOrder');
     this.updateDJOrder();
+
+    if (conn === this.playback().dj())
+      this.playNextSong();
   }
 });
 

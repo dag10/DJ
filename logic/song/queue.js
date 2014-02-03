@@ -23,6 +23,10 @@ module.exports = Backbone.Collection.extend({
     }, this);
   },
 
+  getNextSong: function() {
+    return this.first();
+  },
+
   addSongEntity: function(song_entity, callback) {
     var queued_song = new QueuedSong({
       song: song_entity,
