@@ -11,8 +11,24 @@
 
 .navbar-container {
   max-width: @site-width;
-  padding-right: 10px;
   margin: 0 auto;
+
+  @media only screen and (min-width: 769px) {
+    padding-right: 15px;
+  }
+
+  .navbar-middle {
+    width: 100%;
+
+    @media only screen and (min-width: 769px) {
+      @width: 470px;
+      height: @navbar-height;
+      width: @width;
+      position: absolute;
+      left: 50%;
+      margin-left: -@width / 2;
+    }
+  }
 }
 
 .navbar-header {
@@ -20,7 +36,7 @@
 }
 
 #navbar-logo {
-  height: 50px;
+  height: @navbar-height;
   display: inline-block;
   padding: 5px;
   margin-right: 10px;

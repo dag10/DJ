@@ -33,6 +33,11 @@ $(function() {
       collection: room.get('listeners'),
       el: $('#listener-section')[0]
     });
+
+    new views.Playback({
+      model: room.get('playback'),
+      el: $('#playback-container')
+    });
   });
 
   window.connection = connection;

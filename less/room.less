@@ -337,6 +337,106 @@
   }
 }
 
+.navbar .playback-placeholder {
+  line-height: @navbar-height;
+  color: #777;
+}
+
+.navbar .playback {
+  @playback-height: @navbar-height;
+  @timeline-height: 18px;
+  @timeline-padding: 3px;
+  @info-height: @playback-height - @timeline-height;
+  @info-padding: @timeline-padding;
+
+  .info {
+    @inner-height: @info-height - @info-padding;
+    @font-color: darken(@color-grey-background, 60%);
+    /*outline: solid 1px aqua;*/
+
+    height: @info-height;
+    padding: @info-padding;
+    font-size: 12px;
+    line-height: @inner-height / 2;
+    text-align: left;
+    overflow: hidden;
+    cursor: default;
+
+    .artwork {
+      @size: @inner-height;
+      width: @size;
+      height: @size;
+      float: left;
+      background-size: contain;
+      margin-right: @info-padding;
+      border-radius: 3px;
+
+      &.no-artwork {
+        background-image: url('/images/unknown_song.png');
+      }
+    }
+
+    .title {
+      /*outline: solid 1px red;*/
+      color: @font-color;
+      font-weight: bold;
+    }
+
+    .artist, .album {
+      /*outline: solid 1px green;*/
+      display: inline-block;
+      color: lighten(@font-color, 20%);
+    }
+  }
+
+  .timeline {
+    @inner-height: @timeline-height - (@timeline-padding * 2);
+    height: @inner-height;
+    margin: @timeline-padding;
+    background-color: darken(@color-grey-background, 12%);
+    position: relative;
+    border-radius: 3px;
+    cursor: default;
+
+    .left, .right {
+      position: absolute;
+      font-size: 10px;
+      line-height: @inner-height;
+      /*font-weight: bold;*/
+      color: darken(@color-grey-background, 60%);
+      padding-bottom: 1px;
+    }
+
+    .left {
+      left: 5px;
+    }
+
+    .right {
+      right: 4px;
+    }
+
+    .played-container {
+      background-color: darken(@color-grey-background, 5%);
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      margin: 0 30px;
+
+      .played {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        width: 0%;
+        background-color: @color-purple;
+      }
+    }
+  }
+}
+
 #btn-upload {
   padding: 4px;
   width: 100%;

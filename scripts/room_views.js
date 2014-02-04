@@ -301,5 +301,71 @@ $(function() {
       model.changePosition(position + 1);
     }
   });
+
+  views.Playback = Backbone.View.extend({
+    template: Handlebars.compile($('#playback-template').html()), 
+
+    initialize: function() {
+      this.model.on('change:song', this.render, this);
+      this.model.on('change:progress', this.updateProgress, this);
+      this.render();
+    },
+
+    secondsToTimestamp: function(seconds) {
+      if (seconds === 0) return '0:00';
+      seconds = Math.floor(seconds);
+
+      var remainingSeconds = seconds % 60;
+      var retStr = '';
+
+      retStr += Math.floor(seconds/60);
+      retStr += ':';
+      if (remainingSeconds < 10)
+        retStr += '0';
+      retStr += remainingSeconds;
+
+      return retStr;
+    },
+
+    progressTimestamp: function() {
+      var progress = this.model.get('progress') || 0;
+      return this.secondsToTimestamp(progress);
+    },
+
+    durationTimestamp: function() {
+      var song = this.model.get('song');
+      var duration = song ? song.get('duration') || 0 : 0;
+      return this.secondsToTimestamp(duration);
+    },
+
+    updateProgress: function() {
+      var song = this.model.get('song');
+      if (!song) return;
+
+      var progress = this.model.get('progress');
+      var duration = song.get('duration');
+      var percent = progress / duration * 100;
+
+      this.$('.played-container .played').css('width', percent + '%');
+      this.$('.progress-timestamp').text(this.progressTimestamp());
+      this.$('.duration-timestamp').text(this.durationTimestamp());
+    },
+
+    render: function() {
+      var context = {};
+
+      if (this.model.has('song')) {
+        var attrs = this.model.get('song').attributes;
+        Object.keys(attrs).forEach(function(key) {
+          context[key] = attrs[key];
+        });
+      }
+
+      this.$el.html(this.template(context));
+      this.updateProgress();
+
+      return this;
+    }
+  });
 });
 

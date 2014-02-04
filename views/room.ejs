@@ -156,6 +156,38 @@
   </div>
 </script>
 
+<script type="text/x-handlebars-template" id="playback-template">
+  {{#if title}}
+    <div
+      id="playback"
+      class="navbar-header navbar-middle playback">
+      <div class="info">
+        <div
+          class="artwork {{#unless artwork_path}}no-artwork{{/unless}}"
+          style="{{#if artwork_path}}background-image: url('{{artwork_path}}');{{/if}}"></div>
+        <div class="title">{{title}}</div>
+        <div class="artist">{{artist}}</div>
+        {{#if artist}}{{#if album}}
+          <div class="album"> - {{album}}</div>
+        {{/if}}{{/if}}
+      </div>
+      <div class="timeline">
+        <div class="played-container">
+          <div class="played"></div>
+        </div>
+        <div class="left progress-timestamp"></div>
+        <div class="right duration-timestamp"></div>
+      </div>
+    </div>
+  {{else}}
+    <div
+      id="playback-placeholder"
+      class="navbar-header navbar-middle playback-placeholder">
+      No Songs Playing
+    </div>
+  {{/if}}
+</script>
+
 <script>
   window.room = {
     name: '<%= room.get('name') %>',
