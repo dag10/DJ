@@ -1,6 +1,65 @@
 $(function() {
   var models = window.models = {};
 
+  var progressInterval = 10;
+
+  models.Song = Backbone.Model.extend({
+    defaults: {
+      title: 'Unknown'
+    }
+  });
+
+  models.Playback = Backbone.Model.extend({
+    defaults: {
+      progress: 0
+    },
+
+    initialize: function() {
+      this.on('change:song', this.songChanged, this);
+    },
+
+    songChanged: function() {
+      var song = this.get('song');
+      if (song) {
+        this.set({ started: new Date() });
+        this.startProgress();
+      } else {
+        this.unset('started');
+        this.stopProgress();
+      }
+    },
+
+    startProgress: function() {
+      this.stopProgress();
+      this._interval = setInterval(
+        _.bind(this.updateProgress, this), progressInterval);
+    },
+    
+    stopProgress: function() {
+      this.set({ progress: 0 });
+      if (this._interval) {
+        clearInterval(this._interval);
+        delete this._interval;
+      }
+    },
+
+    updateProgress: function() {
+      var song = this.get('song');
+      var started = this.get('started');
+      if (!song || !started) {
+        this.stopProgress();
+        return;
+      }
+
+      var now = new Date();
+      var seconds = (now - started) / 1000;
+      if (seconds > song.get('duration'))
+        seconds = song.get('duration');
+
+      this.set({ progress: seconds });
+    }
+  });
+
   models.User = Backbone.Model.extend({
     defaults: {
       admin: false,
@@ -102,7 +161,8 @@ $(function() {
       connected: false,
       listeners: new models.Users(),
       dj: false,
-      djs: new models.Users()
+      djs: new models.Users(),
+      playback: new models.Playback()
     },
 
     initialize: function() {
