@@ -67,6 +67,8 @@ $(function() {
         socket.on('queue:song', _.bind(this.handleQueuedSong, this));
         socket.on(
           'queue:song:remove', _.bind(this.handleQueuedSongRemoved, this));
+        socket.on('room:song:update', _.bind(this.handleRoomSongUpdate, this));
+        socket.on('room:song:stop', _.bind(this.handleRoomSongStop, this));
       }, this);
 
       if (this.get('connected')) {
@@ -256,6 +258,16 @@ $(function() {
     handleQueuedSongRemoved: function(queued_song_id) {
       var queue = this.get('queue');
       queue.remove(queue.get(queued_song_id));
+    },
+
+    handleRoomSongUpdate: function(playback) {
+      this.get('room').get('playback').set({
+        song: new models.Song(playback)
+      });
+    },
+
+    handleRoomSongStop: function() {
+      this.get('room').get('playback').unset('song');
     }
   });
 });

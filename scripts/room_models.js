@@ -36,7 +36,6 @@ $(function() {
     },
     
     stopProgress: function() {
-      this.set({ progress: 0 });
       if (this._interval) {
         clearInterval(this._interval);
         delete this._interval;
@@ -52,7 +51,7 @@ $(function() {
       }
 
       var now = new Date();
-      var seconds = (now - started) / 1000;
+      var seconds = (now - started) / 1000 + 1;
       if (seconds > song.get('duration'))
         seconds = song.get('duration');
 

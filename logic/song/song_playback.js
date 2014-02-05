@@ -53,6 +53,26 @@ module.exports = Backbone.Model.extend({
 
   playing: function() {
     return this.get('playing');
+  },
+
+  toJSON: function() {
+    var ret = {
+      playing: this.playing()
+    };
+
+    var song = this.song();
+    if (song) {
+      ret.title = song.title;
+      ret.artist = song.artist;
+      ret.album = song.album;
+      ret.duration = song.duration;
+    }
+
+    if (song.artwork) {
+      ret.artwork_path = '/artwork/' + song.artwork.filename;
+    }
+
+    return ret;
   }
 });
 

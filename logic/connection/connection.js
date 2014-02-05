@@ -18,6 +18,7 @@ module.exports = Backbone.Model.extend({
     this.on('change:socket', this.bindSocketHandlers, this);
     this.bindSocketHandlers();
     this.on('change:queue', this.queueChanged, this);
+    this.on('change:room', this.roomChanged, this);
 
     // Store username locally for faster lookups in collections
     this.on('change:user', function() {
@@ -39,6 +40,24 @@ module.exports = Backbone.Model.extend({
     
     // Set our id
     this.set({ id: socket.id });
+  },
+
+  roomChanged: function() {
+    var oldRoom = this.previous('room');
+    if (oldRoom) {
+      oldRoom.off(null, null, this);
+      oldRoom.get('playback').off(null, null, this);
+    }
+
+    var room = this.get('room');
+    if (room) {
+      room.get('playback').on('play', function() {
+        this.sendSongPlayback(room.get('playback'));
+      }, this);
+      room.get('playback').on('stop', function() {
+        this.sendSongPlaybackStopped();
+      }, this);
+    }
   },
 
   /* Convienence Getters */
@@ -155,6 +174,16 @@ module.exports = Backbone.Model.extend({
   // Sends an alert that a queued song was removed from the queue.
   sendQueuedSongRemoved: function(queued_song) {
     this.socket().emit('queue:song:remove', queued_song.id);
+  },
+
+  // Sends a currently playing song.
+  sendSongPlayback: function(playback) {
+    this.socket().emit('room:song:update', playback.toJSON());
+  },
+
+  // Sends an indication that the playing song has stopped.
+  sendSongPlaybackStopped: function() {
+    this.socket().emit('room:song:stop');
   },
 
   /* Sockets Handlers */
