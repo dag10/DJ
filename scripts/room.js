@@ -12,7 +12,7 @@ $(function() {
 
   new views.Queue({
     collection: connection.get('queue'),
-    el: $('#queue-section')[0]
+    el: $('#queue-column')[0]
   });
 
   connection.on('change:room', function(conn) {

@@ -231,7 +231,7 @@ $(function() {
 
   views.Queue = Backbone.View.extend({
     events: {
-      'sorted': 'sorted'
+      'sorted #queue-list': 'sorted',
     },
 
     initialize: function() {
@@ -242,7 +242,7 @@ $(function() {
       this.collection.on('remove', this.remove, this);
       this.collection.on('reset', this.reset, this);
 
-      this.$('ul').sortable({
+      this.$('#queue-list').sortable({
         axis: 'y',
         items: 'li:not(.playing)',
         cancel: 'li.playing',
@@ -283,7 +283,7 @@ $(function() {
     },
 
     render: function() {
-      var $ul = this.$('ul');
+      var $ul = this.$('#queue-list');
       var $placeholder = this.$('.section-empty');
 
       if (this.collection.length === 0)
@@ -295,6 +295,8 @@ $(function() {
       this.collection.forEach(function(queuedSong) {
         $ul.append(this.getViewForQueuedSong(queuedSong).render().el);
       }, this);
+
+      return this;
     },
 
     sorted: function(event, model, position) {
