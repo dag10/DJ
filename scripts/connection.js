@@ -36,6 +36,7 @@ $(function() {
         var order = data[1];
         this.sendQueuedSongOrder(queued_song.id, order);
       }, this);
+      this.get('queue').on('skip', this.sendSkip, this);
       this.connect();
     },
 
@@ -161,6 +162,10 @@ $(function() {
         queued_song_id,
         order
       ]);
+    },
+
+    sendSkip: function() {
+      this.get('socket').emit('skip');
     },
 
     /* Socket Handlers */
