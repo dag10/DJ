@@ -64,9 +64,11 @@
     display: table;
     width: 100%;
     height: 100%;
-    border: solid 1px @color-grey-border;
-    border-radius: @column-border-radius;
     background-color: @color-grey-background;
+    border: solid 1px @color-grey-border;
+    border-radius: @site-border-radius;
+    -webkit-box-shadow: @site-box-shadow;
+    box-shadow: @site-box-shadow;
 
     .column-table-row {
       @section-padding: 5px;
@@ -217,15 +219,15 @@
       &:first-child {
         .column-section, h1 {
           border-top: none;
-          border-top-left-radius: @column-border-radius;
-          border-top-right-radius: @column-border-radius;
+          /*border-top-left-radius: @column-border-radius;*/
+          /*border-top-right-radius: @column-border-radius;*/
         }
       }
 
       &:last-child {
         .column-section, h1 {
-          border-bottom-left-radius: @column-border-radius;
-          border-bottom-right-radius: @column-border-radius;
+          /*border-bottom-left-radius: @column-border-radius;*/
+          /*border-bottom-right-radius: @column-border-radius;*/
         }
       }
 
@@ -273,6 +275,9 @@
 
           &.playing {
             background-color: @color-purple;
+            @box-shadow: inset 0 0 5px 0 rgba(0,0,0,0.2);
+            -webkit-box-shadow: @box-shadow;
+            box-shadow: @box-shadow;
 
             .fg {
               .title, .artist, .album {
@@ -297,7 +302,6 @@
     box-shadow: @shadow;
     pointer-events: none;
     z-index: 20;
-    border-radius: @column-border-radius;
 
     opacity: 0;
     @fadetime: .1s;
@@ -395,7 +399,7 @@
     margin: @timeline-padding;
     background-color: darken(@color-grey-background, 12%);
     position: relative;
-    border-radius: 3px;
+    border-radius: @site-border-radius;
     cursor: default;
 
     .left, .right {
@@ -423,6 +427,9 @@
       left: 0;
       right: 0;
       margin: 0 30px;
+      @box-shadow: inset 0 0 5px 0 rgba(0,0,0,0.05);
+      -webkit-box-shadow: @box-shadow;
+      box-shadow: @box-shadow;
 
       .played {
         position: absolute;
@@ -432,6 +439,9 @@
         right: 0;
         width: 0%;
         background-color: @color-purple;
+        @box-shadow: inset 0 0 3px 0 rgba(0,0,0,0.4);
+        -webkit-box-shadow: @box-shadow;
+        box-shadow: @box-shadow;
       }
     }
   }

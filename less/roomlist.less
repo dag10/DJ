@@ -8,8 +8,10 @@
   & > div {
     border: solid 1px @color-grey-border;
     background-color: @color-grey-background;
-    border-radius: 5px;
     white-space: nowrap;
+    border-radius: @site-border-radius;
+    -webkit-box-shadow: @site-box-shadow;
+    box-shadow: @site-box-shadow;
 
     .room-name {
       display: inline-block;
@@ -23,7 +25,7 @@
       display: inline-block;
       vertical-align: middle;
       border: solid 1px lighten(@color-grey-border, 3%);
-      border-radius: 5px;
+      border-radius: @site-border-radius;
       padding: 6px 10px;
       font-size: 15px;
       font-weight: bold;

@@ -15,6 +15,10 @@
 }
 
 .btn {
+  &:not(.rounded) {
+    border-radius: @site-border-radius;
+  }
+
   &.btn-primary {
     @background: @color-purple;
     @border: darken(@color-purple, 5%);
@@ -27,5 +31,16 @@
       border-color: darken(@border, @hover-darken);
     }
   }
+}
+
+.btn, input[type=text], textarea {
+  border-radius: @site-border-radius;
+}
+
+.well {
+  border-radius: @site-border-radius;
+  border-color: @color-grey-border;
+  -webkit-box-shadow: @site-box-shadow;
+  box-shadow: @site-box-shadow;
 }
 
