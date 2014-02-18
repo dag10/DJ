@@ -195,6 +195,11 @@
   {{/if}}
 </script>
 
+<script type="text/x-handlebars-template" id="user-template">
+  {{#if dj}}{{#if firstDJ}}&#9658{{/if}}{{/if}}
+  {{fullName}}
+</script>
+
 <script>
   window.room = {
     name: '<%= room.get('name') %>',

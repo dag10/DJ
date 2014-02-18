@@ -70,7 +70,20 @@ $(function() {
   models.User = Backbone.Model.extend({
     defaults: {
       admin: false,
-      dj: false
+      dj: false,
+      firstDJ: false
+    },
+
+    initialize: function() {
+      this.on('change:djOrder', function() {
+        this.refreshIsFirstDJ();
+      }, this);
+
+      this.refreshIsFirstDJ();
+    },
+
+    refreshIsFirstDJ: function() {
+      this.set({ firstDJ: this.get('djOrder') === 1 });
     }
   });
 

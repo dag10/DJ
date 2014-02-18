@@ -112,8 +112,10 @@ $(function() {
   });
 
   views.User = Backbone.View.extend({
+    template: Handlebars.compile($('#user-template').html()), 
+
     render: function() {
-      this.$el.text(this.model.get('fullName'));
+      this.$el.html(this.template(this.model.attributes));
 
       return this;
     }
