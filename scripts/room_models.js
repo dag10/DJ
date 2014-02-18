@@ -25,7 +25,7 @@ $(function() {
     songChanged: function() {
       var song = this.get('song');
       if (song) {
-        this.set({ started: new Date() });
+        this.set({ started: new Date(song.get('started')) });
         this.startProgress();
       } else {
         this.unset('started');

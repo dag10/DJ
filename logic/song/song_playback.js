@@ -66,10 +66,11 @@ module.exports = Backbone.Model.extend({
       ret.artist = song.artist;
       ret.album = song.album;
       ret.duration = song.duration;
-    }
+      ret.started = this.get('timeStarted');
 
-    if (song.artwork) {
-      ret.artwork_path = '/artwork/' + song.artwork.filename;
+      if (song.artwork) {
+        ret.artwork_path = '/artwork/' + song.artwork.filename;
+      }
     }
 
     return ret;
