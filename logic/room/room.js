@@ -27,6 +27,8 @@ module.exports = BackboneDBModel.extend({
       winston.info(this.getLogName() + ' is no longer playing a song.');
     }, this);
 
+    this.playback().on('finish', this.playNextSong, this);
+
     this.connections().on('add', this.connectionAdded, this);
     this.connections().on('remove', this.connectionRemoved, this);
     this.constructor.__super__.initialize.apply(this, arguments);

@@ -23,12 +23,22 @@ module.exports = Backbone.Model.extend({
       playing: true
     });
 
+    this.set({
+      finishedTimeout: setTimeout(
+        _.bind(this.finished, this), this.millisecondsRemaining())
+    });
+
     this.trigger('play');
   },
 
   _stop: function() {
     this.set({ playing: false });
     
+    if (this.has('finishedTimeout')) {
+      clearTimeout(this.get('finishedTimeout'));
+      this.unset('finishedTimeout');
+    }
+
     this.unset('song');
     this.unset('dj');
     this.unset('timeStarted');
@@ -39,6 +49,11 @@ module.exports = Backbone.Model.extend({
   stop: function() {
     this._stop();
     this.trigger('stop');
+  },
+
+  finished: function() {
+    this._stop();
+    this.trigger('finish');
   },
 
   /* Getters */
@@ -53,6 +68,15 @@ module.exports = Backbone.Model.extend({
 
   playing: function() {
     return this.get('playing');
+  },
+
+  millisecondsRemaining: function() {
+    if (!this.has('timeStarted'))
+      return 0;
+
+    return (
+      (this.song().duration * 1000) + 
+      new Date().valueOf() - this.get('timeStarted').valueOf());
   },
 
   toJSON: function() {
