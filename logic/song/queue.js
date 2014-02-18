@@ -27,6 +27,10 @@ module.exports = Backbone.Collection.extend({
     return this.first();
   },
 
+  getPlayingSong: function() {
+    return this.findWhere({ playing: true });
+  },
+
   addSongEntity: function(song_entity, callback) {
     var queued_song = new QueuedSong({
       song: song_entity,
@@ -37,6 +41,8 @@ module.exports = Backbone.Collection.extend({
     queued_song.on('save', function() {
       this.add(queued_song);
       callback(queued_song);
+      this.updateSongOrder(
+        queued_song.id, this.getPlayingSong() ? 2 : 1);
     }, this);
     queued_song.save();
   },
