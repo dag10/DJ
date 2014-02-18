@@ -86,10 +86,12 @@ $(function() {
     userAdded: function(user) {
       user.collection = this;
       user.on('change:username', this.sort, this);
+      user.on('change:djOrder', this.sort, this);
     },
 
     userRemoved: function(user) {
       user.off('change:username', this.sort);
+      user.off('change:djOrder', this.sort);
       if (user.collection === this)
         user.collection = null;
     },
