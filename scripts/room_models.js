@@ -18,6 +18,10 @@ $(function() {
       this.on('change:song', this.songChanged, this);
     },
 
+    reset: function() {
+      this.unset('song');
+    },
+
     songChanged: function() {
       var song = this.get('song');
       if (song) {
@@ -180,6 +184,7 @@ $(function() {
     reset: function() {
       this.set(this.defaults);
       this.resetUsers();
+      this.get('playback').reset();
     },
 
     resetUsers: function() {
