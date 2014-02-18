@@ -210,19 +210,23 @@ module.exports = BackboneDBModel.extend({
 
     var currentDJ = this.getCurrentDJ();
     if (currentDJ) {
+      // If playing, trigger end so that previous queue rotates
+      if (this.playback().playing())
+        this.playback().trigger('end');
+
       var nextQueuedSong = currentDJ.get('queue').getNextSong();
       if (nextQueuedSong) {
         this.playback().play(nextQueuedSong.entity().song, currentDJ);
-        this.playback().once('end', function() {
-          nextQueuedSong.set({ playing: false });
-          currentDJ.get('queue').rotate();
-        }, this);
         nextQueuedSong.set({ playing: true });
+        this.playback().once('end', function() {
+          currentDJ.get('queue').rotate();
+          nextQueuedSong.set({ playing: false });
+        }, this);
       } else {
         this.endDJ(currentDJ);
       }
     } else {
-      this.playback().stop(false);
+      this.playback().stop();
     }
   },
 

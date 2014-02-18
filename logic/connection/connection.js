@@ -36,6 +36,7 @@ module.exports = Backbone.Model.extend({
     socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
     socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
     socket.on('queue:change:order', _.bind(this.handleQueuedSongOrder, this));
+    socket.on('skip', _.bind(this.handleSkip, this));
     socket.on('disconnect', _.bind(this.handleDisconnect, this));
     
     // Set our id
@@ -54,7 +55,7 @@ module.exports = Backbone.Model.extend({
       room.get('playback').on('play', function() {
         this.sendSongPlayback(room.get('playback'));
       }, this);
-      room.get('playback').on('stop', function() {
+      room.get('playback').on('end', function() {
         this.sendSongPlaybackStopped();
       }, this);
     }
@@ -81,6 +82,15 @@ module.exports = Backbone.Model.extend({
       return true;
     } else {
       fn({ error: 'You are not authenticated.' });
+      return false;
+    }
+  },
+
+  ensureRoom: function(fn) {
+    if (this.has('room')) {
+      return true;
+    } else {
+      fn({ error: 'You\'re not in a room.' });
       return false;
     }
   },
@@ -245,7 +255,7 @@ module.exports = Backbone.Model.extend({
   // Handle request to become DJ.
   handleBeginDJ: function(fn) {
     if (!this.ensureAuth(fn)) return;
-    if (!this.has('room')) return { error: 'You\'re not in a room.' };
+    if (!this.ensureRoom(fn)) return;
 
     var err = this.get('room').makeDJ(this);
     fn( err ? { error: err } : {} );
@@ -254,7 +264,7 @@ module.exports = Backbone.Model.extend({
   // Handle request to stop being a DJ.
   handleEndDJ: function(fn) {
     if (!this.ensureAuth(fn)) return;
-    if (!this.has('room')) return { error: 'You\'re not in a room.' };
+    if (!this.ensureRoom(fn)) return;
 
     var err = this.get('room').endDJ(this);
     fn( err ? { error: err } : {} );
@@ -271,8 +281,19 @@ module.exports = Backbone.Model.extend({
   },
 
   // Handle queue song order change.
-  handleQueuedSongOrder: function(data) {
+  handleQueuedSongOrder: function(data, fn) {
+    if (!this.ensureAuth(fn)) return;
     this.get('queue').updateSongOrder(data[0], data[1]);
+  },
+
+  // Handle command to skip current song.
+  handleSkip: function(fn) {
+    if (!this.ensureAuth(fn)) return;
+    if (!this.ensureRoom(fn)) return;
+
+    var room = this.get('room');
+    if (room.getCurrentDJ() === this)
+      room.playNextSong();
   }
 });
 
