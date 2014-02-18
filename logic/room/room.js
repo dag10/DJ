@@ -206,7 +206,7 @@ module.exports = BackboneDBModel.extend({
   /* Song Management */
 
   playNextSong: function() {
-    // TODO: Rotate DJ order here
+    this.rotateDJs();
 
     var currentDJ = this.getCurrentDJ();
     if (currentDJ) {
@@ -267,6 +267,21 @@ module.exports = BackboneDBModel.extend({
 
     if (conn === this.playback().dj())
       this.playNextSong();
+  },
+
+  rotateDJs: function() {
+    var djs = this.getDJs();
+    var currentDJ = this.getCurrentDJ();
+    if (!djs || !currentDJ) return;
+
+    _.sortBy(djs, function(conn) {
+      return conn.get('djOrder');
+    }).forEach(function(conn) {
+      if (conn === currentDJ)
+        conn.set({ djOrder: djs.length });
+      else
+        conn.set({ djOrder: conn.get('djOrder') - 1 });
+    });
   }
 });
 
