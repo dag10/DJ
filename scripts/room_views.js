@@ -88,7 +88,7 @@ $(function() {
     },
 
     renderRoomName: function() {
-      var name = this.model.escape('name');
+      var name = this.model.escape('name') || 'Room';
 
       $('.room-name').text(name);
 
