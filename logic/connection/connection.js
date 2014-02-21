@@ -38,6 +38,7 @@ module.exports = Backbone.Model.extend({
     socket.on('queue:change:order', _.bind(this.handleQueuedSongOrder, this));
     socket.on('skip', _.bind(this.handleSkip, this));
     socket.on('disconnect', _.bind(this.handleDisconnect, this));
+    socket.on('error', _.bind(this.handleError, this));
     
     // Set our id
     this.set({ id: socket.id });
@@ -273,12 +274,15 @@ module.exports = Backbone.Model.extend({
 
   // Handle client disconnect.
   handleDisconnect: function() {
-    this.trigger('disconnect');
+    if (this.has('room'))
+      this.get('room').removeConnection(this);
 
     if (this.has('user'))
       winston.info(this.user().getLogName() + ' disconnected.');
     else
       winston.info('Anonymous listener disconnected.');
+
+    this.trigger('disconnect');
   },
 
   // Handle queue song order change.
@@ -295,6 +299,12 @@ module.exports = Backbone.Model.extend({
     var room = this.get('room');
     if (room.getCurrentDJ() === this)
       room.playNextSong();
+  },
+
+  // Handle socket error.
+  handleError: function() {
+    winston.error('Socket error; disconnecting.');
+    this.socket().disconnect();
   }
 });
 
