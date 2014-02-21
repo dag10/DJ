@@ -34,6 +34,7 @@ module.exports = BackboneDBModel.extend({
     var song = this.get('song');
 
     var artwork_file = song.artwork;
+    var song_file = song.file;
 
     return {
       order: this.get('order'),
@@ -44,7 +45,9 @@ module.exports = BackboneDBModel.extend({
       playing: this.get('playing'),
       id: this.id,
       song_id: song.id,
-      artwork_path: (artwork_file ? '/artwork/' + artwork_file.filename : null)
+      song_path: '/songs/' + song.file.filename,
+      artwork_path: (
+        artwork_file ? '/artwork/' + artwork_file.filename : null)
     };
   }
 });

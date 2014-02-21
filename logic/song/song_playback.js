@@ -94,6 +94,8 @@ module.exports = Backbone.Model.extend({
       // ms elapsed since song start
       ret.elapsed = new Date().valueOf() - this.get('timeStarted').valueOf();
 
+      ret.song_path = '/songs/' + song.file.filename;
+
       if (song.artwork) {
         ret.artwork_path = '/artwork/' + song.artwork.filename;
       }

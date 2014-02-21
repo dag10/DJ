@@ -15,6 +15,9 @@ $(function() {
     },
 
     initialize: function() {
+      var audio = new Audio();
+      audio.autoplay = true;
+      this.set({ audio: audio });
       this.on('change:song', this.songChanged, this);
     },
 
@@ -30,36 +33,63 @@ $(function() {
             new Date().valueOf() - song.get('elapsed')
           )
         });
-        this.startProgress();
+        this.startPlayback();
       } else {
         this.unset('started');
-        this.stopProgress();
+        this.stopPlayback();
       }
     },
 
-    startProgress: function() {
-      this.stopProgress();
+    startPlayback: function() {
+      this.stopPlayback();
       this._interval = setInterval(
         _.bind(this.updateProgress, this), progressInterval);
+      this.startAudio();
     },
     
-    stopProgress: function() {
+    stopPlayback: function() {
       if (this._interval) {
         clearInterval(this._interval);
         delete this._interval;
       }
+      this.stopAudio();
+    },
+
+    startAudio: function() {
+      this.stopAudio();
+      this.updateProgress();
+
+      if (!this.has('song'))
+        return;
+
+      var audio = this.get('audio');
+      audio.src = this.get('song').get('song_path');
+      audio.addEventListener(
+        'canplaythrough', _.bind(this.audioCanPlay, this));
+    },
+
+    audioCanPlay: function() {
+      var audio = this.get('audio');
+      audio.currentTime = this.get('progress');
+      audio.play();
+    },
+
+    stopAudio: function() {
+      var audio = this.get('audio');
+      audio.pause();
+      audio.src = '';
     },
 
     updateProgress: function() {
       var song = this.get('song');
       var started = this.get('started');
       if (!song || !started) {
-        this.stopProgress();
+        this.stopPlayback();
         return;
       }
 
       var now = new Date();
-      var seconds = (now - started) / 1000 + 1;
+      var seconds = (now - started) / 1000;
       if (seconds > song.get('duration'))
         seconds = song.get('duration');
 

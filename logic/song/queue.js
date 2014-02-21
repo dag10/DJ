@@ -96,15 +96,25 @@ module.exports = Backbone.Collection.extend({
       queued_songs.forEach(_.bind(function(queued_song) {
 
         // Because autoFetch doesn't seem to work (godammit), we'll manually
-        // fetch the artwork file entity.
-        queued_song.song.getArtwork(_.bind(function(err, artwork) {
-          if (artwork && !err)
-            queued_song.song.artwork = artwork;
-          var new_queued_song = new QueuedSong({ entity: queued_song });
-          this.add(new_queued_song);
-          if (--songs_left <= 0) {
-            this.trigger('load');
+        // fetch the artwork and song files entity.
+        queued_song.song.getFile(_.bind(function(err, file) {
+          if (err) {
+            winston.error(
+              'Failed to fetch file entity for song entity: ' +
+              queued_song.song.getLogName());
+          } else {
+            queued_song.song.file = file;
           }
+
+          // Fetch the artwork file entity.
+          queued_song.song.getArtwork(_.bind(function(err, artwork) {
+            if (artwork && !err)
+              queued_song.song.artwork = artwork;
+            var new_queued_song = new QueuedSong({ entity: queued_song });
+            this.add(new_queued_song);
+            if (--songs_left <= 0)
+              this.trigger('load');
+          }, this));
         }, this));
       }, this));
     }, this));
