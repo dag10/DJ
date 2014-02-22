@@ -339,8 +339,13 @@ $(function() {
   views.Playback = Backbone.View.extend({
     template: Handlebars.compile($('#playback-template').html()), 
 
+    events: {
+      'click .btn-mute': 'mute',
+      'click .btn-unmute': 'unmute'
+    },
+
     initialize: function() {
-      this.model.on('change:song', this.render, this);
+      this.model.on('change:song change:muted', this.render, this);
       this.model.on('change:progress', this.updateProgress, this);
       this.render();
     },
@@ -388,17 +393,36 @@ $(function() {
     render: function() {
       var context = {};
 
+      var attrs = this.model.attributes;
+      Object.keys(attrs).forEach(function(key) {
+        context[key] = attrs[key];
+      });
+
       if (this.model.has('song')) {
-        var attrs = this.model.get('song').attributes;
-        Object.keys(attrs).forEach(function(key) {
-          context[key] = attrs[key];
+        var songAttrs = this.model.get('song').attributes;
+        Object.keys(songAttrs).forEach(function(key) {
+          context[key] = songAttrs[key];
         });
       }
 
+      this.undelegateEvents();
       this.$el.html(this.template(context));
+      this.delegateEvents();
       this.updateProgress();
 
       return this;
+    },
+
+    mute: function(event) {
+      this.model.mute();
+      event.preventDefault();
+      return false;
+    },
+
+    unmute: function(event) {
+      this.model.unmute();
+      event.preventDefault();
+      return false;
     }
   });
 });

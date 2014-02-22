@@ -356,7 +356,6 @@
   .info {
     @inner-height: @info-height - @info-padding;
     @font-color: darken(@color-grey-background, 60%);
-    /*outline: solid 1px aqua;*/
 
     height: @info-height;
     padding: @info-padding;
@@ -365,6 +364,7 @@
     text-align: left;
     overflow: hidden;
     cursor: default;
+    position: relative;
 
     .artwork {
       @size: @inner-height;
@@ -381,15 +381,41 @@
     }
 
     .title {
-      /*outline: solid 1px red;*/
       color: @font-color;
       font-weight: bold;
     }
 
     .artist, .album {
-      /*outline: solid 1px green;*/
       display: inline-block;
       color: lighten(@font-color, 20%);
+    }
+
+    .controls {
+      text-align: right;
+      position: absolute;
+      top: 0;
+      bottom: 0;
+      right: 0;
+      padding-right: 5px;
+      padding-top: 5px;
+
+      &:empty {
+        display: none;
+      }
+
+      a {
+        text-decoration: none;
+        font-size: 22px;
+        color: darken(@color-grey-background, 50%);
+
+        &:hover:not(.disabled) {
+          color: darken(@color-grey-background, 70%);
+        }
+
+        &.disabled {
+          color: darken(@color-grey-background, 30%);
+        }
+      }
     }
   }
 
@@ -406,7 +432,6 @@
       position: absolute;
       font-size: 10px;
       line-height: @inner-height;
-      /*font-weight: bold;*/
       color: darken(@color-grey-background, 60%);
       padding-bottom: 1px;
     }

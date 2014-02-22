@@ -11,14 +11,19 @@ $(function() {
 
   models.Playback = Backbone.Model.extend({
     defaults: {
-      progress: 0
+      progress: 0,
+      muted: false
     },
 
     initialize: function() {
       var audio = new Audio();
       audio.autoplay = true;
+      audio.addEventListener(
+        'canplaythrough', _.bind(this.audioCanPlay, this));
       this.set({ audio: audio });
+
       this.on('change:song', this.songChanged, this);
+      this.on('change:muted', this.mutedChanged, this);
     },
 
     reset: function() {
@@ -64,12 +69,11 @@ $(function() {
 
       var audio = this.get('audio');
       audio.src = this.get('song').get('song_path');
-      audio.addEventListener(
-        'canplaythrough', _.bind(this.audioCanPlay, this));
     },
 
     audioCanPlay: function() {
       var audio = this.get('audio');
+      audio.currentTime = this.get('progress');
       audio.currentTime = this.get('progress');
       audio.play();
     },
@@ -78,6 +82,10 @@ $(function() {
       var audio = this.get('audio');
       audio.pause();
       audio.src = '';
+    },
+
+    mutedChanged: function() {
+      this.get('audio').muted = this.get('muted');
     },
 
     updateProgress: function() {
@@ -94,6 +102,14 @@ $(function() {
         seconds = song.get('duration');
 
       this.set({ progress: seconds });
+    },
+
+    mute: function() {
+      this.set({ muted: true });
+    },
+
+    unmute: function() {
+      this.set({ muted: false });
     }
   });
 

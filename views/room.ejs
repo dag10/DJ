@@ -177,6 +177,17 @@
         {{#if artist}}{{#if album}}
           <div class="album"> - {{album}}</div>
         {{/if}}{{/if}}
+        <div class="controls">
+          {{#if muted}}
+            <a href="#" class="btn-unmute">
+              <span class="glyphicon glyphicon-volume-off"></span>
+            </a>
+          {{else}}
+            <a href="#" class="btn-mute">
+              <span class="glyphicon glyphicon-volume-up"></span>
+            </a>
+          {{/if}}
+        </div>
       </div>
       <div class="timeline">
         <div class="played-container">
