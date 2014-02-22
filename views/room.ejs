@@ -207,8 +207,12 @@
 </script>
 
 <script type="text/x-handlebars-template" id="user-template">
-  {{#if dj}}{{#if firstDJ}}&#9658{{/if}}{{/if}}
   {{fullName}}
+  {{#if dj}}{{#if firstDJ}}
+  <span
+    class="glyphicon glyphicon-music"
+    title="{{firstName}} is the current DJ."></span>
+  {{/if}}{{/if}}
 </script>
 
 <script>
