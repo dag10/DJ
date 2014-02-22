@@ -36,6 +36,7 @@ module.exports = Backbone.Model.extend({
     socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
     socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
     socket.on('queue:change:order', _.bind(this.handleQueuedSongOrder, this));
+    socket.on('queue:remove', _.bind(this.handleRemoveFromQueue, this));
     socket.on('skip', _.bind(this.handleSkip, this));
     socket.on('disconnect', _.bind(this.handleDisconnect, this));
     socket.on('error', _.bind(this.handleError, this));
@@ -299,6 +300,13 @@ module.exports = Backbone.Model.extend({
     var room = this.get('room');
     if (room.getCurrentDJ() === this)
       room.playNextSong();
+  },
+
+  // Handle command to remove a song from the user's queue.
+  handleRemoveFromQueue: function(queued_song_id) {
+    var queued_song = this.get('queue').get(queued_song_id);
+    if (queued_song && !queued_song.get('playing'))
+      this.get('queue').remove(queued_song_id);
   },
 
   // Handle socket error.

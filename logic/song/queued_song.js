@@ -30,6 +30,10 @@ module.exports = BackboneDBModel.extend({
     });
   },
 
+  getLogName: function() {
+    return this.get('song').getLogName();
+  },
+
   toJSON: function() {
     var song = this.get('song');
 

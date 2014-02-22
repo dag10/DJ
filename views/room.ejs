@@ -155,6 +155,13 @@
   <div
     class="fg"
     title="&quot;{{title}}&quot;{{#if artist}} by {{artist}}{{/if}}{{#if album}} on {{album}}{{/if}}">
+    <div class="controls">
+      {{#unless playing}}
+        <a href="#" class="btn-remove" title="Remove from queue">
+          <span class="glyphicon glyphicon-remove"></span>
+        </a>
+      {{/unless}}
+    </div>
     <span class="title">{{#if playing}}&#9658; {{/if}}{{title}}</span>
     <span class="artist">{{artist}}</span>
     {{#if album}}

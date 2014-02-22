@@ -195,11 +195,16 @@ $(function() {
     },
 
     events: {
-      'drop': 'drop'
+      'drop': 'drop',
+      'click .btn-remove': 'remove'
     },
 
     drop: function(event, index) {
       this.$el.trigger('sorted', [this.model, index]);
+    },
+
+    remove: function(event) {
+      this.model.removeFromQueue();
     },
 
     reindex: function(newIndex) {

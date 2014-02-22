@@ -14,6 +14,7 @@ module.exports = Backbone.Collection.extend({
 
   initialize: function() {
     this.on('add', this.songAdded, this);
+    this.on('remove', this.songRemoved, this);
   },
 
   songAdded: function(queued_song) {
@@ -21,6 +22,15 @@ module.exports = Backbone.Collection.extend({
     queued_song.on('change', function() {
       this.trigger('songChanged', queued_song);
     }, this);
+  },
+
+  songRemoved: function(removed_queued_song) {
+    var removed_order = removed_queued_song.get('order');
+    this.forEach(function(queued_song) {
+      if (queued_song.get('order') > removed_order)
+        queued_song.decrementOrder();
+    });
+    removed_queued_song.destroy();
   },
 
   getNextSong: function() {

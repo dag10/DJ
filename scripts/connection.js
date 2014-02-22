@@ -37,6 +37,7 @@ $(function() {
         this.sendQueuedSongOrder(queued_song.id, order);
       }, this);
       this.get('queue').on('skip', this.sendSkip, this);
+      this.get('queue').on('removeFromQueue', this.removeFromQueue, this);
       this.connect();
     },
 
@@ -166,6 +167,10 @@ $(function() {
 
     sendSkip: function() {
       this.get('socket').emit('skip');
+    },
+
+    removeFromQueue: function(queued_song) {
+      this.get('socket').emit('queue:remove', queued_song.id);
     },
 
     /* Socket Handlers */

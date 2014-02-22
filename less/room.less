@@ -239,6 +239,12 @@
           position: relative;
           height: @height;
 
+          &:hover {
+            .fg .controls {
+              opacity: 1;
+            }
+          }
+
           .artwork {
             width: @inner-height;
             height: @inner-height;
@@ -260,6 +266,32 @@
             margin-left: @height;
             line-height: 18px;
             font-size: 13px;
+
+            .controls {
+              @transition: opacity .06s ease-in-out;
+              transition: @transition;
+              -moz-transition: @transition;
+              -webkit-transition: @transition;
+              opacity: 0;
+              position: absolute;
+              top: 0;
+              right: 0;
+              padding-top: 1px;
+              padding-right: 3px;
+
+              a {
+                text-decoration: none;
+                color: darken(@color-grey-background, 50%);
+
+                &:hover:not(.disabled) {
+                  color: darken(@color-grey-background, 70%);
+                }
+
+                &.disabled {
+                  color: darken(@color-grey-background, 30%);
+                }
+              }
+            }
 
             .title {
               display: block;

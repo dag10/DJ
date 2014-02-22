@@ -181,6 +181,10 @@ $(function() {
       this.trigger('changeOrder', [ this, position ]);
     },
 
+    removeFromQueue: function() {
+      this.trigger('removeFromQueue', this);
+    },
+
     orderChanged: function() {
       var oldIndex = this.collection.indexOf(this);
       this.collection.sort({ silent: true });
@@ -212,8 +216,7 @@ $(function() {
     },
 
     songRemove: function(song) {
-      song.off('change:order');
-      song.off('changeOrder');
+      song.off();
     },
 
     addOrUpdate: function(queued_song_data) {
