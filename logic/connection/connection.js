@@ -84,7 +84,8 @@ module.exports = Backbone.Model.extend({
     if (this.authenticated()) {
       return true;
     } else {
-      fn({ error: 'You are not authenticated.' });
+      if (typeof fn === 'function')
+        fn({ error: 'You are not authenticated.' });
       return false;
     }
   },
@@ -93,7 +94,8 @@ module.exports = Backbone.Model.extend({
     if (this.has('room')) {
       return true;
     } else {
-      fn({ error: 'You\'re not in a room.' });
+      if (typeof fn === 'function')
+        fn({ error: 'You\'re not in a room.' });
       return false;
     }
   },
