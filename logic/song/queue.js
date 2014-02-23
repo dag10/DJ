@@ -48,11 +48,11 @@ module.exports = Backbone.Collection.extend({
       user_id: this.user_id,
       order: this.length + 1
     });
-    queued_song.on('save', function() {
+    queued_song.once('save', function() {
       this.add(queued_song);
-      callback(queued_song);
       this.updateSongOrder(
         queued_song.id, this.getPlayingSong() ? 2 : 1);
+      callback(queued_song);
     }, this);
     queued_song.save();
   },
