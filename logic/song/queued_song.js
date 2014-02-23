@@ -7,7 +7,8 @@ var queued_song_model = require('../../models/queued_song');
 
 module.exports = BackboneDBModel.extend({
   defaults: {
-    playing: false
+    playing: false,
+    autosave: true
   },
 
   initialize: function() {

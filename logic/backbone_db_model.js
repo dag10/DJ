@@ -12,6 +12,8 @@ module.exports = Backbone.Model.extend({
   },
 
   initialize: function() {
+    if (!this.has('autosave'))
+      this.set({ autosave: true });
     this.on('change', this.handleChange, this);
     this.on('change:entity', this.entityChanged, this);
     this.on('change:id', this.idChanged, this);
@@ -89,7 +91,8 @@ module.exports = Backbone.Model.extend({
       }, this));
     } else if (method === 'update') {
       var updated = false;
-      var changedAttributes = Object.keys(this.changedAttributes());
+      var changedAttributesObj = this.changedAttributes() || {};
+      var changedAttributes = Object.keys(changedAttributesObj);
       var entity = this.entity();
       _.intersection(
         dbAttributes, changedAttributes).forEach(_.bind(function(attr) {
