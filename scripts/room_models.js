@@ -74,7 +74,6 @@ $(function() {
     audioCanPlay: function() {
       var audio = this.get('audio');
       audio.currentTime = this.get('progress');
-      audio.currentTime = this.get('progress');
       audio.play();
     },
 
