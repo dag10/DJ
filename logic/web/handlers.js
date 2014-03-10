@@ -66,6 +66,7 @@ exports.init = function(app, auth) {
           room: room
         });
       } else {
+        res.status(404);
         res.render('error.ejs', {
           user: user,
           config: config,
@@ -73,6 +74,33 @@ exports.init = function(app, auth) {
         });
       }
     });
+  });
+
+  app.get('/stream/:room', function(req, res, next) {
+    var room = rooms.roomForShortname(req.param('room'));
+    if (room) {
+      var playback = room.playback();
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+      playback.on('segment', function(data) {
+        res.write(data);
+      }, this);
+      var end = function() {
+        res.end();
+        res.destroy();
+      };
+      res.on('end', end);
+      res.on('error', end);
+      res.on('close', end);
+      res.on('timeout', end);
+    } else {
+      res.status(404);
+      res.end('Room not found: ' + req.param('room'));
+    }
   });
 
   app.use(function(err, req, res, next) {

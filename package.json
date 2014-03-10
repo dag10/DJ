@@ -18,7 +18,8 @@
     "socket.io": "0.9.15",
     "underscore": "1.5.2",
     "backbone": "1.1.0",
-    "colors": "0.6.2"
+    "colors": "0.6.2",
+    "lame": "git://github.com/dag10/node-lame.git#v1.0.3b"
   }
 }
 
