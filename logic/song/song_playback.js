@@ -192,8 +192,8 @@ module.exports = Backbone.Model.extend({
 
     if (segment_timeout) {
       clearTimeout(segment_timeout);
-      this.once('segment_enqueue', this.sendSegment, this);
       this.unset('segment_timeout');
+      this.once('segment_enqueue', this.sendSegment, this);
     }
 
     if (fileStream) {
@@ -228,11 +228,11 @@ module.exports = Backbone.Model.extend({
     var sampleRate = this.encoder().sampleRate;
     var segment_duration = segment.num_samples / sampleRate * 1000;
 
-    this.trigger('segment', segment.data);
     this.set({
       segment_timeout: setTimeout(
         _.bind(this.sendSegment, this), segment_duration)
     });
+    this.trigger('segment', segment.data);
   }
 });
 
