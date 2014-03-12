@@ -10,6 +10,7 @@ var winston = require('winston');
 var rooms = require('../room/rooms');
 var upload = require('../song/upload');
 var socket = require('../connection/socket');
+var stream = require('stream');
 
 var base_dir = __dirname + '/../..';
 
@@ -76,7 +77,7 @@ exports.init = function(app, auth) {
     });
   });
 
-  app.get('/stream/:room', function(req, res, next) {
+  app.get('/stream/:room/all', function(req, res, next) {
     var room = rooms.roomForShortname(req.param('room'));
     if (room) {
       var playback = room.playback();
@@ -99,6 +100,81 @@ exports.init = function(app, auth) {
       res.on('error', end);
       res.on('close', end);
       res.on('timeout', end);
+    } else {
+      res.status(404);
+      res.end('Room not found: ' + req.param('room'));
+    }
+  });
+
+
+  app.get('/stream/:room/current', function(req, res, next) {
+    var room = rooms.roomForShortname(req.param('room'));
+    if (room) {
+      var playback = room.playback();
+
+      // Send headers, prevent cache.
+      res.set({
+        'Content-Type': 'audio/mpeg',
+        'Connection': 'close',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
+        'Pragma': 'no-cache',
+        'Expires': '0'
+      });
+
+      var segments_sent = playback.get('played_segments');
+      var ended = false;
+
+      // Create a pass-through stream that pipes to the response. This is
+      // needed because res's write() isn't exactly the same as stream write().
+      var res_stream = new stream.PassThrough();
+      res_stream.pipe(res);
+
+      // Function to end everything.
+      var end = function() {
+        ended = true;
+        res_stream.write(new Buffer(0)); // send last-chunk
+        playback.off('segments_loaded', send_segments);
+      };
+
+      // Function to totally destroy the connection.
+      var destroy = function() {
+        end();
+        res.destroy();
+      };
+
+      // Function to send as many segments as possible until the stream
+      // fills up, or we sent as many segments that have been loaded so far.
+      var send_segments = function() {
+        var segments = playback.segments();
+        var played_segments = playback.get('played_segments');
+
+        while (!ended) {
+          var index = segments_sent - played_segments;
+          if (index < 0) index = 0;
+          if (index < segments.length) {
+            segments_sent++;
+            if (!res_stream.write(segments[index].data)) {
+              res_stream.once('drain', send_segments);
+              break;
+            }
+          } else if (playback.get('segments_loaded')) {
+            end();
+            break;
+          } else {
+            playback.once('segment_load', send_segments);
+            break;
+          }
+        }
+      };
+
+      // Events for which we end everything.
+      res.on('end', end);
+      res.on('close', end);
+      res.on('error', destroy);
+      res.on('timeout', destroy);
+
+      playback.once('segments_loaded', send_segments);
+      send_segments();
     } else {
       res.status(404);
       res.end('Room not found: ' + req.param('room'));

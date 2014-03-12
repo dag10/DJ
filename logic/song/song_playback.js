@@ -18,10 +18,12 @@ module.exports = Backbone.Model.extend({
       fileStream: null,
       decoder: null,
       encoder: null,
-      segments: []
+      segments: [],
+      segments_loaded: false,
+      played_segments: 0
     });
     this.on('change:song', this.startStream, this);
-    this.once('segment_enqueue', this.sendSegment, this);
+    this.once('segment_load', this.sendSegment, this);
   },
 
   /* Playback Control */
@@ -164,14 +166,21 @@ module.exports = Backbone.Model.extend({
     // When the encoder receives mp3 segments, push them to the queue.
     encoder.on('segment', _.bind(function(segment) {
       this.segments().push(segment);
-      this.trigger('segment_enqueue');
+      this.trigger('segment_load', segment);
     }, this));
 
     // Listen for data from the encoder stream but ignore it, since we're
-    // ultimately using that data via its 'segment' event instead.
+    // ultimately using that data via its 'segment' event instead. We need
+    // to at least listen for the 'data' event to drain the stream, though.
     encoder.on('data', function(data) {
       // nothing.
     });
+
+    // When the encoder ends, update segments_loaded and notify listeners.
+    encoder.on('end', _.bind(function() {
+      this.set({ segments_loaded: true });
+      this.trigger('segments_loaded');
+    }, this));
     
     this.set({
       fileStream: fileStream,
@@ -193,7 +202,7 @@ module.exports = Backbone.Model.extend({
     if (segment_timeout) {
       clearTimeout(segment_timeout);
       this.unset('segment_timeout');
-      this.once('segment_enqueue', this.sendSegment, this);
+      this.once('segment_load', this.sendSegment, this);
     }
 
     if (fileStream) {
@@ -214,6 +223,10 @@ module.exports = Backbone.Model.extend({
       segments.length = 0;
     }
 
+    this.set({
+      segments_loaded: false,
+      played_segments: 0
+    });
     this.trigger('stream_end');
   },
 
@@ -221,7 +234,7 @@ module.exports = Backbone.Model.extend({
     var segment = this.segments().shift();
 
     if (!segment) {
-      this.once('segment_enqueue', this.sendSegment, this);
+      this.once('segment_load', this.sendSegment, this);
       return;
     }
 
@@ -230,7 +243,8 @@ module.exports = Backbone.Model.extend({
 
     this.set({
       segment_timeout: setTimeout(
-        _.bind(this.sendSegment, this), segment_duration)
+        _.bind(this.sendSegment, this), segment_duration),
+      played_segments: this.get('played_segments') + 1
     });
     this.trigger('segment', segment.data);
   }
