@@ -86,10 +86,12 @@ exports.init = function(app, auth) {
         'Pragma': 'no-cache',
         'Expires': '0'
       });
-      playback.on('segment', function(data) {
+      var write_segment = function(data) {
         res.write(data);
-      }, this);
+      };
+      playback.on('segment', write_segment, this);
       var end = function() {
+        playback.off('segment', write_segment);
         res.end();
         res.destroy();
       };
