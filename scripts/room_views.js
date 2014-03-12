@@ -90,7 +90,7 @@ $(function() {
     renderRoomName: function() {
       var name = this.model.escape('name') || 'Room';
 
-      $('.room-name').text(name);
+      $('.room-name').html(name);
 
       if (this.model.get('connected'))
         document.title = name;
