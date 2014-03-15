@@ -132,7 +132,12 @@ exports.init = function(app, auth) {
       // Function to end everything.
       var end = function() {
         ended = true;
-        res_stream.write(new Buffer(0)); // send last-chunk
+        res_stream.unpipe();
+        res_stream.end();
+        if (res_stream.writable) {
+          res.once('finish', res.destroy);
+          res.end(new Buffer(0)); // send last-chunk
+        }
         playback.off('segments_loaded', send_segments);
       };
 
@@ -147,6 +152,9 @@ exports.init = function(app, auth) {
       var send_segments = function() {
         var segments = playback.segments();
         var played_segments = playback.get('played_segments');
+        if (!playback.song()) {
+          end();
+        }
 
         while (!ended) {
           var index = segments_sent - played_segments;
