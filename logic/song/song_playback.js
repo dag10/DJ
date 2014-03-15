@@ -18,11 +18,11 @@ module.exports = Backbone.Model.extend({
       fileStream: null,
       decoder: null,
       encoder: null,
+      streaming: false,
       segments: [],
       segments_loaded: false,
       played_segments: 0
     });
-    this.on('change:song', this.startStream, this);
     this.once('segment_load', this.sendSegment, this);
   },
 
@@ -44,6 +44,8 @@ module.exports = Backbone.Model.extend({
         _.bind(this.finished, this), this.millisecondsRemaining())
     });
 
+    this.startStream();
+
     this.trigger('play');
   },
 
@@ -58,6 +60,8 @@ module.exports = Backbone.Model.extend({
     this.unset('song');
     this.unset('dj');
     this.unset('timeStarted');
+
+    this.stopStream();
 
     this.trigger('end');
   },
@@ -139,7 +143,9 @@ module.exports = Backbone.Model.extend({
   /* Streaming */
 
   startStream: function() {
-    this.stopStream();
+    if (this.get('streaming')) {
+      this.stopStream();
+    }
 
     var song = this.song();
     if (!song) return;
@@ -165,6 +171,9 @@ module.exports = Backbone.Model.extend({
 
     // When the encoder receives mp3 segments, push them to the queue.
     encoder.on('segment', _.bind(function(segment) {
+      if (encoder !== this.get('encoder')) {
+        return;
+      }
       this.segments().push(segment);
       this.trigger('segment_load', segment);
     }, this));
@@ -178,6 +187,9 @@ module.exports = Backbone.Model.extend({
 
     // When the encoder ends, update segments_loaded and notify listeners.
     encoder.on('end', _.bind(function() {
+      if (encoder !== this.get('encoder')) {
+        return;
+      }
       this.set({ segments_loaded: true });
       this.trigger('segments_loaded');
     }, this));
@@ -185,7 +197,8 @@ module.exports = Backbone.Model.extend({
     this.set({
       fileStream: fileStream,
       encoder: encoder,
-      decoder: decoder
+      decoder: decoder,
+      streaming: true
     });
 
     fileStream.pipe(decoder);
@@ -206,17 +219,20 @@ module.exports = Backbone.Model.extend({
     }
 
     if (fileStream) {
-      fileStream.unpipe(decoder);
+      fileStream.unpipe();
       fileStream.close();
+      this.unset('fileStream');
     }
 
     if (decoder) {
-      decoder.unpipe(encoder);
+      decoder.unpipe();
       decoder.end();
+      this.unset('decoder');
     }
 
     if (encoder) {
       encoder.end();
+      this.unset('encoder');
     }
 
     if (segments) {
@@ -225,7 +241,8 @@ module.exports = Backbone.Model.extend({
 
     this.set({
       segments_loaded: false,
-      played_segments: 0
+      played_segments: 0,
+      streaming: false
     });
     this.trigger('stream_end');
   },
