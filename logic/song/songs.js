@@ -106,6 +106,7 @@ exports.addSong = function(path, user, name, callback) {
           count: 1
         }, upload.artwork_dir, function(err, filenames) {
           if (err && filenames.length) {
+            winston.error('Error extracting album art: ' + err.message);
             filenames.forEach(function(name) {
               fs_.unlink(upload.artwork_dir + '/' + name);
             });
