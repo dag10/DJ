@@ -18,8 +18,6 @@ $(function() {
     initialize: function() {
       var audio = new Audio();
       audio.autoplay = true;
-      audio.addEventListener(
-        'canplaythrough', _.bind(this.audioCanPlay, this));
       this.set({ audio: audio });
 
       this.on('change:song', this.songChanged, this);
@@ -68,18 +66,13 @@ $(function() {
         return;
 
       var audio = this.get('audio');
-      audio.src = this.get('song').get('song_path');
-    },
-
-    audioCanPlay: function() {
-      var audio = this.get('audio');
-      audio.currentTime = this.get('progress');
-      audio.play();
+      audio.src = '/stream/' + this.get('room').get('shortname') +
+        '/current?' + Math.floor(Math.random() * 100);
+      console.log('Setting audio src:', audio.src);
     },
 
     stopAudio: function() {
       var audio = this.get('audio');
-      audio.pause();
       audio.src = '';
     },
 
@@ -239,6 +232,7 @@ $(function() {
     },
 
     initialize: function() {
+      this.get('playback').set({ room: this });
       this.get('listeners').comparator = 'username';
       this.get('djs').comparator = 'djOrder';
       this.set({ username: this.get('connection').get('username') });
