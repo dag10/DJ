@@ -132,7 +132,6 @@ exports.init = function(app, auth) {
       // Function to end everything.
       var end = function() {
         ended = true;
-        res_stream.unpipe();
         res_stream.end();
         if (res_stream.writable) {
           res.once('finish', res.destroy);
