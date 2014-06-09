@@ -13,7 +13,7 @@ exports.init = function(server) {
   var io = socketio.listen(server, {
     logger: {
       debug: winston.debug,
-      info: winston.info,
+      info: function() { /* ignore */ },
       error: winston.error,
       warn: winston.warn
     }
