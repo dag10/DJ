@@ -4,6 +4,7 @@
 
 var config = require('../config');
 var orm = require('orm');
+var winston = require('winston');
 
 exports.init = function(app, define, next) {
   var opts = {
@@ -19,11 +20,22 @@ exports.init = function(app, define, next) {
 
   var _next = next;
 
+  // Ensures that the tables are utf8, since we neither orm nor node-mysql
+  // let us properly change the charset and collation.
+  var charset_query = 'ALTER DATABASE `' + opts.database +
+      '` DEFAULT CHARACTER SET utf8 DEFAULT COLLATE utf8_unicode_ci';
+
   app.use(orm.express(opts, {
     define: function(db, models, next) {
-      define(db, models, function() {
-        next();
-        _next(models);
+      db.driver.poolQuery(charset_query, function(err) {
+        if (err) {
+          winston.error('Failed to set db charset to utf8.');
+          throw err;
+        }
+        define(db, models, function() {
+          next();
+          _next(models);
+        });
       });
     }
   }));

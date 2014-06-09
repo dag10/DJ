@@ -6,6 +6,7 @@ var config = require('../config');
 var fs = require('fs');
 var winston = require('winston');
 var migrate = require('migrate');
+var migration_utils = require('../utils/migration_utils.js');
 
 function endsWith(str, suffix) {
   return str.indexOf(suffix, str.length - suffix.length) !== -1;
@@ -40,6 +41,18 @@ exports.define = function(db, models, next) {
       module.migrate(migrate, db);
   });
 
+  // Add migrations to convert all tables to utf8.
+  Object.keys(models).forEach(function(model) {
+    migrate('convert ' + model + ' to utf8', function(next) {
+      migration_utils.runQueries([
+        'ALTER TABLE `' + model + '` CONVERT TO CHARACTER SET utf8 ' +
+        'COLLATE utf8_unicode_ci'
+      ], db, 'song', next);
+    }, function(next) {
+      next();
+    });
+  });
+
   // Set up migrations.
   var set = migrate();
   var migrated = false;
@@ -51,7 +64,7 @@ exports.define = function(db, models, next) {
   // Migrate
   set.up(function(err) {
     if (err) {
-      winston.error(err);
+      throw Error(err);
     } else {
       if (migrated)
         winston.info('Finished running migrations.');
