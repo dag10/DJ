@@ -35,7 +35,7 @@ exports.define = function(db, models, next) {
   });
 
   // Define model migrations.
-  migrate(__dirname + '/.migrate');
+  migrate(__dirname + '/../migrations.json');
   modules.forEach(function(module) {
     if (module.migrate)
       module.migrate(migrate, db);
