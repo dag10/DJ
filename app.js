@@ -21,7 +21,9 @@ var logging = require('./utils/logging');
 var rooms = require('./logic/room/rooms');
 var upload = require('./logic/song/upload');
 var socket = require('./logic/connection/socket');
+var async = require('async');
 var http = require('http');
+var _ = require('underscore');
 
 logging.init();
 
@@ -30,16 +32,43 @@ var server = http.createServer(app);
 
 socket.init(server);
 
-app.configure(function() {
-  database.init(app, models_module.define, function(models) {
-    rooms.once('load', function() {
-      upload.init();
-      handlers.init(app, auth_module.init(app));
-      server.listen(config.web.port, function() {
-        winston.info('Server listening on port', config.web.port);
-      });
+async.waterfall([
+
+  // Configure express.
+  app.configure,
+
+  // Initialize database, define models, run migrations.
+  function(callback) {
+    database.init(app, models_module.define, callback);
+  },
+
+  // Run these stages in parallel...
+  function(callback) {
+    async.parallel([
+
+      // Load rooms.
+      _.bind(rooms.loadRooms, rooms),
+
+      // Initialize the upload handler.
+      upload.init,
+
+      // Initialize auth and url handlers.
+      function(callback) {
+        var auth = auth_module.init(app);
+        handlers.init(app, auth, callback);
+      }
+
+    ], function() {
+      callback();
     });
-    rooms.loadRooms();
-  });
+  },
+
+  // Start the server.
+  function(callback) {
+    server.listen(config.web.port, config.web.host, 511, callback);
+  }
+
+], function(err, results) {
+  winston.info('Server listening on port', config.web.port);
 });
 

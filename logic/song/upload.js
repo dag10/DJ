@@ -21,7 +21,7 @@ exports.upload_dir = upload_dir;
 exports.song_dir = song_dir;
 exports.artwork_dir = artwork_dir;
 
-exports.init = function() {
+exports.init = function(callback) {
   [upload_dir, song_dir, artwork_dir].forEach(
     function(dir) {
       if (!fs.existsSync(dir)) {
@@ -30,6 +30,8 @@ exports.init = function() {
       }
     }
   );
+
+  if (callback) callback();
 };
 
 exports.initHandlers = function(app, auth) {

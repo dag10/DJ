@@ -16,6 +16,9 @@ config.log_directory = __dirname + '/logs';
 // Directory for uploads.
 config.uploads_directory = __dirname + '/uploads';
 
+// Host for the web server.
+config.web.host = '0.0.0.0';
+
 // Port for the web server.
 config.web.port = process.env.PORT || 9867;
 

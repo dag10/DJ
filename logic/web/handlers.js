@@ -14,7 +14,7 @@ var stream = require('stream');
 
 var base_dir = __dirname + '/../..';
 
-exports.init = function(app, auth) {
+exports.init = function(app, auth, callback) {
   app.enable('trust proxy');
   app.set('views', base_dir + '/views');
   app.set('view engine', 'ejs');
@@ -224,5 +224,7 @@ exports.init = function(app, auth) {
       }
     });
   });
+
+  if (callback) callback();
 };
 

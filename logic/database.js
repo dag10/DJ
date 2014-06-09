@@ -34,7 +34,7 @@ exports.init = function(app, define, next) {
         }
         define(db, models, function() {
           next();
-          _next(models);
+          _next();
         });
       });
     }
