@@ -2,55 +2,57 @@
  * Stores settings for the server.
  */
 
-var config = {};
+module.exports = {
 
-config.web = {};
-config.auth = {};
-config.auth.webauth = {};
-config.db = {};
-config.db.mysql = {};
+  // Directory for logs.
+  log_directory: __dirname + '/logs',
 
-// Directory for logs.
-config.log_directory = __dirname + '/logs';
+  // Directory for uploads.
+  uploads_directory: __dirname + '/uploads',
 
-// Directory for uploads.
-config.uploads_directory = __dirname + '/uploads';
+  web: {
+    // Host for the server.
+    host: '0.0.0.0',
 
-// Host for the web server.
-config.web.host = '0.0.0.0';
+    // Port for the server.
+    port: process.env.PORT || 9867,
 
-// Port for the web server.
-config.web.port = process.env.PORT || 9867;
+    // Show stack trace on error page.
+    debug: true,
 
-// Show stack trace on error page.
-config.web.debug = true;
+    // Site title.
+    title: 'CSH DJ',
 
-// Site title.
-config.web.title = 'CSH DJ';
+    // Max upload file size (in mb).
+    max_file_size: 50
+  },
 
-// Max upload file size (in mb).
-config.web.max_file_size = 50;
+  auth: {
+    // Method of ntication ('dev' or 'webauth').
+    method: 'dev',
 
-// Method of authentication ('dev' or 'webauth').
-config.auth.method = 'dev';
+    webauth: {
+      // URL for logging out of web
+      logout_url: 'https://webauth.csh.rit.edu/logout'
+    }
+  },
 
-// URL for logging out of webauth.
-config.auth.webauth.logout_url = 'https://webauth.csh.rit.edu/logout';
+  db: {
+    // MySQL host.
+    host: 'localhost',
 
-// MySQL host.
-config.db.mysql.host = 'localhost';
+    // MySQL username.
+    username: 'user',
 
-// MySQL username.
-config.db.mysql.username = 'user';
+    // MySQL password (set null for no password).
+    password: 'pass',
 
-// MySQL password.
-config.db.mysql.password = 'pass';
+    // MySQL database.
+    database: 'dj'
+  },
 
-// MySQL database.
-config.db.mysql.database = 'dj';
+  // Username of permanent admin.
+  superadmin: 'dag10'
 
-// Username of permanent admin.
-config.superadmin = 'dag10';
-
-module.exports = config;
+};
 

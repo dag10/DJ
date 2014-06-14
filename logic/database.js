@@ -8,10 +8,10 @@ var winston = require('winston');
 
 exports.init = function(app, define, next) {
   var opts = {
-    host: config.db.mysql.host,
-    database: config.db.mysql.database,
-    user: config.db.mysql.username,
-    password: config.db.mysql.password,
+    host: config.db.host,
+    database: config.db.database,
+    user: config.db.username,
+    password: config.db.password,
     port: '3306',
     protocol: 'mysql',
     query: {pool: true},
