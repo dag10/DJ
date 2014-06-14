@@ -8,6 +8,7 @@ var user_model = require('../../models/user');
 var _ = require('underscore');
 var Backbone = require('backbone');
 var queues = require('../song/queues');
+var song_sources = require('../../song_sources');
 
 module.exports = Backbone.Model.extend({
   defaults: {
@@ -35,6 +36,7 @@ module.exports = Backbone.Model.extend({
     socket.on('room:leave', _.bind(this.handleRoomLeaveRequest, this));
     socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
     socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
+    socket.on('search', _.bind(this.handleSearch, this));
     socket.on('queue:change:order', _.bind(this.handleQueuedSongOrder, this));
     socket.on('queue:remove', _.bind(this.handleRemoveFromQueue, this));
     socket.on('skip', _.bind(this.handleSkip, this));
@@ -283,6 +285,12 @@ module.exports = Backbone.Model.extend({
 
     var err = this.get('room').endDJ(this);
     fn( err ? { error: err } : {} );
+  },
+
+  // Handle request for search results.
+  handleSearch: function(query, fn) {
+    if (!query || !fn) return;
+    song_sources.search(query, fn);
   },
 
   // Handle client disconnect.
