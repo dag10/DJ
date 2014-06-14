@@ -16,6 +16,7 @@ var express = require('express');
 var handlers = require('./logic/web/handlers');
 var database = require('./logic/database');
 var models_module = require('./models');
+var song_sources = require('./song_sources');
 var winston = require('winston');
 var logging = require('./utils/logging');
 var rooms = require('./logic/room/rooms');
@@ -45,6 +46,9 @@ async.waterfall([
   // Run these stages in parallel...
   function(callback) {
     async.parallel([
+      
+      // Initialize song sources.
+      song_sources.init,
 
       // Load rooms.
       _.bind(rooms.loadRooms, rooms),

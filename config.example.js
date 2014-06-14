@@ -51,6 +51,22 @@ module.exports = {
     database: 'dj'
   },
 
+  song_sources: {
+    // List the external song sources you installed with npm.
+    // Youtube is added here as an example. It does not actually exist.
+    external_modules: [
+      //'youtube'
+    ],
+
+    // The order of song sources to display in search results, and the
+    // maximum number of results to show per source.
+    // Again, youtube is just a placeholder for future sources.
+    results_format: {
+      upload: 6
+      //youtube: 4
+    }
+  },
+
   // Username of permanent admin.
   superadmin: 'dag10'
 
