@@ -205,6 +205,8 @@ module.exports = Backbone.Model.extend({
 
   // Handle client auth request.
   handleAuthRequest: function(data, fn) {
+    if (!data || !fn) return;
+
     if (this.authenticated()) {
       fn({ error: 'You are already authenticated.' });
     } else if (this.has('room')) {
@@ -236,6 +238,8 @@ module.exports = Backbone.Model.extend({
 
   // Handle request to join room.
   handleRoomJoinRequest: function(shortname, fn) {
+    if (!shortname || !fn) return;
+
     var room = rooms.roomForShortname(shortname);
     if (this.has('room')) {
       fn({ error: 'You are already in a room.' });
@@ -249,6 +253,8 @@ module.exports = Backbone.Model.extend({
 
   // Handle request to leave room.
   handleRoomLeaveRequest: function(fn) {
+    if (!fn) return;
+
     if (this.has('room')) {
       this.get('room').removeConnection(this);
       fn();
@@ -259,6 +265,8 @@ module.exports = Backbone.Model.extend({
 
   // Handle request to become DJ.
   handleBeginDJ: function(fn) {
+    if (!fn) return;
+
     if (!this.ensureAuth(fn)) return;
     if (!this.ensureRoom(fn)) return;
 
@@ -268,6 +276,8 @@ module.exports = Backbone.Model.extend({
 
   // Handle request to stop being a DJ.
   handleEndDJ: function(fn) {
+    if (!fn) return;
+
     if (!this.ensureAuth(fn)) return;
     if (!this.ensureRoom(fn)) return;
 
@@ -290,12 +300,16 @@ module.exports = Backbone.Model.extend({
 
   // Handle queue song order change.
   handleQueuedSongOrder: function(data, fn) {
+    if (!data || !fn) return;
+
     if (!this.ensureAuth(fn)) return;
     this.get('queue').updateSongOrder(data[0], data[1]);
   },
 
   // Handle command to skip current song.
   handleSkip: function(fn) {
+    if (!fn) return;
+
     if (!this.ensureAuth(fn)) return;
     if (!this.ensureRoom(fn)) return;
 
@@ -306,6 +320,8 @@ module.exports = Backbone.Model.extend({
 
   // Handle command to remove a song from the user's queue.
   handleRemoveFromQueue: function(queued_song_id) {
+    if (!queued_song_id) return;
+
     var queued_song = this.get('queue').get(queued_song_id);
     if (queued_song && !queued_song.get('playing'))
       this.get('queue').remove(queued_song_id);
