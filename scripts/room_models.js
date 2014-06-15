@@ -111,6 +111,10 @@ $(function() {
 
     unmute: function() {
       this.set({ muted: false });
+    },
+
+    skip: function() {
+      this.get('room').get('connection').sendSkip();
     }
   });
 

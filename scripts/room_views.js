@@ -346,7 +346,8 @@ $(function() {
 
     events: {
       'click .btn-mute': 'mute',
-      'click .btn-unmute': 'unmute'
+      'click .btn-unmute': 'unmute',
+      'click .btn-skip': 'skip'
     },
 
     initialize: function() {
@@ -400,6 +401,7 @@ $(function() {
 
       this.$('.btn-mute').tooltip('destroy');
       this.$('.btn-unmute').tooltip('destroy');
+      this.$('.btn-skip').tooltip('destroy');
 
       var attrs = this.model.attributes;
       Object.keys(attrs).forEach(function(key) {
@@ -442,6 +444,17 @@ $(function() {
         });
       }
 
+      this.$('.btn-skip').tooltip({
+        title: 'Skip Song',
+        trigger: 'hover',
+        placement: 'left',
+        container: '#playback',
+        delay: {
+          show: 400,
+          hide: 0
+        }
+      });
+
       return this;
     },
 
@@ -453,6 +466,12 @@ $(function() {
 
     unmute: function(event) {
       this.model.unmute();
+      event.preventDefault();
+      return false;
+    },
+
+    skip: function(event) {
+      this.model.skip();
       event.preventDefault();
       return false;
     }
