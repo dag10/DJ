@@ -398,6 +398,9 @@ $(function() {
     render: function() {
       var context = {};
 
+      this.$('.btn-mute').tooltip('destroy');
+      this.$('.btn-unmute').tooltip('destroy');
+
       var attrs = this.model.attributes;
       Object.keys(attrs).forEach(function(key) {
         context[key] = attrs[key];
@@ -414,6 +417,30 @@ $(function() {
       this.$el.html(this.template(context));
       this.delegateEvents();
       this.updateProgress();
+
+      if (this.model.get('muted')) {
+        this.$('.btn-unmute').tooltip({
+          title: 'Unmute Audio',
+          trigger: 'hover',
+          placement: 'left',
+          container: '#playback',
+          delay: {
+            show: 400,
+            hide: 0
+          }
+        });
+      } else {
+        this.$('.btn-mute').tooltip({
+          title: 'Mute Audio',
+          trigger: 'hover',
+          placement: 'left',
+          container: '#playback',
+          delay: {
+            show: 400,
+            hide: 0
+          }
+        });
+      }
 
       return this;
     },
