@@ -308,7 +308,7 @@ module.exports = Backbone.Model.extend({
 
   // Handle queue song order change.
   handleQueuedSongOrder: function(data, fn) {
-    if (!data || !fn) return;
+    if (!data) return;
 
     if (!this.ensureAuth(fn)) return;
     this.get('queue').updateSongOrder(data[0], data[1]);
@@ -316,8 +316,6 @@ module.exports = Backbone.Model.extend({
 
   // Handle command to skip current song.
   handleSkip: function(fn) {
-    if (!fn) return;
-
     if (!this.ensureAuth(fn)) return;
     if (!this.ensureRoom(fn)) return;
 
