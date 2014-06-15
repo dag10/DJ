@@ -1,8 +1,13 @@
-Computer Science House DJ
+DJ
 ==
 
 A web service to let multiple users take turns in playing music over a computer
 connected stereo. Inspired by the late [turntable.fm](http://turntable.fm).
+
+I'm building this for use in the [Computer Science House](http://csh.rit.edu),
+but it should be easily deployable elsewhere.
+
+Still a work in progress.
 
 Installation
 --
