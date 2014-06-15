@@ -238,8 +238,7 @@ $(function() {
 
   views.Queue = Backbone.View.extend({
     events: {
-      'sorted #queue-list': 'sorted',
-      'click #btn-skip': 'skip'
+      'sorted #queue-list': 'sorted'
     },
 
     initialize: function() {
@@ -260,33 +259,7 @@ $(function() {
         }
       });
 
-      this.$('#btn-skip').tooltip({
-        title: 'Skip Song',
-        trigger: 'hover',
-        placement: 'left',
-        delay: {
-          show: 400,
-          hide: 0
-        }
-      });
-
       this.render();
-    },
-
-    skip: function(event) {
-      this.collection.trigger('skip');
-      event.preventDefault();
-    },
-
-    updateSkipButton: function() {
-      var playingSong = this.collection.some(function(queued_song) {
-        return queued_song.get('playing');
-      });
-
-      if (playingSong)
-        this.$('#btn-skip').show();
-      else
-        this.$('#btn-skip').hide();
     },
 
     reset: function() {
@@ -330,8 +303,6 @@ $(function() {
       this.collection.forEach(function(queuedSong) {
         $ul.append(this.getViewForQueuedSong(queuedSong).render().el);
       }, this);
-
-      this.updateSkipButton();
 
       return this;
     },
