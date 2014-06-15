@@ -12,6 +12,7 @@ $(function() {
 
   new views.Queue({
     collection: connection.get('queue'),
+    model: connection,
     el: $('#queue-column')[0]
   });
 

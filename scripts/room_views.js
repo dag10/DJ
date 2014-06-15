@@ -253,6 +253,8 @@ $(function() {
       this.collection.on('reset', this.reset, this);
       this.collection.on('change:playing', this.updateSkipButton, this);
 
+      this.model.on('change:connected', this.connectionStatusChanged, this);
+
       this.$('#queue-list').sortable({
         axis: 'y',
         items: 'li:not(.playing)',
@@ -263,6 +265,7 @@ $(function() {
       });
 
       this.render();
+      this.connectionStatusChanged();
     },
 
     reset: function() {
@@ -344,6 +347,22 @@ $(function() {
       });
 
       return this;
+    },
+
+    connectionStatusChanged: function() {
+      var $searchBtn = this.$('#btn-search');
+      var $searchPlaceholder = this.$('#btn-search-placeholder');
+
+      if (this.model.get('connected')) {
+        console.log('CONECTED!!!--');
+        $searchBtn.show();
+        $searchPlaceholder.hide();
+      } else {
+        console.log('DISCONECTED!!!--');
+        this.endSearch();
+        $searchPlaceholder.show();
+        $searchBtn.hide();
+      }
     },
 
     sorted: function(event, model, position) {
