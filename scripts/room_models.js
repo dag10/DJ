@@ -11,6 +11,7 @@ $(function() {
 
   models.Playback = Backbone.Model.extend({
     defaults: {
+      selfIsDJ: false,
       progress: 0,
       muted: false
     },
@@ -29,6 +30,7 @@ $(function() {
     },
 
     songChanged: function() {
+      var isDJ = false;
       var song = this.get('song');
       if (song) {
         this.set({
@@ -36,11 +38,18 @@ $(function() {
             new Date().valueOf() - song.get('elapsed')
           )
         });
+        if (window.user && window.user.id &&
+            song.get('dj') &&
+            song.get('dj').id === window.user.id) {
+          isDJ = true;
+        }
         this.startPlayback();
       } else {
         this.unset('started');
         this.stopPlayback();
       }
+
+      this.set({ selfIsDJ: isDJ });
     },
 
     startPlayback: function() {

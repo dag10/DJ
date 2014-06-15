@@ -137,6 +137,13 @@ module.exports = Backbone.Model.extend({
       }
     }
 
+    var dj = this.dj();
+    if (dj) {
+      ret.dj = {};
+      ret.dj.username = dj.user().username;
+      ret.dj.id = dj.user().id;
+    }
+
     return ret;
   },
 
