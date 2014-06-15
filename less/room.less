@@ -190,7 +190,7 @@
       .section-empty {
         font-style: italic;
         color: darken(@color-grey-background, 40%);
-        margin-top: @section-padding;
+        margin-top: @section-padding * 2;
 
         &.center {
           @height: 160px;
@@ -383,6 +383,7 @@
 
 .navbar .playback-placeholder {
   line-height: @navbar-height;
+  cursor: default;
   color: #777;
 }
 
