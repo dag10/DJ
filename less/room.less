@@ -113,6 +113,7 @@
           background-color: @section-header-bg;
           padding: 8px;
           position: relative;
+          min-height: 34px;
 
           .button {
             position: absolute;
@@ -136,6 +137,22 @@
             font-weight: bold;
             margin-top: 3px;
             display: none;
+          }
+
+          input[type=text] {
+            border: none;
+            background: none;
+            padding: 0;
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            width: 100%;
+            outline: none;
+            font-family: inherit;
+            font-weight: inherit;
+            text-indent: 10px;
           }
         }
 

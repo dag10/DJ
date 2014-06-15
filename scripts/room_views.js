@@ -238,7 +238,10 @@ $(function() {
 
   views.Queue = Backbone.View.extend({
     events: {
-      'sorted #queue-list': 'sorted'
+      'sorted #queue-list': 'sorted',
+      'click #btn-search': 'search',
+      'blur #search-input': 'endSearch',
+      'keydown #search-input': 'searchKeyDown'
     },
 
     initialize: function() {
@@ -290,9 +293,34 @@ $(function() {
       })[0];
     },
 
+    search: function(event) {
+      event.preventDefault();
+      this.$('#btn-search').tooltip('hide');
+      this.$('.search-header').show();
+      this.$('.queue-header').hide();
+      this.$('#search-input').focus();
+      return false;
+    },
+
+    endSearch: function() {
+      this.$('.queue-header').show();
+      this.$('.search-header').hide();
+      this.$('#search-input').val('');
+    },
+
+    searchKeyDown: function(event) {
+      var key = event.keyCode;
+
+      if (key === 27) {
+        this.endSearch();
+      }
+    },
+
     render: function() {
       var $ul = this.$('#queue-list');
       var $placeholder = this.$('.section-empty');
+
+      this.$('#btn-search').tooltip('destroy');
 
       if (this.collection.length === 0)
         $placeholder.show();
@@ -303,6 +331,17 @@ $(function() {
       this.collection.forEach(function(queuedSong) {
         $ul.append(this.getViewForQueuedSong(queuedSong).render().el);
       }, this);
+
+      this.$('#btn-search').tooltip({
+        title: 'Search',
+        trigger: 'hover',
+        placement: 'left',
+        container: 'h1.queue-header',
+        delay: {
+          show: 400,
+          hide: 0
+        }
+      });
 
       return this;
     },
