@@ -238,6 +238,48 @@ $(function() {
     }
   });
 
+  // Data for a song in a search result.
+  models.SearchResult = Backbone.Model.extend();
+
+  // Collection of pure SearchResult entities.
+  models.SearchResultList = Backbone.Collection.extend({
+    model: models.SearchResult
+  });
+
+  // Model representing a section of the search results.
+  models.SearchResultSection = Backbone.Model.extend({
+    defaults: {
+      source: null,
+      title: null
+    },
+
+    initialize: function() {
+      this.set({
+        results: new models.SearchResultList()
+      });
+    }
+  });
+
+  // Collection of SearchResultSections.
+  models.SearchResultSections = Backbone.Collection.extend({
+    model: models.SearchResultSection
+  });
+
+  // Model representing the entire state of the search results.
+  models.SearchResults = Backbone.Model.extend({
+    defaults: {
+      query: '',
+      loading: false,
+      sections: []
+    },
+
+    initialize: function() {
+      this.set({
+        sections: new models.SearchResultSections(this.get('sections'))
+      });
+    }
+  });
+
   // Model representing the state of the current room.
   models.Room = Backbone.Model.extend({
     defaults: {

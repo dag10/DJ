@@ -16,6 +16,10 @@ $(function() {
     el: $('#queue-column')[0]
   });
 
+  var search_results = new models.SearchResults({
+    sections: window.search_sections || []
+  });
+
   connection.on('change:room', function(conn) {
     var room = conn.get('room');
     if (!room) return;
