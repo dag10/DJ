@@ -3,12 +3,14 @@ $(function() {
 
   var progressInterval = 10;
 
+  // Model representing a song's information.
   models.Song = Backbone.Model.extend({
     defaults: {
       title: 'Unknown'
     }
   });
 
+  // Model of the current song being played back.
   models.Playback = Backbone.Model.extend({
     defaults: {
       selfIsDJ: false,
@@ -118,6 +120,7 @@ $(function() {
     }
   });
 
+  // Model representing a user as it appears in the DJ and Listeners lists.
   models.User = Backbone.Model.extend({
     defaults: {
       admin: false,
@@ -138,6 +141,7 @@ $(function() {
     }
   });
 
+  // Collection containing a pure list of users.
   models.Users = Backbone.Collection.extend({
     model: models.User,
 
@@ -171,8 +175,7 @@ $(function() {
     }
   });
 
-  models.Song = Backbone.Model.extend();
-
+  // Model representing a song in the song queue.
   models.QueuedSong = Backbone.Model.extend({
     defaults: {
       order: 0
@@ -201,6 +204,7 @@ $(function() {
     }
   });
 
+  // Collection of QueuedSongs. Represents the entirety of one's song queue.
   models.Queue = Backbone.Collection.extend({
     model: models.QueuedSong,
 
@@ -234,6 +238,7 @@ $(function() {
     }
   });
 
+  // Model representing the state of the current room.
   models.Room = Backbone.Model.extend({
     defaults: {
       anonymous_listeners: 0,

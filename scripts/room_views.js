@@ -354,11 +354,9 @@ $(function() {
       var $searchPlaceholder = this.$('#btn-search-placeholder');
 
       if (this.model.get('connected')) {
-        console.log('CONECTED!!!--');
         $searchBtn.show();
         $searchPlaceholder.hide();
       } else {
-        console.log('DISCONECTED!!!--');
         this.endSearch();
         $searchPlaceholder.show();
         $searchBtn.hide();
