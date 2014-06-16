@@ -11,6 +11,7 @@ var ffmpeg = require('fluent-ffmpeg');
 var file_model = require('../../models/file');
 var song_model = require('../../models/song');
 var queues = require('./queues');
+var crypto = require('crypto');
 
 var generateShortName = function(name) {
   return name.toLowerCase()
@@ -106,7 +107,7 @@ exports.addSong = function(path, user, name, callback) {
           count: 1
         }, upload.artwork_dir, function(err, filenames) {
           if (err && filenames.length) {
-            winston.error('Error extracting album art: ' + err.message);
+            winston.warn('Failed to extract album art for ' + newpath);
             filenames.forEach(function(name) {
               fs_.unlink(upload.artwork_dir + '/' + name);
             });
@@ -123,6 +124,10 @@ exports.addSong = function(path, user, name, callback) {
               abort(err, null);
               return;
             }
+
+            var sha1 = crypto.createHash('sha1');
+            sha1.update('upload:' + Math.random());
+            var uuid = sha1.digest('hex'); // temporary uuid, until save.
             
             song = new song_model.Song({
               title: data.title || shortname,
@@ -130,6 +135,8 @@ exports.addSong = function(path, user, name, callback) {
               artist: data.artist,
               duration: data.durationsec,
               timeUploaded: now,
+              source: 'upload',
+              uuid: uuid,
               uploader: user
             }); 
 
@@ -144,6 +151,10 @@ exports.addSong = function(path, user, name, callback) {
               var songfilename = changeExtension(base, 'mp3');
               newpath = upload.song_dir + '/' + songfilename;
               fs.renameSync(oldnewpath, newpath); 
+
+              sha1 = crypto.createHash('sha1');
+              sha1.update('upload:' + song.id);
+              song.uuid = sha1.digest('hex');
 
               song_file = new file_model.File({
                 directory: upload.song_path,
