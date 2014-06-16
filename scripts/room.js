@@ -12,12 +12,16 @@ $(function() {
 
   new views.Queue({
     collection: connection.get('queue'),
-    model: connection,
+    connection: connection,
     el: $('#queue-column')[0]
   });
 
-  var search_results = new models.SearchResults({
-    sections: window.search_sections || []
+  new views.Search({
+    model: new models.SearchResults({
+      sections: window.search_sections || []
+    }),
+    connection: connection,
+    el: $('#queue-column')[0]
   });
 
   connection.on('change:room', function(conn) {

@@ -238,22 +238,19 @@ $(function() {
 
   views.Queue = Backbone.View.extend({
     events: {
-      'sorted #queue-list': 'sorted',
-      'click #btn-search': 'search',
-      'blur #search-input': 'endSearch',
-      'keydown #search-input': 'searchKeyDown'
+      'sorted #queue-list': 'sorted'
     },
 
-    initialize: function() {
+    initialize: function(opts) {
       this.views = [];
+
+      this.connection = opts.connection;
 
       this.collection.each(_.bind(this.add, this));
       this.collection.on('add', this.add, this);
       this.collection.on('remove', this.remove, this);
       this.collection.on('reset', this.reset, this);
       this.collection.on('change:playing', this.updateSkipButton, this);
-
-      this.model.on('change:connected', this.connectionStatusChanged, this);
 
       this.$('#queue-list').sortable({
         axis: 'y',
@@ -265,7 +262,6 @@ $(function() {
       });
 
       this.render();
-      this.connectionStatusChanged();
     },
 
     reset: function() {
@@ -296,6 +292,44 @@ $(function() {
       })[0];
     },
 
+    render: function() {
+      var $ul = this.$('#queue-list');
+      var $placeholder = this.$('.section-empty');
+
+      if (this.collection.length === 0)
+        $placeholder.show();
+      else
+        $placeholder.hide();
+
+      $ul.empty();
+      this.collection.forEach(function(queuedSong) {
+        $ul.append(this.getViewForQueuedSong(queuedSong).render().el);
+      }, this);
+
+      return this;
+    },
+
+    sorted: function(event, model, position) {
+      model.changePosition(position + 1);
+    }
+  });
+
+  views.Search = Backbone.View.extend({
+    events: {
+      'click #btn-search': 'search',
+      'blur #search-input': 'endSearch',
+      'keydown #search-input': 'searchKeyDown'
+    },
+
+    initialize: function(opts) {
+      this.connection = opts.connection;
+
+      this.connection.on('change:connected', this.updateSearchButton, this);
+
+      this.render();
+      this.updateSearchButton();
+    },
+
     search: function(event) {
       event.preventDefault();
       this.$('#btn-search').tooltip('hide');
@@ -320,20 +354,7 @@ $(function() {
     },
 
     render: function() {
-      var $ul = this.$('#queue-list');
-      var $placeholder = this.$('.section-empty');
-
       this.$('#btn-search').tooltip('destroy');
-
-      if (this.collection.length === 0)
-        $placeholder.show();
-      else
-        $placeholder.hide();
-
-      $ul.empty();
-      this.collection.forEach(function(queuedSong) {
-        $ul.append(this.getViewForQueuedSong(queuedSong).render().el);
-      }, this);
 
       this.$('#btn-search').tooltip({
         title: 'Search',
@@ -349,11 +370,11 @@ $(function() {
       return this;
     },
 
-    connectionStatusChanged: function() {
+    updateSearchButton: function() {
       var $searchBtn = this.$('#btn-search');
       var $searchPlaceholder = this.$('#btn-search-placeholder');
 
-      if (this.model.get('connected')) {
+      if (this.connection.get('connected')) {
         $searchBtn.show();
         $searchPlaceholder.hide();
       } else {
@@ -361,10 +382,6 @@ $(function() {
         $searchPlaceholder.show();
         $searchBtn.hide();
       }
-    },
-
-    sorted: function(event, model, position) {
-      model.changePosition(position + 1);
     }
   });
 
