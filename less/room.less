@@ -140,7 +140,10 @@
           }
 
           .faded-edge {
-            box-shadow: inset 8px 0 8px 0px @section-header-bg;
+            @box-shadow: inset 8px 0 8px 0px @section-header-bg;
+            -webkit-box-shadow: @box-shadow;
+            -moz-box-shadow: @box-shadow;
+            box-shadow: @box-shadow;
             position: absolute;
             top: 0;
             left: 0;
