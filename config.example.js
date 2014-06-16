@@ -10,6 +10,9 @@ module.exports = {
   // Directory for uploads.
   uploads_directory: __dirname + '/uploads',
 
+  // Username of permanent admin.
+  superadmin: 'dag10',
+
   web: {
     // Host for the server.
     host: '0.0.0.0',
@@ -65,10 +68,7 @@ module.exports = {
       upload: 6
       //youtube: 4
     }
-  },
-
-  // Username of permanent admin.
-  superadmin: 'dag10'
+  }
 
 };
 
