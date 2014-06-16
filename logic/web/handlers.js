@@ -11,6 +11,7 @@ var rooms = require('../room/rooms');
 var upload = require('../song/upload');
 var socket = require('../connection/socket');
 var stream = require('stream');
+var song_sources = require('../../song_sources');
 
 var base_dir = __dirname + '/../..';
 
@@ -59,11 +60,22 @@ exports.init = function(app, auth, callback) {
   app.get('/room/:room', function(req, res, next) {
     auth.getUser(false, req, res, next, function(user) {
       var room = rooms.roomForShortname(req.param('room'));
+      var search_sections = [];
+      Object.keys(config.song_sources.results_format).forEach(function(name) {
+        var source = song_sources.sources[name];
+        if (source) {
+          search_sections.push({
+            name: source.name,
+            display_name: source.display_name
+          });
+        }
+      });
       if (room) {
         res.render('room.ejs', {
           user: user,
           config: config,
           userhash: user ? user.hash() : '',
+          search_sections: search_sections,
           room: room
         });
       } else {

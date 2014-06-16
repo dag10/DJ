@@ -243,8 +243,16 @@
 
 <script>
   window.room = {
-    name: '<%= room.get('name') %>',
-    shortname: '<%= room.get('shortname') %>'
+    name: "<%= room.get('name') %>",
+    shortname: "<%= room.get('shortname') %>"
   };
+  window.search_sections = [
+    <% for (var i = 0; i < search_sections.length; i++) { %>
+      {
+        source: "<%= search_sections[i].name %>",
+        title: "<%= search_sections[i].display_name %>"
+      },
+    <% } %>
+  ];
 </script>
 
