@@ -308,7 +308,7 @@
             white-space: nowrap;
 
             .faded-edge {
-              @box-shadow: inset -24px 0 30px 0px @color-grey-background;
+              @box-shadow: inset -30px 0 24px -15px @color-grey-background;
               -webkit-box-shadow: @box-shadow;
               -moz-box-shadow: @box-shadow;
               box-shadow: @box-shadow;
@@ -372,6 +372,13 @@
             .fg {
               .title, .artist, .album {
                 color: white;
+              }
+
+              .faded-edge {
+                @box-shadow: inset -30px 0 24px -15px @color-purple;
+                -webkit-box-shadow: @box-shadow;
+                -moz-box-shadow: @box-shadow;
+                box-shadow: @box-shadow;
               }
             }
           }
