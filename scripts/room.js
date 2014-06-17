@@ -8,21 +8,21 @@ $(function() {
       username: user.username,
       userhash: user.hash
     });
+
+    new views.Queue({
+      collection: connection.get('queue'),
+      connection: connection,
+      el: $('#queue-column')[0]
+    });
+
+    new views.Search({
+      model: new models.SearchResults({
+        sections: window.search_sections || []
+      }),
+      connection: connection,
+      el: $('#queue-column')[0]
+    });
   }
-
-  new views.Queue({
-    collection: connection.get('queue'),
-    connection: connection,
-    el: $('#queue-column')[0]
-  });
-
-  new views.Search({
-    model: new models.SearchResults({
-      sections: window.search_sections || []
-    }),
-    connection: connection,
-    el: $('#queue-column')[0]
-  });
 
   connection.on('change:room', function(conn) {
     var room = conn.get('room');

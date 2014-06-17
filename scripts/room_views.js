@@ -245,6 +245,7 @@ $(function() {
       this.views = [];
 
       this.connection = opts.connection;
+      this.connection.on('change:connected', this.updatePlaceholder, this);
 
       this.collection.each(_.bind(this.add, this));
       this.collection.on('add', this.add, this);
@@ -294,19 +295,23 @@ $(function() {
 
     render: function() {
       var $ul = this.$('#queue-list');
-      var $placeholder = this.$('.section-empty');
-
-      if (this.collection.length === 0)
-        $placeholder.show();
-      else
-        $placeholder.hide();
 
       $ul.empty();
       this.collection.forEach(function(queuedSong) {
         $ul.append(this.getViewForQueuedSong(queuedSong).render().el);
       }, this);
 
+      this.updatePlaceholder();
       return this;
+    },
+
+    updatePlaceholder: function() {
+      var $placeholder = this.$('.section-empty');
+
+      if (this.connection.get('connected') && this.collection.length === 0)
+        $placeholder.show();
+      else
+        $placeholder.hide();
     },
 
     sorted: function(event, model, position) {
@@ -323,11 +328,9 @@ $(function() {
 
     initialize: function(opts) {
       this.connection = opts.connection;
-
       this.connection.on('change:connected', this.updateSearchButton, this);
 
       this.render();
-      this.updateSearchButton();
     },
 
     search: function(event) {
@@ -367,6 +370,7 @@ $(function() {
         }
       });
 
+      this.updateSearchButton();
       return this;
     },
 
