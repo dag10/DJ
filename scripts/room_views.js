@@ -1,6 +1,19 @@
 $(function() {
   var views = window.views = {};
 
+  views.Body = Backbone.View.extend({
+    el: 'body',
+
+    events: {
+      'mousedown': 'event',
+      'mouseup': 'event'
+    },
+
+    event: function(event) {
+      this.trigger(event.type);
+    }
+  });
+
   views.Room = Backbone.View.extend({
     events: {
       'click #btn-begin-dj': 'beginDJ',
@@ -322,11 +335,17 @@ $(function() {
   views.Search = Backbone.View.extend({
     events: {
       'click #btn-search': 'search',
-      'blur #search-input': 'endSearch',
-      'keydown #search-input': 'searchKeyDown'
+      'blur #search-input': 'searchBlurred',
+      'keydown #search-input': 'searchKeyDown',
+      'mousedown #search-results-list': 'listMouseDown'
     },
 
     initialize: function(opts) {
+      this.listMousePressed = false;
+      window.bodyView.on('mouseup', function() {
+        this.listMousePressed = false;
+      }, this);
+
       this.connection = opts.connection;
       this.connection.on('change:connected', this.updateSearchButton, this);
 
@@ -339,13 +358,25 @@ $(function() {
       this.$('.search-header').show();
       this.$('.queue-header').hide();
       this.$('#search-input').focus();
+      this.$('#search-results-list').show();
+      this.$('#queue-list').hide();
       return false;
+    },
+
+    searchBlurred: function() {
+      if (this.listMousePressed) {
+        window.bodyView.once('mouseup', this.endSearch, this);
+      } else {
+        this.endSearch();
+      }
     },
 
     endSearch: function() {
       this.$('.queue-header').show();
       this.$('.search-header').hide();
       this.$('#search-input').val('');
+      this.$('#queue-list').show();
+      this.$('#search-results-list').hide();
     },
 
     searchKeyDown: function(event) {
@@ -354,6 +385,11 @@ $(function() {
       if (key === 27) {
         this.endSearch();
       }
+    },
+
+    listMouseDown: function() {
+      this.listMousePressed = true;
+      this.trigger('listMouseDown');
     },
 
     render: function() {

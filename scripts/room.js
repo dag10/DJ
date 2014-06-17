@@ -2,6 +2,8 @@ $(function() {
   var connection = new Connection({
     room_shortname: window.room.shortname
   });
+
+  window.bodyView = new views.Body();
   
   if (window.user) {
     connection.set({
