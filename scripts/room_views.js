@@ -332,6 +332,18 @@ $(function() {
     }
   });
 
+  views.SearchSection = Backbone.View.extend({
+    template: Handlebars.compile($('#search-section-template').html()), 
+
+    initialize: function() {
+      this.render();
+    },
+
+    render: function() {
+      this.$el.html(this.template(this.model.attributes));
+    }
+  });
+
   views.Search = Backbone.View.extend({
     events: {
       'click #btn-search': 'search',
@@ -346,10 +358,23 @@ $(function() {
         this.listMousePressed = false;
       }, this);
 
+      this.section_views = [];
+      this.sections = this.model.get('sections');
+      this.sections.on('add', this.sectionAdded, this);
+      this.sections.forEach(this.sectionAdded, this);
+
       this.connection = opts.connection;
       this.connection.on('change:connected', this.updateSearchButton, this);
 
       this.render();
+    },
+
+    sectionAdded: function(section) {
+      var view = new views.SearchSection({
+        model: section
+      });
+      this.section_views.push(view);
+      this.$('#search-results-list').append(view.$el);
     },
 
     search: function(event) {
