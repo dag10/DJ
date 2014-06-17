@@ -353,7 +353,7 @@ $(function() {
     },
 
     search: function(event) {
-      event.preventDefault();
+      if (event) event.preventDefault();
       this.$('#btn-search').tooltip('hide');
       this.$('.search-header').show();
       this.$('.queue-header').hide();
