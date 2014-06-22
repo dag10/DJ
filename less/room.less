@@ -320,11 +320,13 @@
             z-index: 99;
 
             @background: darken(@color-grey-background, 3%);
-            @background-emphasis: darken(@background, 20%);
-            @background-emphasis: lighten(@color-purple, 45%);
             @background-emphasis: lighten(@background, 10%);
+            @background-emphasis-percent: 60%;
 
-            @gradient: left, @background 10%, @background-emphasis 50%, @background 90%;
+            @gradient-percent1: 50% - (@background-emphasis-percent / 2%);
+            @gradient-percent2: 50%;
+            @gradient-percent3: 50% + (@background-emphasis-percent / 2%);
+            @gradient: left, @background @gradient-percent1, @background-emphasis @gradient-percent2, @background @gradient-percent3;
             background: -moz-linear-gradient(@gradient);
             background: -webkit-linear-gradient(@gradient);
             background: -o-linear-gradient(@gradient);
