@@ -2,6 +2,7 @@ $(function() {
   var models = window.models = {};
 
   var progressInterval = 10;
+  var search_throttle_ms = 200;
 
   // Model representing a song's information.
   models.Song = Backbone.Model.extend({
@@ -254,9 +255,19 @@ $(function() {
     },
 
     initialize: function() {
+      this.id = this.get('source');
+      this.on('change:source', function(source) { this.id = source; }, this);
       this.set({
         results: new models.SearchResultList()
       });
+    },
+
+    setResults: function(results) {
+      this.get('results').reset(results);
+    },
+
+    clearResults: function() {
+      this.get('results').reset();
     }
   });
 
@@ -270,12 +281,78 @@ $(function() {
     defaults: {
       query: '',
       loading: false,
-      sections: []
+      locked: false
     },
 
     initialize: function() {
+      this.set({ resultsCache: {} });
+
+      var sections = this.get('sections') || [];
       this.set({
         sections: new models.SearchResultSections(this.get('sections'))
+      });
+
+      this.on('change:query', this.queryChanged, this);
+    },
+
+    queryChanged: function() {
+      var query = this.get('query');
+
+      if (query && query.trim().length > 0) {
+        var cache = this.get('resultsCache');
+
+        if (query in cache) {
+          this.handleResults(query, cache[query]);
+        } else {
+          this.requestResults(query);
+        }
+      } else {
+        this.clearResults();
+      }
+    },
+
+    requestResults: _.throttle(function(query) {
+      this.set({ loading: true });
+      this.get('connection').search(
+        query, _.bind(this.resultsReceived, this));
+    }, search_throttle_ms),
+
+    resultsReceived: function(resultsData) {
+      var query = resultsData.query;
+
+      if (resultsData.error) {
+        console.error('Error with search results:', resultsData.error);
+      } else if (query && typeof query === 'string') {
+        this.get('resultsCache')[query] = resultsData;
+        this.handleResults(query, resultsData);
+      }
+    },
+
+    handleResults: function(query, resultsData) {
+      if (query === this.get('query')) {
+        this.set({ loading: false });
+      }
+
+      if (this.get('locked')) return;
+
+      var sections = this.get('sections');
+      resultsData.sections.forEach(function(sectionData) {
+        var section = sections.get(sectionData.source);
+        if (section) {
+          section.setResults(sectionData.results);
+        } else {
+          console.warn('Unknown section:', sectionData.source);
+        }
+      });
+    },
+
+    clearResults: function() {
+      this.set({
+        locked: false,
+        loading: false
+      });
+      this.get('sections').forEach(function(section) {
+        section.clearResults();
       });
     }
   });

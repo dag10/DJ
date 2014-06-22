@@ -158,14 +158,8 @@ $(function() {
       }, this));
     },
 
-    search: function(query) {
-      this.get('socket').emit('search', query, _.bind(function(results) {
-        console.log('Results for ' + query + ':', results);
-        results.forEach(function(source) {
-          console.log('Source ' + source.title + ':');
-          console.log('Results:', source.results);
-        });
-      }, this));
+    search: function(query, callback) {
+      this.get('socket').emit('search', query, callback);
     },
 
     sendQueuedSongOrder: function(queued_song_id, order) {

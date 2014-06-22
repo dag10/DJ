@@ -58,7 +58,7 @@ exports.search = function(max_results, query, callback) {
       title: "Result " + i + '!',
       artist: query,
       album: "Some Album",
-      image_url: "http://placehold.it/128"
+      image_url: "http://placehold.it/32&text=" + (i + 1)
     });
   }
 

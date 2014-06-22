@@ -19,9 +19,9 @@ $(function() {
 
     new views.Search({
       model: new models.SearchResults({
-        sections: window.search_sections || []
+        sections: window.search_sections || [],
+        connection: connection
       }),
-      connection: connection,
       el: $('#queue-column')[0]
     });
   }

@@ -95,7 +95,7 @@ exports.search = function(query, callback) {
   }, function(err, applied_search_functions) {
     // Then we run all the functions in parallel, waiting until they finish.
     async.parallel(applied_search_functions, function(err, result_arrays) {
-      var results = [];
+      var sections = [];
       var source_names = Object.keys(config.song_sources.results_format);
 
       // Wrap the results objects in objects describing the song source.
@@ -103,14 +103,17 @@ exports.search = function(query, callback) {
         var source_name = source_names[i];
         var source = exports.sources[source_name];
 
-        results.push({
+        sections.push({
           source: source.name,
           title: source.display_name,
           results: result_arrays[i]
         });
       }
 
-      callback(results);
+      callback({
+        query: query,
+        sections: sections
+      });
     });
   });
 };
