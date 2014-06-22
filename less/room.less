@@ -321,7 +321,7 @@
 
             @background: darken(@color-grey-background, 3%);
             @background-emphasis: lighten(@background, 10%);
-            @background-emphasis-percent: 60%;
+            @background-emphasis-percent: 80%;
 
             @gradient-percent1: 50% - (@background-emphasis-percent / 2%);
             @gradient-percent2: 50%;
@@ -334,7 +334,6 @@
             background: linear-gradient(@gradient);
             background-size: 170%;
 
-            @animation-def: loading_shimmer 800s linear 0s infinite;
             @animation-def: loading_shimmer 500s linear 0s infinite;
             -webkit-animation: @animation-def;
             -moz-animation: @animation-def;
