@@ -3,6 +3,20 @@
 @column-border-radius: 5px;
 @activity-width: 500px;
 
+.loading-wave-frames () {
+  from {
+    background-position-x: -100000px;
+  }
+  to {
+    background-position-x: 100000px;
+  }
+}
+
+@-webkit-keyframes loading_wave {.loading-wave-frames;}
+@-moz-keyframes loading_wave {.loading-wave-frames;}
+@-o-keyframes loading_wave {.loading-wave-frames;}
+@keyframes loading_wave {.loading-wave-frames;}
+
 .room-container {
   margin-left: 0;
   margin-right: 0;
@@ -280,16 +294,73 @@
           bottom: 0;
         }
 
+        #search-results-list .section-results-placeholder {
+          color: darken(@color-grey-background, 40%);
+          margin: 5px;
+          font-size: 13px;
+        }
+
         #search-results-list .section-header {
-          font-size: 12px;
-          font-weight: 400;
+          position: relative;
+          min-height: 24px;
           border-bottom: none;
-          padding: 3px 5px;
           background-color: darken(@color-grey-background, 3%);
           border: solid 1px lighten(@color-grey-border, 10%);
-          
-          &:first-child {
-            padding-top: 4px;
+
+          .loading-gradient, .content {
+            position: absolute;
+            top: 0;
+            bottom: 0;
+            left: 0;
+            right: 0;
+          }
+
+          .loading-gradient {
+            z-index: 99;
+
+            @background: darken(@color-grey-background, 3%);
+            @background-emphasis: darken(@background, 20%);
+            @background-emphasis: lighten(@color-purple, 45%);
+            @background-emphasis: lighten(@background, 10%);
+
+            @gradient: left, @background 0%, @background-emphasis 50%, @background 100%;
+            background: -moz-linear-gradient(@gradient);
+            background: -webkit-linear-gradient(@gradient);
+            background: -o-linear-gradient(@gradient);
+            background: -ms-linear-gradient(@gradient);
+            background: linear-gradient(@gradient);
+            background-size: 170%;
+
+            @animation-def: loading_wave 800s linear 0s infinite;
+            @animation-def: loading_wave 500s linear 0s infinite;
+            -webkit-animation: @animation-def;
+            -moz-animation: @animation-def;
+            -o-animation: @animation-def;
+            animation: @animation-def;
+
+            opacity: 0;
+            -webkit-transition: opacity 1s;
+            transition: opacity 1s;
+
+            text-align: right;
+            font-size: 11px;
+            padding: 3px 10px;
+            color: darken(@color-grey-background, 30%);
+            letter-spacing: 0.4px;
+            font-weight: 300;
+          }
+
+          .content {
+            font-size: 12px;
+            font-weight: 400;
+            padding: 3px 5px;
+            z-index: 100;
+          }
+        }
+
+        #search-results-list.loading .section-header {
+          .loading-gradient {
+            opacity: 1;
           }
         }
 

@@ -332,8 +332,10 @@ $(function() {
     }
   });
 
-  views.SearchSection = Backbone.View.extend({
-    template: Handlebars.compile($('#search-section-template').html()), 
+  views.SearchResult = Backbone.View.extend({
+    template: Handlebars.compile($('#search-result-template').html()),
+    tagName: 'li',
+    className: 'song',
 
     initialize: function() {
       this.render();
@@ -344,26 +346,67 @@ $(function() {
     }
   });
 
+  views.SearchSection = Backbone.View.extend({
+    model: models.SearchResultSection,
+    template: Handlebars.compile($('#search-section-template').html()), 
+
+    initialize: function() {
+      this.model.get('results').on('reset', this.resultsReset, this);
+      this.model.get('results').on(
+        'reset add remove', this.updatePlaceholder, this);
+      this.render();
+    },
+
+    resultsReset: function() {
+      this.$results.empty();
+      this.model.get('results').forEach(this.addSongModel, this);
+    },
+
+    addSongModel: function(song) {
+      this.$results.append((new views.SearchResult({
+        model: song
+      })).$el);
+    },
+
+    updatePlaceholder: function() {
+      if (this.model.get('results').length > 0) {
+        this.$placeholder.hide();
+      } else {
+        this.$placeholder.show();
+      }
+    },
+
+    render: function() {
+      this.$el.html(this.template(this.model.attributes));
+      this.$results = this.$('.section-results');
+      this.$placeholder = this.$('.section-results-placeholder');
+      this.updatePlaceholder();
+    }
+  });
+
   views.Search = Backbone.View.extend({
     events: {
       'click #btn-search': 'search',
       'blur #search-input': 'searchBlurred',
       'keydown #search-input': 'searchKeyDown',
+      'paste #search-input': 'searchPaste',
       'mousedown #search-results-list': 'listMouseDown'
     },
 
-    initialize: function(opts) {
+    initialize: function() {
       this.listMousePressed = false;
       window.bodyView.on('mouseup', function() {
         this.listMousePressed = false;
       }, this);
+
+      this.model.on('change:loading', this.updateLoading, this);
 
       this.section_views = [];
       this.sections = this.model.get('sections');
       this.sections.on('add', this.sectionAdded, this);
       this.sections.forEach(this.sectionAdded, this);
 
-      this.connection = opts.connection;
+      this.connection = this.model.get('connection');
       this.connection.on('change:connected', this.updateSearchButton, this);
 
       this.render();
@@ -402,6 +445,7 @@ $(function() {
       this.$('#search-input').val('');
       this.$('#queue-list').show();
       this.$('#search-results-list').hide();
+      this.model.set('query', '');
     },
 
     searchKeyDown: function(event) {
@@ -409,7 +453,17 @@ $(function() {
 
       if (key === 27) {
         this.endSearch();
+      } else {
+        _.defer(_.bind(function() {
+          this.model.set({ query: this.$('#search-input').val().trim() });
+        }, this));
       }
+    },
+
+    searchPaste: function(event) {
+      _.defer(_.bind(function() {
+        this.model.set({ query: this.$('#search-input').val().trim() });
+      }, this));
     },
 
     listMouseDown: function() {
@@ -417,10 +471,23 @@ $(function() {
       this.trigger('listMouseDown');
     },
 
-    render: function() {
-      this.$('#btn-search').tooltip('destroy');
+    updateLoading: function() {
+      console.log('SETTING LOADING TO:', this.model.get('loading'));
 
-      this.$('#btn-search').tooltip({
+      if (this.model.get('loading')) {
+        this.$search_results_list.addClass('loading');
+      } else {
+        this.$search_results_list.removeClass('loading');
+      }
+    },
+
+    render: function() {
+      this.$search_results_list = this.$('#search-results-list');
+      this.$btn_search_placeholder = this.$('#btn-search-placeholder');
+      this.$btn_search = this.$('#btn-search');
+
+      this.$btn_search.tooltip('destroy');
+      this.$btn_search.tooltip({
         title: 'Search',
         trigger: 'hover',
         placement: 'left',
@@ -431,21 +498,19 @@ $(function() {
         }
       });
 
+      this.updateLoading();
       this.updateSearchButton();
       return this;
     },
 
     updateSearchButton: function() {
-      var $searchBtn = this.$('#btn-search');
-      var $searchPlaceholder = this.$('#btn-search-placeholder');
-
       if (this.connection.get('connected')) {
-        $searchBtn.show();
-        $searchPlaceholder.hide();
+        this.$btn_search.show();
+        this.$btn_search_placeholder.hide();
       } else {
         this.endSearch();
-        $searchPlaceholder.show();
-        $searchBtn.hide();
+        this.$btn_search_placeholder.show();
+        this.$btn_search.hide();
       }
     }
   });

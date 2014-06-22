@@ -162,8 +162,32 @@
 </script>
 
 <script type="text/x-handlebars-template" id="search-section-template">
-  <div class="section-header">{{ title }}</div>
+  <div class="section-header">
+    <div class="loading-gradient">Loading...</div>
+    <div class="content">{{ title }}</div>
+  </div>
+  <div class="section-results-placeholder">
+    No results found.
+  </div>
   <span class="section-results"></span>
+</script>
+
+<script type="text/x-handlebars-template" id="search-result-template">
+  <div
+    class="artwork"
+    style="{{#if image_url}}background-image: url('{{image_url}}'){{/if}}">
+  </div>
+
+  <div
+    class="fg"
+    title="&quot;{{title}}&quot;{{#if artist}} by {{artist}}{{/if}}{{#if album}} on {{album}}{{/if}}">
+    <span class="title">{{#if playing}}&#9658; {{/if}}{{title}}</span>
+    <span class="artist">{{artist}}</span>
+    {{#if album}}
+      <span class="album">- {{album}}</span>
+    {{/if}}
+    <div class="faded-edge"></div>
+  </div>
 </script>
 
 <script type="text/x-handlebars-template" id="queue-item-template">
