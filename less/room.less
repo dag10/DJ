@@ -3,7 +3,7 @@
 @column-border-radius: 5px;
 @activity-width: 500px;
 
-.loading-wave-frames () {
+.loading-shimmer-frames () {
   from {
     background-position-x: -100000px;
   }
@@ -12,10 +12,10 @@
   }
 }
 
-@-webkit-keyframes loading_wave {.loading-wave-frames;}
-@-moz-keyframes loading_wave {.loading-wave-frames;}
-@-o-keyframes loading_wave {.loading-wave-frames;}
-@keyframes loading_wave {.loading-wave-frames;}
+@-webkit-keyframes loading_shimmer {.loading-shimmer-frames;}
+@-moz-keyframes loading_shimmer {.loading-shimmer-frames;}
+@-o-keyframes loading_shimmer {.loading-shimmer-frames;}
+@keyframes loading_shimmer {.loading-shimmer-frames;}
 
 .room-container {
   margin-left: 0;
@@ -324,7 +324,7 @@
             @background-emphasis: lighten(@color-purple, 45%);
             @background-emphasis: lighten(@background, 10%);
 
-            @gradient: left, @background 0%, @background-emphasis 50%, @background 100%;
+            @gradient: left, @background 10%, @background-emphasis 50%, @background 90%;
             background: -moz-linear-gradient(@gradient);
             background: -webkit-linear-gradient(@gradient);
             background: -o-linear-gradient(@gradient);
@@ -332,8 +332,8 @@
             background: linear-gradient(@gradient);
             background-size: 170%;
 
-            @animation-def: loading_wave 800s linear 0s infinite;
-            @animation-def: loading_wave 500s linear 0s infinite;
+            @animation-def: loading_shimmer 800s linear 0s infinite;
+            @animation-def: loading_shimmer 500s linear 0s infinite;
             -webkit-animation: @animation-def;
             -moz-animation: @animation-def;
             -o-animation: @animation-def;
