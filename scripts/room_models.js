@@ -329,11 +329,12 @@ $(function() {
     },
 
     handleResults: function(query, resultsData) {
-      if (query === this.get('query')) {
+      if (this.get('query').trim().length === 0 ||
+          query === this.get('query')) {
         this.set({ loading: false });
       }
 
-      if (this.get('locked')) return;
+      if (this.get('query').trim().length === 0 || this.get('locked')) return;
 
       var sections = this.get('sections');
       resultsData.sections.forEach(function(sectionData) {
