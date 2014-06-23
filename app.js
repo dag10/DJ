@@ -25,6 +25,11 @@ var socket = require('./logic/connection/socket');
 var async = require('async');
 var http = require('http');
 var _ = require('underscore');
+var Q = require('q');
+
+if (config.debug) {
+  Q.longStackSupport = true;
+}
 
 logging.init();
 
@@ -33,46 +38,42 @@ var server = http.createServer(app);
 
 socket.init(server);
 
-async.waterfall([
+database.init(app, models_module.define)
+.then(function() {
+  async.waterfall([
 
-  // Configure express.
-  app.configure,
+    // Run these stages in parallel...
+    function(callback) {
+      async.parallel([
+        
+        // Initialize song sources.
+        song_sources.init,
 
-  // Initialize database, define models, run migrations.
-  function(callback) {
-    database.init(app, models_module.define, callback);
-  },
+        // Load rooms.
+        _.bind(rooms.loadRooms, rooms),
 
-  // Run these stages in parallel...
-  function(callback) {
-    async.parallel([
-      
-      // Initialize song sources.
-      song_sources.init,
+        // Initialize the upload handler.
+        upload.init,
 
-      // Load rooms.
-      _.bind(rooms.loadRooms, rooms),
+        // Initialize auth and url handlers.
+        function(callback) {
+          var auth = auth_module.init(app);
+          handlers.init(app, auth, callback);
+        }
 
-      // Initialize the upload handler.
-      upload.init,
+      ], function() {
+        callback();
+      });
+    },
 
-      // Initialize auth and url handlers.
-      function(callback) {
-        var auth = auth_module.init(app);
-        handlers.init(app, auth, callback);
-      }
+    // Start the server.
+    function(callback) {
+      server.listen(config.web.port, config.web.host, 511, callback);
+    }
 
-    ], function() {
-      callback();
-    });
-  },
-
-  // Start the server.
-  function(callback) {
-    server.listen(config.web.port, config.web.host, 511, callback);
-  }
-
-], function(err, results) {
-  winston.info('Server listening on port', config.web.port);
+  ], function(err, results) {
+    winston.info('Server listening on port', config.web.port);
+  });
 });
+
 
