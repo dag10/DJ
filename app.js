@@ -48,7 +48,8 @@ database.init(app, models_module.define)
 
   return Q.all([
     song_sources.init(),
-    rooms_deferred.promise
+    rooms_deferred.promise,
+    upload.init()
   ]);
 })
 .then(function() {
@@ -59,9 +60,6 @@ database.init(app, models_module.define)
     // Run these stages in parallel...
     function(callback) {
       async.parallel([
-
-        // Initialize the upload handler.
-        upload.init,
 
         // Initialize auth and url handlers.
         function(callback) {

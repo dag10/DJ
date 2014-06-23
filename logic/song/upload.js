@@ -5,6 +5,7 @@
 var config = require('../../config');
 var winston = require('winston');
 var fs = require('fs');
+var Q = require('q');
 var multiparty = require('multiparty');
 var songs = require('./songs');
 
@@ -21,7 +22,9 @@ exports.upload_dir = upload_dir;
 exports.song_dir = song_dir;
 exports.artwork_dir = artwork_dir;
 
-exports.init = function(callback) {
+exports.init = function() {
+  var deferred = Q.defer();
+
   [upload_dir, song_dir, artwork_dir].forEach(
     function(dir) {
       if (!fs.existsSync(dir)) {
@@ -31,7 +34,8 @@ exports.init = function(callback) {
     }
   );
 
-  if (callback) callback();
+  deferred.resolve();
+  return deferred.promise;
 };
 
 exports.initHandlers = function(app, auth) {
