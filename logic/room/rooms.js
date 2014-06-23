@@ -19,13 +19,12 @@ var RoomManager = Backbone.Collection.extend({
     this.on('remove', this.roomRemoved, this);
   },
 
-  loadRooms: function(callback) {
+  loadRooms: function() {
     room_model.Room.find({}, _.bind(function(err, roomResults) {
       roomResults.forEach(_.bind(function(entity) {
         this.add(new Room({ entity: entity }));
       }, this));
       this.trigger('load');
-      if (callback) callback();
     }, this));
   },
 

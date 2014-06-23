@@ -40,8 +40,15 @@ socket.init(server);
 
 database.init(app, models_module.define)
 .then(function() {
+
+  // Create a promise to load rooms.
+  var rooms_deferred = Q.defer();
+  rooms.once('load', rooms_deferred.resolve);
+  rooms.loadRooms();
+
   return Q.all([
-    song_sources.init()
+    song_sources.init(),
+    rooms_deferred.promise
   ]);
 })
 .then(function() {
@@ -52,9 +59,6 @@ database.init(app, models_module.define)
     // Run these stages in parallel...
     function(callback) {
       async.parallel([
-        
-        // Load rooms.
-        _.bind(rooms.loadRooms, rooms),
 
         // Initialize the upload handler.
         upload.init,
