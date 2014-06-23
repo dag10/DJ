@@ -5,10 +5,13 @@
 var config = require('../config');
 var winston = require('winston');
 var fs = require('fs');
+var Q = require('q');
 
 var log_dir = config.log_directory;
 
 exports.init = function() {
+  var deferred = Q.defer();
+
   // Enable colors and timestamps in console logging.
   winston.remove(winston.transports.Console);
   winston.add(winston.transports.Console, {
@@ -41,5 +44,8 @@ exports.init = function() {
     handleExceptions: true,
     filename: filename
   });
+
+  deferred.resolve();
+  return deferred.promise;
 };
 

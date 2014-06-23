@@ -5,11 +5,14 @@
 var config = require('../../config');
 var socketio = require('socket.io');
 var winston = require('winston');
+var Q = require('q');
 var user_model = require('../../models/user');
 var Connection = require('../connection/connection');
 var connections = require('../connection/connections');
 
 exports.init = function(server) {
+  var deferred = Q.defer();
+
   var io = socketio.listen(server, {
     logger: {
       debug: winston.debug,
@@ -34,5 +37,8 @@ exports.init = function(server) {
 
     connections.add(conn);
   });
+
+  deferred.resolve();
+  return deferred.promise;
 };
 

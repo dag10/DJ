@@ -27,19 +27,24 @@ var http = require('http');
 var _ = require('underscore');
 var Q = require('q');
 
-if (config.debug) {
-  Q.longStackSupport = true;
-}
-
-logging.init();
+// Long stack support has a performance hit, so only use when debugging.
+Q.longStackSupport = config.debug;
 
 var app = express();
 var server = http.createServer(app);
 
-socket.init(server);
+// Initialize logging.
+logging.init()
+
+// Initialize socket.io.
+.then(function() {
+  return socket.init(server);
+})
 
 // Initialize the database.
-database.init(app, models_module.define)
+.then(function() {
+  return database.init(app, models_module.define);
+})
 
 // Do some procedural initialization steps, then do some steps concurrently.
 .then(function() {
