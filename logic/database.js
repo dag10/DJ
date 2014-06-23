@@ -8,11 +8,14 @@ var winston = require('winston');
 var Q = require('q');
 var Sequelize = require('sequelize');
 
+// Sequelize object once initialized.
+exports.sequelize = null;
+
 // Initialize database with Sequelize.
 exports.init = function() {
   var deferred = Q.defer();
 
-  new Sequelize(
+  exports.sequelize = new Sequelize(
     config.db.database,
     config.db.username,
     config.db.password,
@@ -29,9 +32,9 @@ exports.init = function() {
         maxConnections: 3,
         maxIdleTime: 20
       }
-    })
-  .authenticate()
-  .complete(deferred.makeNodeResolver());
+    });
+
+  exports.sequelize.authenticate().complete(deferred.makeNodeResolver());
 
   return deferred.promise;
 };

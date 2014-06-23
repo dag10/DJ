@@ -7,7 +7,8 @@ var auth_module = require('./logic/web/auth');
 var express = require('express');
 var handlers = require('./logic/web/handlers');
 var database = require('./logic/database');
-var models_module = require('./models');
+var models = require('./models');
+var old_models_module = require('./models/index.old.js');
 var song_sources = require('./song_sources');
 var winston = require('winston');
 var logging = require('./utils/logging');
@@ -33,13 +34,14 @@ logging.init()
 })
 
 // Initialize the database.
-.then(function() {
-  return database.init();
-})
+.then(database.init)
+
+// Define models.
+.then(models.init)
 
 // Initialize the old database.
 .then(function() {
-  return database.initOld(app, models_module.define);
+  return database.initOld(app, old_models_module.define);
 })
 
 // Do some procedural initialization steps, then do some steps concurrently.
