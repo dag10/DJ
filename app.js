@@ -40,15 +40,19 @@ socket.init(server);
 
 database.init(app, models_module.define)
 .then(function() {
+  return Q.all([
+    song_sources.init()
+  ]);
+})
+.then(function() {
+  var deferred = Q.defer();
+
   async.waterfall([
 
     // Run these stages in parallel...
     function(callback) {
       async.parallel([
         
-        // Initialize song sources.
-        song_sources.init,
-
         // Load rooms.
         _.bind(rooms.loadRooms, rooms),
 
@@ -71,9 +75,21 @@ database.init(app, models_module.define)
       server.listen(config.web.port, config.web.host, 511, callback);
     }
 
-  ], function(err, results) {
-    winston.info('Server listening on port', config.web.port);
+  ], function(err) {
+    if (err) {
+      deferred.reject(err);
+    } else {
+      deferred.resolve();
+    }
   });
+
+  return deferred.promise;
+
+}).done(function() {
+  winston.info('Server listening on port', config.web.port);
+}, function(err) {
+  winston.error('Failed to initialize: ' + err.message);
+  throw err;
 });
 
 

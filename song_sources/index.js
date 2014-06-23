@@ -6,6 +6,7 @@ var config = require('../config');
 var fs = require('fs');
 var winston = require('winston');
 var async = require('async');
+var Q = require('q');
 
 // Checks whether the str ends with the suffix string.
 function endsWith(str, suffix) {
@@ -19,8 +20,9 @@ var search_functions = [];
 exports.sources = {};
 
 // Loads and initializes all local and external song sources.
-exports.init = function(callback) {
-  var modules = [];
+exports.init = function() {
+  var deferred = Q.defer(),
+      modules = [];
 
   // Find modules in the song_sources directory besides the index.
   fs.readdirSync('./song_sources').forEach(function(file) {
@@ -82,9 +84,14 @@ exports.init = function(callback) {
     }
 
   ], function(err) {
-    if (err) winston.error(err.message);
-    callback();
+    if (err) {
+      deferred.reject(err);
+    } else {
+      deferred.resolve();
+    }
   });
+
+  return deferred.promise;
 };
 
 // Searches all song sources.
