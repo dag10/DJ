@@ -34,7 +34,12 @@ logging.init()
 
 // Initialize the database.
 .then(function() {
-  return database.init(app, models_module.define);
+  return database.init();
+})
+
+// Initialize the old database.
+.then(function() {
+  return database.initOld(app, models_module.define);
 })
 
 // Do some procedural initialization steps, then do some steps concurrently.
@@ -65,9 +70,6 @@ logging.init()
 // After all is initialized, or after a step raises an error...
 .done(function() {
   winston.info('Server listening on port', config.web.port);
-}, function(err) {
-  winston.error('Failed to initialize: ' + err.message);
-  throw err;
 });
 
 

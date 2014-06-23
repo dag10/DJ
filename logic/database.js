@@ -6,8 +6,38 @@ var config = require('../config');
 var orm = require('orm');
 var winston = require('winston');
 var Q = require('q');
+var Sequelize = require('sequelize');
 
-exports.init = function(app, define) {
+// Initialize database with Sequelize.
+exports.init = function() {
+  var deferred = Q.defer();
+
+  new Sequelize(
+    config.db.database,
+    config.db.username,
+    config.db.password,
+    {
+      dialect: 'mysql',
+      host: config.db.host,
+      port: 3306,
+      logging: winston.debug,
+      define: {
+        charset: 'utf8',
+        collate: 'utf8_general_ci'
+      },
+      pool: {
+        maxConnections: 3,
+        maxIdleTime: 20
+      }
+    })
+  .authenticate()
+  .complete(deferred.makeNodeResolver());
+
+  return deferred.promise;
+};
+
+// Initialize database with to-be-deprecated node-orm2.
+exports.initOld = function(app, define) {
   var deferred = Q.defer();
 
   var opts = {
