@@ -7,6 +7,7 @@ var express = require('express');
 var lessMiddleware = require('less-middleware');
 var os = require('os');
 var winston = require('winston');
+var Q = require('q');
 var rooms = require('../room/rooms');
 var upload = require('../song/upload');
 var socket = require('../connection/socket');
@@ -15,7 +16,9 @@ var song_sources = require('../../song_sources');
 
 var base_dir = __dirname + '/../..';
 
-exports.init = function(app, auth, callback) {
+exports.init = function(app, auth) {
+  var deferred = Q.defer();
+
   app.enable('trust proxy');
   app.set('views', base_dir + '/views');
   app.set('view engine', 'ejs');
@@ -237,6 +240,7 @@ exports.init = function(app, auth, callback) {
     });
   });
 
-  if (callback) callback();
+  deferred.resolve();
+  return deferred.promise;
 };
 

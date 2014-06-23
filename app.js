@@ -38,56 +38,36 @@ var server = http.createServer(app);
 
 socket.init(server);
 
+// Initialize the database.
 database.init(app, models_module.define)
+
+// Do some procedural initialization steps, then do some steps concurrently.
 .then(function() {
 
-  // Create a promise to load rooms.
+  // Start loading rooms.
   var rooms_deferred = Q.defer();
   rooms.once('load', rooms_deferred.resolve);
   rooms.loadRooms();
 
+  // Initialize auth.
+  var auth = auth_module.init(app);
+
+  // Initialize the rest of these concurrently.
   return Q.all([
     song_sources.init(),
     rooms_deferred.promise,
-    upload.init()
+    upload.init(),
+    handlers.init(app, auth)
   ]);
 })
+
+// Start the Express server.
 .then(function() {
-  var deferred = Q.defer();
+  return Q.ninvoke(server, 'listen', config.web.port, config.web.host, 511);
+})
 
-  async.waterfall([
-
-    // Run these stages in parallel...
-    function(callback) {
-      async.parallel([
-
-        // Initialize auth and url handlers.
-        function(callback) {
-          var auth = auth_module.init(app);
-          handlers.init(app, auth, callback);
-        }
-
-      ], function() {
-        callback();
-      });
-    },
-
-    // Start the server.
-    function(callback) {
-      server.listen(config.web.port, config.web.host, 511, callback);
-    }
-
-  ], function(err) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      deferred.resolve();
-    }
-  });
-
-  return deferred.promise;
-
-}).done(function() {
+// After all is initialized, or after a step raises an error...
+.done(function() {
   winston.info('Server listening on port', config.web.port);
 }, function(err) {
   winston.error('Failed to initialize: ' + err.message);
