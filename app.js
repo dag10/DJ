@@ -2,15 +2,7 @@
  * The entry point for the app server.
  */
 
-var colors = require('colors');
-if (!require('fs').existsSync('./config.js')) {
-  console.error(
-    'Config file not found. Copy ' + 'config.example.js'.bold.green +
-    ' to ' + 'config.js'.bold.green + ' and edit it as needed.');
-  return;
-}
-
-var config = require('./config');
+var config = require('./utils/load_config') || process.exit(1);
 var auth_module = require('./logic/web/auth');
 var express = require('express');
 var handlers = require('./logic/web/handlers');
@@ -22,14 +14,13 @@ var logging = require('./utils/logging');
 var rooms = require('./logic/room/rooms');
 var upload = require('./logic/song/upload');
 var socket = require('./logic/connection/socket');
-var async = require('async');
 var http = require('http');
-var _ = require('underscore');
 var Q = require('q');
 
 // Long stack support has a performance hit, so only use when debugging.
 Q.longStackSupport = config.debug;
 
+// Create the Express app and http server.
 var app = express();
 var server = http.createServer(app);
 
