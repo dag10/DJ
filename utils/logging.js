@@ -12,6 +12,7 @@ exports.init = function() {
   // Enable colors and timestamps in console logging.
   winston.remove(winston.transports.Console);
   winston.add(winston.transports.Console, {
+    handleExceptions: true,
     colorize: true,
     timestamp: true
   });
@@ -29,7 +30,7 @@ exports.init = function() {
   do {
     filename = (
       log_dir + '/' + now.getFullYear() + '-' + (now.getMonth() + 1) + '-' +
-      now.getDate() + (i > 0 ? ('.'+i) : '') + '.txt');
+      now.getDate() + (i > 0 ? ('.'+i) : '') + '.json');
     i++;
   } while (fs.existsSync(filename));
 
@@ -37,6 +38,7 @@ exports.init = function() {
 
   // Enable file logging.
   winston.add(winston.transports.File, {
+    handleExceptions: true,
     filename: filename
   });
 };
