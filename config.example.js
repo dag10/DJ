@@ -31,13 +31,8 @@ module.exports = {
   },
 
   auth: {
-    // Method of ntication ('dev' or 'webauth').
-    method: 'dev',
-
-    webauth: {
-      // URL for logging out of web
-      logout_url: 'https://webauth.csh.rit.edu/logout'
-    }
+    // Method of authentication (only available mode is 'dev').
+    method: 'dev'
   },
 
   db: {

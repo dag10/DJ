@@ -7,13 +7,6 @@ var util = require('util');
 var winston = require('winston');
 var sanitizer = require('sanitizer');
 
-var webauth_headers = {
-  username: 'x-webauth-user',
-  firstname: 'x-webauth-ldap-givenname',
-  lastname: 'x-webauth-ldap-sn',
-  fullname: 'x-webauth-ldap-cn'
-};
-
 function sanitizeSession(session) {
   session.username = sanitizer.escape(session.username);
   session.firstName = sanitizer.escape(session.firstName);
@@ -39,51 +32,7 @@ exports.init = function(app) {
 
   config.loginUrl = '/login';
 
-  if (config.auth.method == 'webauth') {
-    config.logoutUrl = config.auth.webauth.logout_url;
-
-    ret.initHandlers = function() {
-      app.get('/webauth', function(req, res) {
-        var session = ret.getUserSession(true, req, res);
-        if (session)
-          returnToUrl(req, res);
-      });
-
-      app.get('/login', function(req, res) {
-        req.session.ret_url = req.header('Referer');
-        res.status(302);
-        res.setHeader('Location', '/webauth');
-        res.end();
-      });
-    };
-
-    ret.getUserSession = function(required, req, res) {
-      var missing_headers = [];
-      Object.keys(webauth_headers).forEach(function(key) {
-        if (!(webauth_headers[key] in req.headers))
-          missing_headers.push(webauth_headers[key]);
-      });
-
-      if (missing_headers.length) {
-        req.session.user = null;
-        if (!required) return null;
-        throw new Error(
-            'Missing webauth headers: ' + missing_headers + '\n\nHeaders: ' +
-            util.format(req.headers));
-      }
-
-      if (!req.session.user)
-        req.session.user = {};
-
-      req.session.user.username = req.headers[webauth_headers.username];
-      req.session.user.firstName = req.headers[webauth_headers.firstname];
-      req.session.user.lastName = req.headers[webauth_headers.lastname];
-      req.session.user.fullName = req.headers[webauth_headers.fullname];
-
-      return req.session.user;
-    };
-
-  } else if (config.auth.method == 'dev') {
+  if (config.auth.method == 'dev') {
     config.logoutUrl = '/logout';
 
     ret.initHandlers = function() {
