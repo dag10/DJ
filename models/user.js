@@ -2,50 +2,68 @@
  * User model.
  */
 
-var orm = require('orm');
+var secret = Math.random() + '_hash'; // TODO: Make this a configuration item.
 var crypto = require('crypto');
 
-var secret = Math.random() + '_hash';
-var User;
+exports.Model = null;
+exports.name = 'User';
 
-exports.hashUser = function(username) {
-  return crypto.createHash('sha1')
-    .update(username + '_' + secret)
-    .digest('hex');
-};
-
-exports.define = function(db, models) {
-  User = db.define('user', {
+exports.define = function(sequelize, DataTypes) {
+  exports.Model = sequelize.define(exports.name, {
     username: {
-      type: 'text', required: true },
-    firstName: {
-      type: 'text', required: true },
-    lastName: {
-      type: 'text', required: true },
-    fullName: {
-      type: 'text', required: true },
-
-    admin: {
-      type: 'boolean', required: true, defaultValue: false },
-
-    firstVisit: {
-      type: 'date', required: true },
-    lastVisit: {
-      type: 'date', required: true }
-  }, {
-    validations: {
-      username: orm.enforce.unique({ ignoreCase: true })
-    },
-    methods: {
-      getLogName: function() {
-        return this.fullName + ' (' + this.username + ')';
-      },
-      hash: function() {
-        return exports.hashUser(this.username);
+      type: DataTypes.STRING,
+      unique: true,
+      validate: {
+        notEmpty: true
       }
+    },
+    firstName: {
+      type: DataTypes.STRING,
+      validate: {
+        notEmpty: true
+      }
+    },
+    lastName: {
+      type: DataTypes.STRING,
+      validate: {
+        notEmpty: true
+      }
+    },
+    fullName: {
+      type: DataTypes.STRING,
+      validate: {
+        notEmpty: true
+      }
+    },
+    admin: {
+      type: DataTypes.BOOLEAN,
+      defaultValue: false,
+      validate: {
+        notEmpty: true
+      }
+    },
+    lastVisitedAt: {
+      type: DataTypes.DATE
+    }
+  }, {
+    classMethods: {
+      hashUsername: function(username) {
+        return crypto.createHash('sha1')
+          .update(username + '_' + secret)
+          .digest('hex');
+      }
+    },
+    instanceMethods: {
+      hash: function() {
+        return this.Model.hashUsername(this.username);
+      }
+    },
+    getterMethods: {
+      logNameId: function() { return this.username; },
+      logNameTitle: function() { return this.fullName; }
     }
   });
 
-  exports.User = models.user = User;
+  return exports.Model;
 };
 

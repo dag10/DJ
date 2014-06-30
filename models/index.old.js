@@ -18,7 +18,6 @@ function endsWith(str, suffix) {
 var old_models = [
   'file',
   'room',
-  'user',
   'queued_song',
   'song'
 ];

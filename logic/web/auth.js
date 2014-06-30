@@ -6,6 +6,7 @@ var config = require('../../config');
 var util = require('util');
 var winston = require('winston');
 var sanitizer = require('sanitizer');
+var user_model = require('../../models/user');
 
 function sanitizeSession(session) {
   session.username = sanitizer.escape(session.username);
@@ -122,34 +123,29 @@ exports.init = function(app) {
 
     sanitizeSession(session);
 
-    req.models.user.find(
-        { username: session.username }, 1, function(err, users) {
-      if (err) {
-        next(err);
-        return;
+    user_model.Model.find({
+      where: {
+        username: session.username
       }
-
-      if (users.length == 1) { // User exists
-        var user = users[0];
+    }).success(function(user) {
+      if (user) {
         session.id = user.id;
 
         // Update last visit time, as well as first+last+full names.
         user.firstName = session.firstName;
         user.lastName = session.lastName;
         user.fullName = session.fullName;
-        user.lastVisit = new Date();
-        user.save(function(err) {
-          if (err) {
-            next(new Error(
-                'Failed to update user entity.\n\n' + util.format(err)));
-            return;
-          } else {
-            callback(user);
-            return;
-          }
+        user.lastVisitedAt = new Date();
+        user
+        .save()
+        .success(callback)
+        .error(function(err) {
+          next(new Error(
+            'Failed to update user entity.\n\n' + util.format(err)));
         });
+
       } else { // Must create new user
-        var user = new req.models.user({
+        user_model.Model.create({
           username: session.username,
           firstName: session.firstName,
           lastName: session.lastName,
@@ -157,21 +153,17 @@ exports.init = function(app) {
           firstVisit: new Date(),
           lastVisit: new Date(),
           admin: config.superadmin == session.username
-        });
-        user.save(function(err) {
-          if (err) {
-            next(new Error(
-                'Failed to create user entry.\n\n' + util.format(err)));
-            return;
-          } else {
-            winston.info(
-                'Created user ' + user.id + ' (' + user.username + ')');
-            callback(user);
-            return;
-          }
+        })
+        .success(function(user) {
+          winston.info('Created user ' + user.getLogName());
+          callback(user);
+        })
+        .error(function(err) {
+          next(new Error(
+            'Failed to create user entry.\n\n' + util.format(err)));
         });
       }
-    });
+    }).error(next);
   };
 
   return ret;
