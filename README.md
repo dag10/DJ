@@ -16,27 +16,12 @@ Enter the root directory, and run `npm install` to install the dependencies.
 
 Then rename config.example.js to config.js and set up the configuration.
 
-When running it for the first time, no migrations are necessary. Just launch
-the server and the database will be populated for you.
+Launch the server and migrations will be executed automatically, populating
+the database.
 
 Install the following packages with your system's package manager:
 - lame
 - ffmpeg
-
-Webauth
---
-If using [webauth](http://webauth.stanford.edu) as your authentication method,
-require webauth for the only the `/webauth` location.
-
-When configuring the reverse proxy, make sure to foward the
-variables as headers for **all** locations:
-- `WEBAUTH_USER` > `x-webauth-user`
-- `WEBAUTH_LDAP_GIVENNAME` > `x-webauth-ldap-givenname`
-- `WEBAUTH_LDAP_SN` > `x-webauth-ldap-sn`
-- `WEBAUTH_LDAP_CN` > `x-webauth-ldap-cn`
-
-Make sure to set `config.auth.webauth.logout_url` to a URL that will log the
-user out of webauth.
 
 Updating
 --
