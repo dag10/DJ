@@ -26,6 +26,9 @@ module.exports = {
     // Site title.
     title: 'CSH DJ',
 
+    // Secret strong used for authentication. Make this unique.
+    secret: 'change me!',
+
     // Max upload file size (in mb).
     max_file_size: 50
   },

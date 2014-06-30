@@ -2,7 +2,8 @@
  * User model.
  */
 
-var secret = Math.random() + '_hash'; // TODO: Make this a configuration item.
+var config = require('../config');
+var secret = config.web.secret + '_hash';
 var crypto = require('crypto');
 
 exports.Model = null;
