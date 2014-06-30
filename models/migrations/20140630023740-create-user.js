@@ -57,12 +57,10 @@ module.exports = {
           raw: true
         });
       });
-
-      done();
-    });
+    }).done(done);
   },
 
-  done: function(migration, DataTypes, done) {
+  down: function(migration, DataTypes, done) {
     // nothing
   }
 };

@@ -20,9 +20,9 @@ var RoomManager = Backbone.Collection.extend({
   },
 
   loadRooms: function() {
-    room_model.Room.find({}, _.bind(function(err, roomResults) {
-      roomResults.forEach(_.bind(function(entity) {
-        this.add(new Room({ entity: entity }));
+    room_model.Model.findAll().success(_.bind(function(rooms) {
+      rooms.forEach(_.bind(function(room) {
+        this.add(new Room({ instance: room }));
       }, this));
       this.trigger('load');
     }, this));

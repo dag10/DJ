@@ -48,6 +48,12 @@ exports.define = function(sequelize, DataTypes) {
     }
   }, {
     classMethods: {
+      associate: function(models) {
+        this.hasMany(models.Room, {
+          as: 'Rooms',
+          through: models.RoomAdmin
+        });
+      },
       hashUsername: function(username) {
         return crypto.createHash('sha1')
           .update(username + '_' + secret)

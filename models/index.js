@@ -12,6 +12,8 @@ var Q = require('q');
 // TODO: When all models are converted, just load all models in directory.
 var new_models = [
   'user',
+  'roomadmin',
+  'room'
 ];
 
 // Initialized models.

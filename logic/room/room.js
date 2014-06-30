@@ -6,11 +6,11 @@ var winston = require('winston');
 var _ = require('underscore');
 var room_model = require('../../models/room');
 var ConnectionManager = require('../connection/connection_manager');
-var BackboneDBModel = require('../backbone_db_model');
+var NewBackboneDBModel = require('../new_backbone_db_model');
 var connections = require('../connection/connections');
 var SongPlayback = require('../song/song_playback.js');
 
-module.exports = BackboneDBModel.extend({
+module.exports = NewBackboneDBModel.extend({
   initialize: function() {
     this.set({
       connections: new ConnectionManager(),
@@ -35,7 +35,7 @@ module.exports = BackboneDBModel.extend({
   },
 
   model: function() {
-    return room_model.Room;
+    return room_model.Model;
   },
 
   /* Utilities */
@@ -244,7 +244,7 @@ module.exports = BackboneDBModel.extend({
     if (numDJs >= this.get('slots'))
       return 'All DJ slots are full.';
     if (conn.get('queue').length === 0)
-      return 'Your queue cannot be empty.';
+      return 'Your queue is empty.';
 
     conn.set({
       djOrder: numDJs + 1,

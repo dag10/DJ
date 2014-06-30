@@ -217,26 +217,30 @@ module.exports = Backbone.Model.extend({
       fn({ error: 'You\'re already anonymously in a room.' });
     } else if (!data.username || !data.hash) {
       fn({ error: 'Missing auth data.' });
-    } else if (data.hash !== user_model.hashUser(data.username)) {
+    } else if (data.hash !== user_model.Model.hashUsername(data.username)) {
       fn({ error: 'Failed to authenticate. Please reload.' });
       this.socket().disconnect();
     } else {
-      user_model.User.find(
-          { username: data.username }, 1, _.bind(function(err, users) {
-        if (err) {
-          fn(err.message);
-        } else if (users.length === 1) {
+      user_model.Model.find({
+        where: {
+          username: data.username
+        }
+      }).success(_.bind(function(user) {
+        if (user) {
           this.set({
             authenticated: true,
-            user: users[0]
+            user: user
           });
-          winston.info(this.user().getLogName() + ' authed via socket!');
+          winston.info(this.user().getLogName() + ' connected.');
           fn({ success: true });
           this.fetchQueue();
         } else {
           fn({ error: 'User not found.' });
         }
-      }, this));
+      }, this)).error(function(err) {
+        winston.error('Error fetching user for auth request: ' + err.message);
+        fn(err.message);
+      });
     }
   },
 

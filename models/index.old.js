@@ -17,7 +17,6 @@ function endsWith(str, suffix) {
 // TODO: When all models are converted, just load all models in directory.
 var old_models = [
   'file',
-  'room',
   'queued_song',
   'song'
 ];

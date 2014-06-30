@@ -2,42 +2,51 @@
  * Room model.
  */
 
-var orm = require('orm');
+exports.Model = null;
+exports.name = 'Room';
 
-var Room;
-
-exports.define = function(db, models) {
-  Room = db.define('room', {
+exports.define = function(sequelize, DataTypes) {
+  exports.Model = sequelize.define(exports.name, {
     shortname: {
-      type: 'text', required: true },
-    name: {
-      type: 'text', required: true },
-    timeCreated: {
-      type: 'date', required: true },
-    slots: {
-      type: 'number', required: true, defaultValue: 5 }
-  }, {
-    validations: {
-      name: orm.enforce.unique({ ignoreCase: true })
-    },
-    methods: {
-      getLogName: function() {
-        return this.name + ' (' + this.shortname + ')';
+      type: DataTypes.STRING,
+      unique: true,
+      validate: {
+        notEmpty: true
       }
+    },
+    name: {
+      type: DataTypes.STRING,
+      validate: {
+        notEmpty: true
+      },
+      set: function(name) {
+        this.setDataValue('name', name);
+        this.setDataValue(
+          'shortname', exports.Model.generateShortName(name));
+      }
+    },
+    slots: {
+      type: DataTypes.INTEGER,
+      defaultValue: 5
+    }
+  }, {
+    classMethods: {
+      associate: function(models) {
+        this.hasMany(models.User, {
+          as: 'Admins',
+          through: models.RoomAdmin
+        });
+      },
+      generateShortName: function(name) {
+        return name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]/g, '');
+      }
+    },
+    getterMethods: {
+      logNameId: function() { return this.shortname; },
+      logNameTitle: function() { return this.name; }
     }
   });
 
-  exports.Room = models.room = Room;
-};
-
-exports.associate = function(models) {
-  Room.associations = ['admin'];
-  Room.hasOne('admin', models.person, {
-    reverse: 'rooms'
-  });
-};
-
-exports.generateShortName = function(name) {
-  return name.toLowerCase().replace(/\s+/g, '-').replace(/[^\w\-]/g, '');
+  return exports.Model;
 };
 
