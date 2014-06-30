@@ -26,7 +26,16 @@ exports.init = function() {
       logging: winston.debug,
       define: {
         charset: 'utf8',
-        collate: 'utf8_general_ci'
+        collate: 'utf8_general_ci',
+        instanceMethods: {
+          getLogName: function() {
+            var title = this.logNameTitle || this.Model.name;
+            var name = this.logNameId || '';
+            if (name.length > 0) name += ', ';
+            var id = this.id || '--';
+            return title + ' (' + name + id + ')';
+          }
+        }
       },
       pool: {
         maxConnections: 3,
