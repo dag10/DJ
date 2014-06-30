@@ -39,6 +39,7 @@ exports.init = function(app, auth) {
     force: config.web.debug
   }));
 
+  /*jshint es5: true */
   app.use('/styles', express.static(base_dir + '/styles'));
   app.use('/images', express.static(base_dir + '/images'));
   app.use('/scripts', express.static(base_dir + '/scripts'));
