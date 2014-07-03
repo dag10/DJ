@@ -2,7 +2,8 @@ DJ
 ==
 
 A web service to let multiple users take turns in playing music over a computer
-connected stereo. Inspired by the late [turntable.fm](http://turntable.fm).
+connected stereo. Inspired by the late
+[turntable.fm](https://web.archive.org/web/20140110131633/http://blog.turntable.fm/post/67777306411/turntable-live-turntable-fm).
 
 I'm building this for use in the [Computer Science House](http://csh.rit.edu),
 but it should be easily deployable elsewhere.
