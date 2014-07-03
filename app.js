@@ -33,16 +33,16 @@ logging.init()
   return socket.init(server);
 })
 
+// Initialize the old database.
+.then(function() {
+  return database.initOld(app, old_models_module.define);
+})
+
 // Initialize the database.
 .then(database.init)
 
 // Define models.
 .then(models.init)
-
-// Initialize the old database.
-.then(function() {
-  return database.initOld(app, old_models_module.define);
-})
 
 // Do some procedural initialization steps, then do some steps concurrently.
 .then(function() {
