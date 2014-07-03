@@ -1,8 +1,13 @@
 /* Migration to create user table. */
 
+var Q = require('q');
+
 module.exports = {
   up: function(migration, DataTypes, done) {
-    var sequelize = migration.migrator.sequelize;
+    var sequelize = migration.migrator.sequelize,
+        deferred = Q.defer();
+    
+    deferred.promise.done(done);
 
     // Create table.
     migration.createTable('users', {
@@ -43,21 +48,23 @@ module.exports = {
     });
 
     // Migrate existing users from old user table.
-    sequelize.query('SELECT * FROM user').success(function(users) {
-      users.forEach(function(user) {
-        sequelize.models.User.create({
-          id: user.id,
-          username: user.username,
-          firstName: user.firstName,
-          lastName: user.lastName,
-          fullName: user.fullName,
-          admin: user.admin === 1,
-          lastVisitedAt: user.lastVisit
-        }, {
-          raw: true
+    migration.describeTable('user').success(function(attributes) {
+      sequelize.query('SELECT * FROM user').success(function(users) {
+        users.forEach(function(user) {
+          sequelize.models.User.create({
+            id: user.id,
+            username: user.username,
+            firstName: user.firstName,
+            lastName: user.lastName,
+            fullName: user.fullName,
+            admin: user.admin === 1,
+            lastVisitedAt: user.lastVisit
+          }, {
+            raw: true
+          });
         });
-      });
-    }).done(done);
+      }).done(deferred.resolve);
+    }).done(deferred.resolve);
   },
 
   down: function(migration, DataTypes, done) {
