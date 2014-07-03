@@ -13,6 +13,9 @@ module.exports = {
   // Username of permanent admin.
   superadmin: 'dag10',
 
+  // If true, uncaught errors won't be logged.
+  debug: true,
+
   web: {
     // Host for the server.
     host: '0.0.0.0',

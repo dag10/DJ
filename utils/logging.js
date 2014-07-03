@@ -15,7 +15,7 @@ exports.init = function() {
   // Enable colors and timestamps in console logging.
   winston.remove(winston.transports.Console);
   winston.add(winston.transports.Console, {
-    handleExceptions: true,
+    handleExceptions: !config.debug,
     colorize: true,
     timestamp: true
   });
@@ -41,7 +41,7 @@ exports.init = function() {
 
   // Enable file logging.
   winston.add(winston.transports.File, {
-    handleExceptions: true,
+    handleExceptions: !config.debug,
     filename: filename
   });
 
