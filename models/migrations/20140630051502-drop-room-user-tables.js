@@ -60,10 +60,18 @@ function populateOldUsers(migration, done) {
   return deferred.promise;
 }
 
+function tryDrop(migration, table) {
+  try {
+    migration.dropTable(table);
+  } catch (err) {
+    // nothing
+  }
+}
+
 module.exports = {
   up: function(migration, DataTypes, done) {
-    migration.dropTable('room');
-    migration.dropTable('user');
+    tryDrop(migration, 'user');
+    tryDrop(migration, 'room');
     done();
   },
 

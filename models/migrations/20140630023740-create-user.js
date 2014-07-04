@@ -1,4 +1,5 @@
 /* Migration to create user table. */
+/*jshint es5: true */
 
 var Q = require('q');
 
@@ -48,7 +49,12 @@ module.exports = {
     });
 
     // Migrate existing users from old user table.
-    migration.describeTable('user').success(function(attributes) {
+    sequelize.query('SHOW TABLES LIKE "user"').success(function(tables) {
+      if (tables.length === 0) {
+        deferred.resolve();
+        return true;
+      }
+
       sequelize.query('SELECT * FROM user').success(function(users) {
         users.forEach(function(user) {
           sequelize.models.User.create({
@@ -64,7 +70,7 @@ module.exports = {
           });
         });
       }).done(deferred.resolve);
-    }).done(deferred.resolve);
+    }).error(deferred.resolve);
   },
 
   down: function(migration, DataTypes, done) {

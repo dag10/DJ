@@ -1,8 +1,14 @@
 /* Migration to create Room table. */
+/*jshint es5: true */
+
+var Q = require('q');
 
 module.exports = {
   up: function(migration, DataTypes, done) {
-    var sequelize = migration.migrator.sequelize;
+    var sequelize = migration.migrator.sequelize,
+        deferred = Q.defer();
+
+    deferred.promise.done(done);
 
     // Create table.
     migration.createTable('rooms', {
@@ -33,18 +39,25 @@ module.exports = {
     });
 
     // Migrate existing rooms from old room table.
-    sequelize.query('SELECT * FROM room').success(function(rooms) {
-      rooms.forEach(function(room) {
-        sequelize.models.Room.create({
-          id: room.id,
-          shortname: room.shortname,
-          name: room.name,
-          slots: room.slots
-        }, {
-          raw: true
+    sequelize.query('SHOW TABLES LIKE "room"').success(function(tables) {
+      if (tables.length === 0) {
+        deferred.resolve();
+        return;
+      }
+
+      sequelize.query('SELECT * FROM room').success(function(rooms) {
+        rooms.forEach(function(room) {
+          sequelize.models.Room.create({
+            id: room.id,
+            shortname: room.shortname,
+            name: room.name,
+            slots: room.slots
+          }, {
+            raw: true
+          });
         });
-      });
-    }).done(done);
+      }).done(deferred.resolve);
+    }).error(deferred.resolve);
   },
 
   down: function(migration, DataTypes, done) {
