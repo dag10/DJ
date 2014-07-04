@@ -47,18 +47,13 @@ logging.init()
 // Do some procedural initialization steps, then do some steps concurrently.
 .then(function() {
 
-  // Start loading rooms.
-  var rooms_deferred = Q.defer();
-  rooms.once('load', rooms_deferred.resolve);
-  rooms.loadRooms();
-
   // Initialize auth.
   var auth = auth_module.init(app);
 
   // Initialize the rest of these concurrently.
   return Q.all([
     song_sources.init(),
-    rooms_deferred.promise,
+    rooms.loadRooms(),
     upload.init(),
     handlers.init(app, auth)
   ]);

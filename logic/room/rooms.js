@@ -8,6 +8,7 @@ var Backbone = require('backbone');
 var ConnectionManager = require('../connection/connection_manager');
 var room_model = require('../../models/room');
 var Room = require('../room/room');
+var Q = require('q');
 
 var RoomManager = Backbone.Collection.extend({
   model: Room,
@@ -20,12 +21,18 @@ var RoomManager = Backbone.Collection.extend({
   },
 
   loadRooms: function() {
+    var deferred = Q.defer();
+
     room_model.Model.findAll().success(_.bind(function(rooms) {
       rooms.forEach(_.bind(function(room) {
         this.add(new Room({ instance: room }));
       }, this));
       this.trigger('load');
-    }, this));
+      deferred.resolve();
+    /*jshint es5: true */
+    }, this)).catch(deferred.reject);
+
+    return deferred.promise;
   },
 
   /* Getters */
