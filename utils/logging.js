@@ -16,6 +16,7 @@ exports.init = function() {
   winston.remove(winston.transports.Console);
   winston.add(winston.transports.Console, {
     handleExceptions: !config.debug,
+    level: config.debug ? 'debug' : 'info',
     colorize: true,
     timestamp: true
   });
@@ -42,6 +43,7 @@ exports.init = function() {
   // Enable file logging.
   winston.add(winston.transports.File, {
     handleExceptions: !config.debug,
+    level: config.debug ? 'debug' : 'info',
     filename: filename
   });
 
