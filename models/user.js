@@ -53,6 +53,15 @@ exports.define = function(sequelize, DataTypes) {
           as: 'Rooms',
           through: models.RoomAdmin
         });
+        this.hasMany(models.Song, {
+          foreignKey: 'UploaderId',
+          as: 'UploadedSongs',
+          through: null
+        });
+        this.hasMany(models.Song, {
+          as: 'Queueings',
+          through: models.QueuedSong
+        });
       },
       hashUsername: function(username) {
         return crypto.createHash('sha1')

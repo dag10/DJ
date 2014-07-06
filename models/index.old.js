@@ -15,11 +15,7 @@ function endsWith(str, suffix) {
 
 // List of models to load using node-orm2.
 // TODO: When all models are converted, just load all models in directory.
-var old_models = [
-  'file',
-  'queued_song',
-  'song'
-];
+var old_models = [];
 
 // Loads each module in this models directory.
 exports.define = function(db, models, next) {

@@ -11,6 +11,9 @@ var Q = require('q');
 // List of models to load using sequelize.
 // TODO: When all models are converted, just load all models in directory.
 var new_models = [
+  'song',
+  'file',
+  'queuedsong',
   'user',
   'roomadmin',
   'room'
