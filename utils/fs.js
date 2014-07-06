@@ -4,13 +4,23 @@
 
 var fs = require('fs');
 var winston = require('winston');
+var Q = require('q');
 
 exports.unlink = function(path, canFail) {
+  var deferred = Q.defer();
+
   fs.unlink(path, function(err) {
-    if (err && !canFail)
+    if (err && !canFail) {
       winston.error('Failed to delete "' + path + '": ' + err.message);
-    else if (!err)
+      deferred.reject(err);
+    } else if (!err) {
       winston.info('Deleted file: ' + path);
+      deferred.resolve();
+    } else {
+      deferred.resolve();
+    }
   });
+
+  return deferred.promise;
 };
 
