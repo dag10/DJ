@@ -43,7 +43,7 @@ exports.init = function() {
   // Enable file logging.
   winston.add(winston.transports.File, {
     handleExceptions: !config.debug,
-    level: config.debug ? 'debug' : 'info',
+    level: 'debug',
     filename: filename
   });
 
