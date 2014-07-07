@@ -45,6 +45,7 @@ module.exports = Backbone.Collection.extend({
   },
 
   addSongEntity: function(song_entity, callback) {
+    throw new Error('FUNC NOT UPDATED'); // TODO FIX THIS FUNCTION
     var queued_song = new QueuedSong({
       song: song_entity,
       song_id: song_entity.id,
