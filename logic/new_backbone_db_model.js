@@ -158,14 +158,11 @@ module.exports = Backbone.Model.extend({
       }
 
     } else if (method === 'delete') {
-      // TODO
-      winston.error('NOT IMPLEMENTED:', method, this.getLogName());
-      return;
-
-      if (this.instance()) {
+      var instance_to_delete = this.instance();
+      if (instance_to_delete) {
         winston.info(
-          'Deleted instance from backbone db model: ' + this.getLogName());
-        this.instance().remove();
+          'Deleting instance from backbone db model: ' + this.getLogName());
+        this.instance().destroy();
       }
     } else if (method === 'read') {
       // TODO
