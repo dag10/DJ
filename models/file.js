@@ -2,44 +2,56 @@
  * File model. Represents a file stored locally.
  */
 
-var orm = require('orm');
-var fs_ = require('../utils/fs');
-var upload = require('../logic/song/upload');
+/*jshint es5: true */
 
-var File;
+var _fs = require('../utils/fs');
+var config = require('../config.js');
 
-exports.define = function(db, models) {
-  File = db.define('file', {
+exports.Model = null;
+exports.name = 'File';
+
+exports.define = function(sequelize, DataTypes) {
+  exports.Model = sequelize.define(exports.name, {
     directory: {
-      type: 'text', required: true },
+      type: DataTypes.STRING,
+      allowNull: false
+    },
     filename: {
-      type: 'text', required: true },
-    timeUploaded: {
-      type: 'date', required: true }
-  }, {
-    validations: {
-      filename_local: orm.enforce.unique({ ignoreCase: true })
-    },
-    methods: {
-      getLogName: function() {
-        return this.directory + '/' + this.filename + ' (' + this.id + ')';
+      type: DataTypes.STRING,
+      allowNull: false
+    }
+  },
+  {
+    classMethods: {
+      associate: function(models) {
+        this.belongsTo(models.User, {
+          as: 'Uploader'
+        });
+
+        // When a user is delete, delete their queueings.
+        this.beforeDestroy(function(user, fn) {
+          models.QueuedSong.destroy({
+            UserId: user.id
+          }).done(fn);
+        });
       }
     },
-    hooks: {
-      beforeRemove: function() {
-        fs_.unlink(
-            upload.upload_dir + '/' + this.directory + '/' + this.filename);
-      }
+    getterMethods: {
+      path: function() {
+        return this.directory + '/' + this.filename;
+      },
+      fullpath: function() {
+        return config.uploads_directory + '/' + this.path;
+      },
+      logNameTitle: function() { return this.path; }
     }
   });
 
-  exports.File = models.file = File;
-};
-
-exports.associate = function(models) {
-  File.associations = ['uploader'];
-  File.hasOne('uploader', models.person, {
-    reverse: 'files'
+  // Delete the file on the filesystem when the model is destroyed.
+  exports.Model.beforeDestroy(function(instance, fn) {
+    _fs.unlink(instance.fullpath).then(fn).catch(fn).done();
   });
+
+  return exports.Model;
 };
 

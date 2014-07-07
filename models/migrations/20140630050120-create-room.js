@@ -61,7 +61,7 @@ module.exports = {
   },
 
   down: function(migration, DataTypes, done) {
-    // nothing
+    done(new Error('Downwards migration not implemented.'));
   }
 };
 

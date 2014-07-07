@@ -2,14 +2,12 @@
  * A base Backbone model that encapsulates a sequelize db model.
  * TODO: Rename to backbone_db_model when old one is no longer used.
  */
+/*jshint es5: true */
 
 var winston = require('winston');
 var _ = require('underscore');
 var Backbone = require('backbone');
-
-///////////////////////////////////////////////////////
-//  TODO NEXT: Make this work for Sqeuelize model.   //
-///////////////////////////////////////////////////////
+var Q = require('q');
 
 module.exports = Backbone.Model.extend({
   defaults: {
@@ -69,59 +67,108 @@ module.exports = Backbone.Model.extend({
       this.save();
   },
 
+  /**
+   * Sets associations on the given instance and from the backbone model.
+   *
+   * Inheriting models that have associations must override this method.
+   *
+   * @param instance The sequelize instance to set associations on.
+   * @return Promise for the operation.
+   */
+  setAssociations: function(instance) {
+    var deferred = Q.defer();
+    deferred.resolve();
+    return deferred.promise;
+  },
+
+  /**
+   * Gets associations from the given instance and sets them in the backbone
+   * model.
+   *
+   * Inheriting models that have associations must override this method.
+   *
+   * @param instance The sequelize instance to load associations from.
+   * @return Promise for the operation.
+   */
+  getAssociations: function(instance) {
+    var deferred = Q.defer();
+    deferred.resolve();
+    return deferred.promise;
+  },
+
   sync: function(method, model) {
     if (!this.model()) {
       winston.error('No model set, can\'t sync backbone db model.');
       return false;
     }
 
-    winston.error('NOT IMPLEMENTED:', method, this.getLogName());
-    return;
-
-    var dbAttributes = Object.keys(this.model().tableAttributes);
-    
-    if (this.model().associations)
-      dbAttributes = dbAttributes.concat(this.model().associations);
+    var dbAttributes = Object
+      .keys(this.model().tableAttributes)
+      .filter(function(key) {
+        return ['createdAt', 'updatedAt'].indexOf(key) < 0;
+      });
 
     if (method === 'create' || (method === 'update' && !this.instance())) {
       var attributesToSet = {};
       dbAttributes.forEach(_.bind(function(attr) {
         attributesToSet[attr] = this.get(attr);
       }, this));
-      this.model().create([attributesToSet], _.bind(function(err, entities) {
-        if (err) {
-          winston.error(
-            'Failed to save model ' + this.tableName() + ': ' + err);
-        } else {
-          this.set({ instance: entities[0] });
+
+      var new_instance = this.model().build(attributesToSet);
+
+      this
+      .setAssociations(new_instance)
+      .then(function() {
+        new_instance
+        .save()
+        .then(function() {
+          this.set({ new_instance: new_instance });
           this.trigger('save');
-        }
-      }, this));
+        })
+        .catch(function(err) {
+          winston.error(err.message);
+        });
+      })
+      .catch(function(err) {
+        winston.error(err.message);
+      })
+      .done();
+
     } else if (method === 'update') {
       var updated = false;
       var changedAttributesObj = this.changedAttributes() || {};
       var changedAttributes = Object.keys(changedAttributesObj);
       var instance = this.instance();
+
       _.intersection(
         dbAttributes, changedAttributes).forEach(_.bind(function(attr) {
           instance[attr] = this.get(attr);
           updated = true;
       }, this));
+
       if (updated) {
-        this.instance().save(_.bind(function(err) {
-          if (err)
-            winston.error('Failed to save model: ' + this.tableName());
-          else
-            this.trigger('save');
+        this.instance()
+        .save()
+        .catch(_.bind(function(err) {
+          winston.error('Failed to save model: ' + this.tableName());
+        }, this))
+        .then(_.bind(function() {
+          this.trigger('save');
         }, this));
       }
+
     } else if (method === 'delete') {
-      if (this.instance()) {
+      var instance_to_delete = this.instance();
+      if (instance_to_delete) {
         winston.info(
-          'Deleted instance from backbone db model: ' + this.getLogName());
-        this.instance().remove();
+          'Deleting instance from backbone db model: ' + this.getLogName());
+        this.instance().destroy();
       }
     } else if (method === 'read') {
+      // TODO
+      winston.error('NOT IMPLEMENTED:', method, this.getLogName());
+      return;
+
       if (this.has('id')) {
         this.model().get(this.id, _.bind(function(err, instance) {
           if (err) {

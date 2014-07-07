@@ -1,11 +1,13 @@
 /* queued_song.js
  * A Backbone wrapper for the queued_song model.
  */
+/*jshint es5: true */
 
-var BackboneDBModel = require('../backbone_db_model');
-var queued_song_model = require('../../models/queued_song');
+var NewBackboneDBModel = require('../new_backbone_db_model');
+var queued_song_model = require('../../models/queuedsong');
+var Q = require('q');
 
-module.exports = BackboneDBModel.extend({
+module.exports = NewBackboneDBModel.extend({
   defaults: {
     playing: false,
     autosave: true
@@ -16,7 +18,46 @@ module.exports = BackboneDBModel.extend({
   },
 
   model: function() {
-    return queued_song_model.QueuedSong;
+    return queued_song_model.Model;
+  },
+
+  setAssociations: function(instance) {
+    var opts = [];
+
+    if (this.has('song')) {
+      opts.push(instance.setSong(this.get('song')));
+    }
+
+    if (this.has('user')) {
+      opts.push(instance.setUser(this.get('user')));
+    }
+    
+    return Q.all(opts);
+  },
+
+  getAssociations: function(instance) {
+    var songDeferred = Q.defer();
+    instance
+    .getSong()
+    .then(_.bind(function(song) {
+      this.set({ song: song });
+      songDeferred.resolve();
+    }, this))
+    .catch(songDeferred.reject);
+
+    var userDeferred = Q.defer();
+    instance
+    .getUser()
+    .then(_.bind(function(user) {
+      this.set({ user: song });
+      userDeferred.resolve();
+    }, this))
+    .catch(userDeferred.reject);
+
+    return Q.all([
+      songDeferred,
+      userDeferred,
+    ]);
   },
 
   incrementOrder: function() {

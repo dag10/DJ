@@ -218,7 +218,7 @@ module.exports = NewBackboneDBModel.extend({
 
       var nextQueuedSong = currentDJ.get('queue').getNextSong();
       if (nextQueuedSong) {
-        this.playback().play(nextQueuedSong.entity().song, currentDJ);
+        this.playback().play(nextQueuedSong.get('song'), currentDJ);
         nextQueuedSong.set({ playing: true });
         this.playback().once('end', function() {
           currentDJ.get('queue').rotate();

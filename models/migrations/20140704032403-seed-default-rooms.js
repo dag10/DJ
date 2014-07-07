@@ -47,6 +47,7 @@ module.exports = {
     });
   },
   down: function(migration, DataTypes, done) {
-    // do nothing.
+    // nothing
+    done();
   }
 };

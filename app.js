@@ -8,7 +8,6 @@ var express = require('express');
 var handlers = require('./logic/web/handlers');
 var database = require('./logic/database');
 var models = require('./models');
-var old_models_module = require('./models/index.old.js');
 var song_sources = require('./song_sources');
 var winston = require('winston');
 var logging = require('./utils/logging');
@@ -31,11 +30,6 @@ logging.init()
 // Initialize socket.io.
 .then(function() {
   return socket.init(server);
-})
-
-// Initialize the old database.
-.then(function() {
-  return database.initOld(app, old_models_module.define);
 })
 
 // Initialize the database.
