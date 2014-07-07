@@ -6,6 +6,7 @@ var config = require('../config');
 var winston = require('winston');
 var fs = require('fs');
 var Q = require('q');
+var moment = require('moment');
 
 var log_dir = config.log_directory;
 
@@ -18,7 +19,9 @@ exports.init = function() {
     handleExceptions: !config.debug,
     level: config.debug ? 'debug' : 'info',
     colorize: true,
-    timestamp: true
+    timestamp: function() {
+      return moment().format('MM/DD HH:mm:ss');
+    }
   });
 
   // Ensure log directory exists.
