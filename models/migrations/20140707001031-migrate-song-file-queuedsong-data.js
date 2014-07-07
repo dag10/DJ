@@ -2,7 +2,6 @@
 /*jshint es5: true */
 
 var Q = require('q');
-var Sequelize = require('sequelize');
 
 /**
  * Migrate old file table to new Files table.
