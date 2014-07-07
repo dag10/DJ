@@ -16,6 +16,13 @@ exports.define = function(sequelize, DataTypes) {
       type: DataTypes.INTEGER,
       defaultValue: 0
     }
+  }, {
+    classMethods: {
+      associate: function(models) {
+        this.belongsTo(models.Song);
+        this.belongsTo(models.User);
+      }
+    }
   });
 
   return exports.Model;

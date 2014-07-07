@@ -2,10 +2,10 @@
  * A Backbone wrapper for the queued_song model.
  */
 
-var BackboneDBModel = require('../backbone_db_model');
-var queued_song_model = require('../../models/queued_song');
+var NewBackboneDBModel = require('../new_backbone_db_model');
+var queued_song_model = require('../../models/queuedsong');
 
-module.exports = BackboneDBModel.extend({
+module.exports = NewBackboneDBModel.extend({
   defaults: {
     playing: false,
     autosave: true
@@ -16,7 +16,7 @@ module.exports = BackboneDBModel.extend({
   },
 
   model: function() {
-    return queued_song_model.QueuedSong;
+    return queued_song_model.Model;
   },
 
   incrementOrder: function() {
