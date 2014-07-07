@@ -49,7 +49,7 @@ exports.define = function(sequelize, DataTypes) {
 
   // Delete the file on the filesystem when the model is destroyed.
   exports.Model.beforeDestroy(function(instance, fn) {
-    _fs.unlink(instance.fullpath).then(fn).catch(fn);
+    _fs.unlink(instance.fullpath).then(fn).catch(fn).done();
   });
 
   return exports.Model;
