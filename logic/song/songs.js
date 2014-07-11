@@ -1,6 +1,7 @@
 /* songs.js
  * Manages songs.
  */
+/*jshint es5: true */
 
 var winston = require('winston');
 var config = require('../../config');
@@ -12,222 +13,78 @@ var file_model = require('../../models/file');
 var song_model = require('../../models/song');
 var queues = require('./queues');
 var crypto = require('crypto');
+var Q = require('q');
 
-var generateShortName = function(name) {
-  return name.toLowerCase()
-      .replace(/[\s_\-]+/g, '-')
-      .replace(/[^\w\-\.]/g, '');
+/** Encoding stages to show to user as progress. */
+exports.stages = {
+  transcoding: 'Transcoding',
+  metadata: 'Extracting metadata',
+  artwork: 'Extracting artwork',
+  saving: 'Saving',
 };
 
-var filenameOfPath = function(path) {
-  return path.replace(/^.*[\\\/]/, '');
-};
+/**
+ * Processes and adds a song to the system
+ *
+ * @param path The full path to the media file.
+ * @param user The user model.
+ * @param name The original filename of the song.
+ * @return A promise resolving with the song model.
+ */
+function processSong(path, user, name) {
+  var deferred = Q.defer();
 
-var removeExtension = function(file) {
-  return file.replace(/\.[^\.]*$/, '');
-};
-
-var changeExtension = function(file, extension) {
-  return removeExtension(file) + '.' + extension;
-};
-
-exports.addSong = function(path, user, name, callback) {
+  // Make sure the provided file exists.
   if (!fs.existsSync(path)) {
-    var err = new Error('Song path does not exist.');
-    winston.error(err.message);
-    callback(err);
-    return;
+    deferred.reject(new Error('Song path does not exist.'));
+    return deferred.promise;
   }
 
-  var now = new Date();
+  // Send initial stage.
+  setTimeout(function() {
+    deferred.notify(exports.stages.transcoding);
+  }, 0);
 
-  var shortname = generateShortName(removeExtension(name));
-  var newpath = upload.song_dir + '/' + changeExtension(shortname, 'mp3');
-  var screenshots = [];
+  // TODO: Delete these dummy events and actually process the song.
+  setTimeout(function() {
+    deferred.notify(exports.stages.metadata);
+  }, 300);
+  setTimeout(function() {
+    deferred.notify(exports.stages.artwork);
+  }, 600);
+  setTimeout(function() {
+    //deferred.reject(new Error('Not implemented yet, dawg!'));
+    deferred.resolve();
+  }, 900);
 
-  var song, song_file, artwork_file;
+  return deferred.promise;
+}
 
-  var abort = function(err, stderr) {
-    if (stderr)
-      winston.error(err.message + '\n' + stderr);
-    else
-      winston.error(err.message);
-    callback(null, new Error('Failed to convert file.'));
-    if (song) {
-      var songid = song.id;
-      song.remove(function(err) {
-        if (err)
-          winston.error('Failed to delete song entity: ' + err.message);
-        else
-          winston.info('Abort; Deleted song entity: ' + songid);
-      });
-    }
-    if (song_file) {
-      var song_fileid = song_file.id;
-      song_file.remove(function(err) {
-        if (err)
-          winston.error('Failed to delete song file entity: ' + err.message);
-        else
-          winston.info('Abort; Deleted song file entity: ' + song_fileid);
-      });
-    }
-    if (artwork_file) {
-      var artwork_fileid = artwork_file.id;
-      artwork_file.remove(function(err) {
-        if (err)
-          winston.error(
-              'Failed to delete artwork file entity: ' + err.message);
-        else
-          winston.info(
-              'Abort; Deleted artwork file entity: ' + artwork_fileid);
-      });
-    }
-    fs_.unlink(path, true);
-    fs_.unlink(newpath, true);
-    screenshots.forEach(function(name) {
-      fs_.unlink(upload.artwork_dir + '/' + name, true);
-    });
-  };
+/**
+ * Adds and optionally enqueues a media file to one's queue.
+ *
+ * @param path The full path to the media file.
+ * @param user The user model.
+ * @param name The original filename of the song.
+ * @return A promise resolving with the song model.
+ */
+function addSong(path, user, name) {
+  var deferred = Q.defer();
 
-  // Convert file to mp3.
-  var proc = new ffmpeg({ source: path })
-    .withAudioCodec('libmp3lame')
-    .withAudioBitrate(320)
-    .toFormat('mp3')
-    .saveToFile(newpath, function(stdout, stderr, err) {
-      if (err) {
-        abort(err, stderr);
-        return;
-      }
+  return processSong(path, user, name).then(function(song) {
+    var deferred = Q.defer();
 
-      // Extract album art (if any).
-      new ffmpeg({ source: newpath })
-        .withSize('800x800')
-        .takeScreenshots({
-          count: 1
-        }, upload.artwork_dir, function(err, filenames) {
-          if (err && filenames.length) {
-            winston.warn('Failed to extract album art for ' + newpath);
-            filenames.forEach(function(name) {
-              fs_.unlink(upload.artwork_dir + '/' + name);
-            });
-          } else if (!err) {
-            screenshots = filenames;
-          }
+    // TODO: Delete these dummy events and actually enqueue the song.
+    setTimeout(function() {
+      deferred.notify(exports.stages.saving);
+    }, 600);
+    setTimeout(function() {
+      deferred.reject(new Error('Enqueueing still broken.'));
+    }, 1000);
 
-          // Extract metadata.
-          ffmpeg.Metadata(newpath, function(data, err) {
-            if (!err && !data.durationsec)
-              err = new Error('No duration found.');
+    return deferred.promise;
+  });
+}
 
-            if (err) {
-              abort(err, null);
-              return;
-            }
-
-            var sha1 = crypto.createHash('sha1');
-            sha1.update('upload:' + Math.random());
-            var uuid = sha1.digest('hex'); // temporary uuid, until save.
-            
-            song = new song_model.Song({
-              title: data.title || shortname,
-              album: data.album,
-              artist: data.artist,
-              duration: data.durationsec,
-              timeUploaded: now,
-              source: 'upload',
-              uuid: uuid,
-              uploader: user
-            }); 
-
-            song.save(function(err) {
-              if (err) {
-                abort(err, null);
-                return;
-              }
-
-              var base = song.id + '-' + generateShortName(song.title);
-              var oldnewpath = newpath;
-              var songfilename = changeExtension(base, 'mp3');
-              newpath = upload.song_dir + '/' + songfilename;
-              fs.renameSync(oldnewpath, newpath); 
-
-              sha1 = crypto.createHash('sha1');
-              sha1.update('upload:' + song.id);
-              song.uuid = sha1.digest('hex');
-
-              song_file = new file_model.File({
-                directory: upload.song_path,
-                filename: songfilename,
-                timeUploaded: now,
-                uploader: user
-              });
-
-              song_file.save(function(err) {
-                if (err) {
-                  abort(err, null);
-                  return;
-                }
-
-                song.file = song_file;
-
-                var next = function() {
-                  song.save(function(err) {
-                    if (err) {
-                      abort(err, null);
-                      return;
-                    }
-
-                    if (user) {
-                      winston.info(
-                        user.getLogName() + ' uploaded ' + song.getLogName());
-
-                      queues.addSongToQueue(song, user, function(data) {
-                        if (data.error) {
-                          winston.error(data.error.message);
-                          abort(new Error(
-                            'Failed to enqueue song ' + song.id), null);
-                        } else {
-                          callback(song, null);
-                        }
-                      });
-                    } else {
-                      winston.info('Song added: ' + song.getLogName());
-                      callback(song, null);
-                    }
-                  });
-                };
-
-                if (screenshots.length > 0) {
-                  var oldimage = screenshots[0];
-                  screenshots[0] = changeExtension(base, 'jpg');
-                  fs.renameSync(
-                      upload.artwork_dir + '/' + oldimage,
-                      upload.artwork_dir + '/' + screenshots[0]);
-
-                  artwork_file = new file_model.File({
-                    directory: upload.artwork_path,
-                    filename: screenshots[0],
-                    timeUploaded: now,
-                    uploader: user
-                  });
-
-                  artwork_file.save(function(err) {
-                    if (err) {
-                      abort(err, null);
-                      return;
-                    }
-
-                    song.artwork = artwork_file;
-                    next();
-                  });
-                } else {
-                  next();
-                }
-              });
-            });
-          });
-        });
-    });
-};
+exports.addSong = addSong;
 

@@ -1,6 +1,7 @@
 /* upload.js
  * Handles song uploads.
  */
+/*jshint es5: true */
 
 var config = require('../../config');
 var winston = require('winston');
@@ -55,14 +56,18 @@ exports.initHandlers = function(app, auth) {
           return;
         }
 
-        songs.addSong(
-            file.path, user, file.originalFilename, function(song, err) {
-          if (err) {
-            next(err);
-          } else {
+        songs
+        .addSong(file.path, user, file.originalFilename)
+        .then(function(song) {
             res.status(200);
             res.end();
-          }
+        })
+        .catch(function(err) {
+          next(err);
+        })
+        .progress(function(stage) {
+          // TODO send progress to user over socket
+          winston.warn('NOTIFIED: ' + stage);
         });
       });
 
