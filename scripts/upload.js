@@ -1,4 +1,6 @@
 $(function() {
+  return;
+
   var $queue_col = $('#queue-column');
   var $song_input = $('#song-form input[type=file]');
   var $uploads_header = $('#uploads-header');

@@ -197,6 +197,157 @@ $(function() {
     }
   });
 
+  views.SongAdd = Backbone.View.extend({
+    tagName: 'li',
+
+    template: Handlebars.compile($('#song-add-template').html()),
+
+    initialize: function() {
+      this.model.on('change:status', this.render, this);
+      this.render();
+    },
+
+    renderProgress: function() {
+      this
+        .$('.background-progress')
+        .css({ width: this.model.get('progress') + '%'});
+    },
+
+    render: function() {
+      var model = this.model.attributes;
+      model.added = model.status === 'added';
+      model.failed = model.status === 'failed';
+      
+      if (model.size) {
+        model.mb = Math.round(model.size / 1024 / 1024 * 10) / 10;
+      }
+
+      this.$el.html(this.template(model));
+      this.renderProgress();
+      return this;
+    }
+  });
+
+  views.SongAdds = Backbone.View.extend({
+    initialize: function() {
+      this.views = [];
+      this.closeable = false;
+
+      this.collection.on('add', this.add, this);
+      this.collection.on('remove', this.remove, this);
+      this.collection.on('reset', this.reset, this);
+      this.collection.on('change:status', this.updateCloseable, this);
+
+      this.initializeHeader();
+      this.reset();
+    },
+
+    reset: function(render) {
+      this.views = [];
+      this.collection.each(function(song_add) {
+        this.add(song_add, false);
+      }, this);
+
+      if (render || render === undefined) {
+        this.render();
+      }
+    },
+
+    add: function(song_add, render) {
+      var view = new views.SongAdd({
+        tagName: 'li',
+        model: song_add
+      });
+
+      this.views.push(view);
+
+      if (render || render === undefined) {
+        this.render();
+      }
+    },
+
+    remove: function(song_add, render) {
+      this.views = _(this.views).without(this.getViewForSongAdd(song_add));
+
+      if (render || render === undefined) {
+        this.render();
+      }
+    },
+
+    updateCloseable: function() {
+      var oldVal = this.closeable;
+      this.closeable = true;
+
+      this.collection.each(function(song_add) {
+        if (['added', 'failed'].indexOf(song_add.get('status')) < 0) {
+          this.closeable = false;
+        }
+      }, this);
+
+      if (this.closeable !== oldVal) {
+        this.renderHeader();
+      }
+    },
+
+    getViewForSongAdd: function(song_add) {
+      return _(this.views).select(function(view) {
+        return view.model === song_add;
+      })[0];
+    },
+
+    initializeHeader: function() {
+      this.
+      $('#btn-close-uploads')
+      .click(_.bind(function(e) {
+        e.preventDefault();
+        this.collection.reset();
+      }, this))
+      .tooltip({
+        title: 'Close',
+        trigger: 'hover'
+      });
+    },
+
+    renderHeader: function() {
+      var $header = this.$('#uploads-header');
+      var $btnClose = this.$('#btn-close-uploads');
+
+      $header.toggle(this.collection.length > 0);
+      $btnClose.toggle(this.closeable);
+
+      if (!this.collection.closeable || this.collection.length === 0) {
+        $btnClose.tooltip('hide');
+      }
+    },
+
+    render: function() {
+      var $ul = this.$('#previews');
+      var $uploads = this.$('#uploads-container');
+
+      var scrollTop = this.el.scrollTop;
+
+      $ul.empty();
+      this.collection.forEach(function(song_add) {
+        $ul.append(this.getViewForSongAdd(song_add).render().el);
+      }, this);
+
+      $uploads.toggle(this.collection.length > 0);
+
+      this.renderHeader();
+
+      this.el.scrollTop = scrollTop;
+    }
+  });
+
+  views.SongAdder = Backbone.View.extend({
+    initialize: function() {
+      this.songAdds = new views.SongAdds({
+        el: this.el,
+        collection: this.model.get('adds')
+      });
+    }
+  });
+
   views.QueuedSong = Backbone.View.extend({
     tagName: 'li',
 

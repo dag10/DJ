@@ -11,8 +11,18 @@ $(function() {
       userhash: user.hash
     });
 
+    var songAdder = new models.SongAdder({
+      connection: connection
+    });
+
     new views.Queue({
       collection: connection.get('queue'),
+      connection: connection,
+      el: $('#queue-column')[0]
+    });
+
+    new views.SongAdder({
+      model: songAdder,
       connection: connection,
       el: $('#queue-column')[0]
     });
@@ -20,6 +30,7 @@ $(function() {
     new views.Search({
       model: new models.SearchResults({
         sections: window.search_sections || [],
+        adder: songAdder,
         connection: connection
       }),
       el: $('#queue-column')[0]

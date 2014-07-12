@@ -17,10 +17,11 @@ var Q = require('q');
 
 /** Encoding stages to show to user as progress. */
 exports.stages = {
-  transcoding: 'Transcoding',
-  metadata: 'Extracting metadata',
-  artwork: 'Extracting artwork',
-  saving: 'Saving',
+  transcoding: 'transcoding',
+  metadata: 'metadata',
+  artwork: 'artwork',
+  saving: 'saving',
+  added: 'added',
 };
 
 /**

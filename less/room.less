@@ -58,6 +58,44 @@
     max-height: 550px;
   }
 
+  #previews {
+    li {
+      .foreground {
+        font-family: @font-family;
+
+        .name {
+          font-size: 13px;
+          font-weight: 200;
+          padding-right: 25px;
+        }
+
+        .status {
+          font-size: 9px;
+          font-weight: 500;
+          text-transform: uppercase;
+          height: 13px;
+
+          .size {
+            padding-right: 3px;
+          }
+        }
+
+        .glyphicon-ok-sign, .glyphicon-exclamation-sign {
+          position: absolute;
+          right: 0;
+        }
+
+        .glyphicon-ok-sign {
+          color: @green;
+        }
+
+        .glyphicon-exclamation-sign {
+          color: @red;
+        }
+      }
+    }
+  }
+
   @height_iterations: 1000px;
   @height_difference: 180px;
   @min_height: @height_difference + 100px;

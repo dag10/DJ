@@ -71,6 +71,7 @@ $(function() {
           'queue:song:remove', _.bind(this.handleQueuedSongRemoved, this));
         socket.on('room:song:update', _.bind(this.handleRoomSongUpdate, this));
         socket.on('room:song:stop', _.bind(this.handleRoomSongStop, this));
+        socket.on('song:add:status', _.bind(this.handleSongAddStatus, this));
       }, this);
 
       if (this.get('connected')) {
@@ -282,6 +283,10 @@ $(function() {
 
     handleRoomSongStop: function() {
       this.get('room').get('playback').unset('song');
+    },
+
+    handleSongAddStatus: function(song_add_status) {
+      this.emit('song:add:status:' + song_add_status.id, song_add_status);
     }
   });
 });

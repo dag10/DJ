@@ -151,14 +151,24 @@
   </div>
 </div>
 
-<script type="text/template" id="upload-preview-template">
-  <li class="dz-preview dz-file-preview">
-    <div class="foreground">
-      <span data-dz-name></span> (<span data-dz-size></span>)
-      <div class="error-message" data-dz-errormessage></div>
+<script type="text/template" id="song-add-template">
+  <div class="foreground">
+    <div class="status">
+      {{#if mb}} <span class="size">({{ mb }}MB)</span>{{/if}} {{ status }}
     </div>
-    <div class="background background-progress" data-dz-uploadprogress></div>
-  </li>
+    <div class="name">
+      {{ name }}    </div>
+    {{#if added}}
+      <span class="glyphicon glyphicon-ok-sign"></span>
+    {{/if}}
+    {{#if failed}}
+      <span class="glyphicon glyphicon-exclamation-sign"></span>
+    {{/if}}
+    {{#if error}}
+      <div class="error-message">{{ error }}</div>
+    {{/if}}
+  </div>
+  <div class="background background-progress"></div>
 </script>
 
 <script type="text/x-handlebars-template" id="search-section-template">

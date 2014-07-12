@@ -176,6 +176,85 @@ $(function() {
     }
   });
 
+  // Model representing a song being uploaded/added.
+  models.SongAdd = Backbone.Model.extend({
+    defaults: {
+      name: '',
+      size: 0,
+      progress: 30
+    },
+
+    initialize: function() {
+      this.on('remove', this.removed, this);
+      this.idChanged();
+
+      setTimeout(_.bind(function() {
+        this.set({ status: this.get('name') == 'Bar' ? 'failed' : 'added' });
+      }, this), this.get('progress') * 20);
+    },
+
+    idChanged: function() {
+      if (!this.id) {
+        this.once('change:id', this.idChanged, this);
+        return;
+      }
+
+      this.get('connection').on('song:add:status:' + this.id, this.set, this);
+    },
+
+    removed: function() {
+      if (this.id) {
+        this.get('connection').off('song:add:status:' + this.id);
+      }
+    }
+  });
+
+  // Collection for songs being added.
+  models.SongAdds = Backbone.Collection.extend({
+    model: models.SongAdd,
+
+    initialize: function() {
+      this.on('reset', this.handleReset, this);
+      this.on('add', this.songAddAdded, this);
+      this.on('remove', this.songAddRemoved, this);
+
+      this.handleReset();
+    },
+
+    songAddAdded: function(song_add) {
+      song_add.on('change:status', function() {
+        if (song_add.get('status') === 'added') {
+          setTimeout(_.bind(function() {
+            //this.remove(song_add); // TODO UNCOMMENT
+          }, this), 2000);
+        }
+      }, this);
+    },
+
+    handleReset: function() {
+      this.each(this.songAddAdded, this);
+    },
+
+    songAddRemoved: function(song_add) {
+      song_add.off('change:status');
+    }
+  });
+
+  // Model managing the adding of songs.
+  models.SongAdder = Backbone.Model.extend({
+    initialize: function() {
+      this.set({ adds: new models.SongAdds() });
+
+      // TODO TEMP
+      setTimeout(_.bind(function() {
+        this.get('adds').reset([
+          { name: 'Foo-bar-baz-bing-boom-bop.flac', progress: 20, status: 'uploading', size: 100000 },
+          { name: 'Bar', progress: 80, status: 'processing' }
+        ]);
+      }, this), 1000);
+    }
+  });
+
   // Model representing a song in the song queue.
   models.QueuedSong = Backbone.Model.extend({
     defaults: {
