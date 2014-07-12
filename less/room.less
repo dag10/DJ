@@ -58,43 +58,6 @@
     max-height: 550px;
   }
 
-  #previews {
-    li {
-      .foreground {
-        font-family: @font-family;
-
-        .name {
-          font-size: 13px;
-          font-weight: 200;
-          padding-right: 25px;
-        }
-
-        .status {
-          font-size: 9px;
-          font-weight: 500;
-          text-transform: uppercase;
-          height: 13px;
-
-          .size {
-            padding-right: 3px;
-          }
-        }
-
-        .glyphicon-ok-sign, .glyphicon-exclamation-sign {
-          position: absolute;
-          right: 0;
-        }
-
-        .glyphicon-ok-sign {
-          color: @green;
-        }
-
-        .glyphicon-exclamation-sign {
-          color: @red;
-        }
-      }
-    }
-  }
 
   @height_iterations: 1000px;
   @height_difference: 180px;
@@ -230,7 +193,7 @@
           li {
             @padding: 5px;
             background-color: @color-grey-background;
-            border-bottom: solid 1px lighten(@color-grey-border, 8%);
+            border-bottom: solid 1px @color-grey-border;
             padding: @padding;
             position: relative;
             word-break: break-word;
@@ -251,19 +214,76 @@
               z-index: 0;
             }
 
+            &.failed {
+              .foreground {
+                .status {
+                  color: darken(@red, 10%);
+                }
+              }
+
+              .background {
+                width: 100% !important;
+                background-color: @red;
+              }
+            }
+
+            &.added {
+              .foreground {
+                .status {
+                  color: @green;
+                }
+              }
+
+              .background {
+                width: 100% !important;
+                background-color: @green;
+              }
+            }
+
             .foreground {
               position: relative;
               background: none;
               z-index: 1;
-            }
+              font-family: @font-family;
 
-            .error-message {
-              margin: auto -@padding;
-              padding: @padding;
-              color: red;
+              .name {
+                font-size: 13px;
+                font-weight: 200;
+              }
 
-              &:empty {
-                display: none;
+              .status, .error {
+                font-size: 9px;
+                font-weight: 500;
+                text-transform: uppercase;
+                letter-spacing: 0.4px;
+              }
+
+              .status {
+                height: 13px;
+
+                .size {
+                  padding-right: 3px;
+                }
+
+                .glyphicon {
+                  position: absolute;
+                  top: 0;
+                  right: 0;
+                  font-size: 11px;
+                }
+
+                .glyphicon-ok-sign {
+                  color: @green;
+                }
+
+                .glyphicon-exclamation-sign {
+                  color: darken(@red, 5%);
+                }
+              }
+
+              .error {
+                color: darken(@red, 10%);
+                padding-top: 4px;
               }
             }
           }

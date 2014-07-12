@@ -155,17 +155,17 @@
   <div class="foreground">
     <div class="status">
       {{#if mb}} <span class="size">({{ mb }}MB)</span>{{/if}} {{ status }}
+      {{#if added}}
+        <span class="glyphicon glyphicon-ok-sign"></span>
+      {{/if}}
+      {{#if failed}}
+        <span class="glyphicon glyphicon-exclamation-sign"></span>
+      {{/if}}
     </div>
     <div class="name">
       {{ name }}    </div>
-    {{#if added}}
-      <span class="glyphicon glyphicon-ok-sign"></span>
-    {{/if}}
-    {{#if failed}}
-      <span class="glyphicon glyphicon-exclamation-sign"></span>
-    {{/if}}
     {{#if error}}
-      <div class="error-message">{{ error }}</div>
+      <div class="error">{{ error }}</div>
     {{/if}}
   </div>
   <div class="background background-progress"></div>

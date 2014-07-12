@@ -204,6 +204,7 @@ $(function() {
 
     initialize: function() {
       this.model.on('change:status', this.render, this);
+      this.model.on('change:error', this.render, this);
       this.render();
     },
 
@@ -220,6 +221,18 @@ $(function() {
       
       if (model.size) {
         model.mb = Math.round(model.size / 1024 / 1024 * 10) / 10;
+      }
+
+      if (model.failed) {
+        this.$el.addClass('failed');
+      } else {
+        this.$el.removeClass('failed');
+      }
+
+      if (model.added) {
+        this.$el.addClass('added');
+      } else {
+        this.$el.removeClass('added');
       }
 
       this.$el.html(this.template(model));

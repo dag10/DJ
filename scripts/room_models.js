@@ -188,8 +188,15 @@ $(function() {
       this.on('remove', this.removed, this);
       this.idChanged();
 
+      var fail = this.get('name') == 'Bar';
+
       setTimeout(_.bind(function() {
-        this.set({ status: this.get('name') == 'Bar' ? 'failed' : 'added' });
+        this.set({ status: fail ? 'failed' : 'added' });
+        if (fail) {
+          this.set({
+            error: 'File is too large.'
+          });
+        }
       }, this), this.get('progress') * 20);
     },
 
@@ -248,7 +255,7 @@ $(function() {
       // TODO TEMP
       setTimeout(_.bind(function() {
         this.get('adds').reset([
-          { name: 'Foo-bar-baz-bing-boom-bop.flac', progress: 20, status: 'uploading', size: 100000 },
+          { name: 'Foo-bar-baz-bing-boom-bop.flac', progress: 74, status: 'uploading', size: 100000 },
           { name: 'Bar', progress: 80, status: 'processing' }
         ]);
       }, this), 1000);
