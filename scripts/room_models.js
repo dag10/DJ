@@ -232,13 +232,18 @@ $(function() {
       song_add.on('change:status', function() {
         if (song_add.get('status') === 'added') {
           setTimeout(_.bind(function() {
-            //this.remove(song_add); // TODO UNCOMMENT
-          }, this), 2000);
+            this.remove(song_add);
+          }, this), 3000);
         }
       }, this);
     },
 
-    handleReset: function() {
+    handleReset: function(models, options) {
+      if (options && options.previousModels) {
+        _.each(options.previousModels, function(model) {
+          model.trigger('remove');
+        });
+      }
       this.each(this.songAddAdded, this);
     },
 
