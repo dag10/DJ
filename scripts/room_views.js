@@ -363,12 +363,33 @@ $(function() {
       });
 
       this.$songupload = this.$('#songupload');
-
       this.$songupload.fileupload({
         url: '/song/upload',
+        replaceFileInput: false,
         dataType: 'json',
+        limitConcurrentUploads: 10,
+        dropZone: this.$el,
         add: _.bind(this.model.songUploadAdded, this.model)
       });
+
+      this.$btnupload = this.$('#btn-upload');
+      this.$btnupload.click(_.bind(function(event) {
+        this.$songupload.click();
+        return false;
+      }, this));
+
+      this.$el.on('dragover', _.bind(function() {
+        this.$el.addClass('dragging');
+      }, this));
+
+      this.$el.on('dragleave', _.bind(function() {
+        this.$el.removeClass('dragging');
+      }, this));
+
+      this.$el.on('drop', _.bind(function(e) {
+        this.$el.removeClass('dragging');
+        e.preventDefault();
+      }, this));
     }
   });
 

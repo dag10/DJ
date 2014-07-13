@@ -54,7 +54,7 @@
     </div>
     <script>
       window.config = {
-        max_file_size: <%= config.web.max_file_size %>
+        max_file_size: <%= config.web.max_file_size*1024*1024 %>
       };
       <% if (user) { %>
         window.user = {

@@ -243,6 +243,20 @@ $(function() {
 
       var file = upload.files[0];
 
+      this.set({
+        name: file.name,
+        size: file.size
+      });
+
+      if (file.size > window.config.max_file_size) {
+        var max_mb = Math.floor(window.config.max_file_size / 1024 / 1024);
+        this.set({
+          status: 'failed',
+          error: 'File cannot be larger than ' + max_mb + 'MB'
+        });
+        return;
+      }
+
       upload.jqXHR = upload.submit();
       upload.jqXHR.then(
         _.bind(this.onSuccess, this),
@@ -253,8 +267,6 @@ $(function() {
         upload.progressInterval);
 
       this.set({
-        name: file.name,
-        size: file.size,
         progressIntervalId: intervalId,
         upload: upload
       });

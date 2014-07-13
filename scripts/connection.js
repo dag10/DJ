@@ -296,7 +296,6 @@ $(function() {
     },
 
     handleSongAddStatus: function(song_add) {
-      console.info('RECEIVED STATUS MESSAGE:', song_add);
       this.trigger('song:add:status:' + song_add.id, song_add);
     }
   });
