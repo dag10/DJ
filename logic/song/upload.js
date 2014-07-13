@@ -7,6 +7,7 @@ var config = require('../../config');
 var winston = require('winston');
 var fs = require('fs');
 var Q = require('q');
+var _ = require('underscore');
 var multiparty = require('multiparty');
 var songs = require('./songs');
 var connections = require('../connection/connections');
@@ -42,6 +43,7 @@ exports.init = function() {
 
 exports.initHandlers = function(app, auth) {
   app.post('/song/upload', function(req, res, next) {
+    res.header('Connection', 'close');
     res.plaintext = true;
     auth.getUser(false, req, res, next, function(user) {
 
@@ -55,16 +57,18 @@ exports.initHandlers = function(app, auth) {
 
       var form = new multiparty.Form({
         autoFiles: true,
-        maxFields: 2
+        maxFields: 2,
+        maxFilesSize: config.web.max_file_size * 1024 * 1024
+      });
+
+      form.on('error', function(err) {
+        res.status(413);
+        res.end(JSON.stringify({
+          error: err.message
+        }));
       });
 
       form.on('file', function(name, file) {
-        if (file.size > config.web.max_file_size * 1048576) {
-          next(new Error(
-              'File exceeds ' + config.web.max_file_size + ' MiB.'));
-          return;
-        }
-
         var adding = songs.addSong(file.path, user, file.originalFilename);
 
         if (adding && typeof adding.id === 'number') {

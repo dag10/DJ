@@ -3,6 +3,11 @@
   "description": "A virtual DJ website, where you can play and listen to music together. Inspired by turntable.fm.",
   "version": "0.1.0",
   "author": "Drew Gottlieb (dag10) <gottlieb.drew@gmail.com>",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/dag10/DJ.git"
+  },
+  "main": "./app.js",
   "dependencies": {
     "express": "3.x",
     "ejs": "0.8.5",
@@ -11,7 +16,7 @@
     "mysql": "2.3.2",
     "winston": "0.7.2",
     "sanitizer": "0.1.1",
-    "multiparty": "3.1.1",
+    "multiparty": "git://github.com/andrewrk/node-multiparty.git#3.3.0",
     "fluent-ffmpeg": "1.5.2",
     "socket.io": "0.9.15",
     "underscore": "1.5.2",
