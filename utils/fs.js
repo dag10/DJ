@@ -11,7 +11,8 @@ exports.unlink = function(path, canFail) {
 
   fs.unlink(path, function(err) {
     if (err && !canFail) {
-      winston.error('Failed to delete "' + path + '": ' + err.message);
+      winston.error(
+        'Failed to delete "' + path + '": ' + err.message + '\n' + err.stack);
       deferred.reject(err);
     } else if (!err) {
       winston.info('Deleted file: ' + path);
@@ -21,6 +22,12 @@ exports.unlink = function(path, canFail) {
     }
   });
 
+  return deferred.promise;
+};
+
+exports.exists = function(path) {
+  var deferred = Q.defer();
+  fs.exists(path, deferred.resolve);
   return deferred.promise;
 };
 
