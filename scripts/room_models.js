@@ -422,13 +422,7 @@ $(function() {
     },
 
     songAdded: function(song) {
-      song.on('change:playing', function() {
-        this.trigger('change:playing');
-      }, this);
       song.on('change:order', this.sort, this);
-      song.on('changeOrder', function(data) {
-        this.trigger('changeOrder', data);
-      }, this);
     },
 
     songRemove: function(song) {

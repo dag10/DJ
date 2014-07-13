@@ -474,7 +474,6 @@ $(function() {
       this.collection.on('add', this.add, this);
       this.collection.on('remove', this.remove, this);
       this.collection.on('reset', this.reset, this);
-      this.collection.on('change:playing', this.updateSkipButton, this);
 
       this.$('#queue-list').sortable({
         axis: 'y',
