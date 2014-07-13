@@ -67,7 +67,7 @@ exports.initHandlers = function(app, auth) {
 
         var adding = songs.addSong(file.path, user, file.originalFilename);
 
-        if (adding && adding.id) {
+        if (adding && typeof adding.id === 'number') {
           res.status(200);
           res.end(JSON.stringify({
             id: adding.id
@@ -77,7 +77,9 @@ exports.initHandlers = function(app, auth) {
           res.end(JSON.stringify({
             error: 'Error processing song.'
           }));
-          winston.error('addSong() returned invalid adding object.');
+          winston.error(
+            'addSong() returned invalid adding object: ' +
+            JSON.stringify(adding));
         }
 
         connections

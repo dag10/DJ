@@ -19,6 +19,9 @@ var Q = require('q');
 /** Temporary directory for saving extracted album artwork. */
 var artworkTmpDir = null;
 
+/** Incrementing unique ID for song processing jobs. */
+var nextJobId = 1;
+
 /** Encoding stages to show to user as progress. */
 exports.stages = {
   transcoding: 'transcoding',
@@ -181,17 +184,17 @@ function extractArtwork(path) {
 /**
  * Processes and adds a song to the system
  *
- * @param path The full path to the media file.
+ * @param uploadedpath The full path to the media file.
  * @param user The user model.
  * @param name The original filename of the song.
  * @return An object containing an id of the song adding process, and a promise
  *         resolving with the added song, notifying of the current stage, and
  *         rejecting with any errors.
  */
-function processSong(path, user, name) {
+function processSong(uploadedpath, user, name) {
   var deferred = Q.defer();
   var ret = {
-    id: Math.round(Math.random() * 100000),
+    id: nextJobId++,
     promise: deferred.promise
   };
 
@@ -201,7 +204,7 @@ function processSong(path, user, name) {
   // of an existing song.
   var rand = 'temp-' + Math.round(Math.random() * 10000) + '-';
   var shortname = generateShortName(removeExtension(name));
-  var newpath = upload.song_dir + '/' +
+  var path = upload.song_dir + '/' +
     rand + changeExtension(shortname, 'mp3');
 
   // Create a new song model.
@@ -210,24 +213,21 @@ function processSong(path, user, name) {
   });
 
   // Make sure file exists.
-  fs_.exists(path)
+  fs_.exists(uploadedpath)
   .then(function(exists) {
-    var deferred = Q.defer();
-    if (exists) deferred.resolve();
-    else deferred.reject(new Error('Song path does not exist.'));
-    return deferred.promise;
+    if (!exists) return Q.reject(new Error('Song path does not exist.'));
   })
 
   // Transcode song to mp3.
   .then(function() {
     deferred.notify(exports.stages.transcoding);
-    return transcodeSong(path, newpath);
+    return transcodeSong(uploadedpath, path);
   })
 
   // Extract metadata.
   .then(function() {
     deferred.notify(exports.stages.metadata);
-    return extractMetadata(song, newpath);
+    return extractMetadata(song, path);
   })
   
   // Save song model.
@@ -245,13 +245,13 @@ function processSong(path, user, name) {
     var deferred = Q.defer();
 
     var newfilename = song.id + '-' + generateShortName(song.title) + '.mp3';
-    var updatedpath = upload.song_dir + '/' + newfilename;
+    var newpath = upload.song_dir + '/' + newfilename;
 
-    fs.rename(newpath, updatedpath, function(err) {
+    fs.rename(path, newpath, function(err) {
       if (err) {
         deferred.reject(err);
       } else {
-        newpath = updatedpath;
+        path = newpath;
         deferred.resolve();
       }
     });
@@ -264,7 +264,7 @@ function processSong(path, user, name) {
     var file_instance;
     return file_model.Model.create({
       directory: upload.song_path,
-      filename: filenameOfPath(newpath)
+      filename: filenameOfPath(path)
     })
     .then(function(file) {
       file_instance = file;
@@ -281,7 +281,7 @@ function processSong(path, user, name) {
   // Extract album artwork.
   .then(function() {
     deferred.notify(exports.stages.artwork);
-    return extractArtwork(newpath);
+    return extractArtwork(path);
   })
 
   // Save artwork file model.
@@ -306,10 +306,10 @@ function processSong(path, user, name) {
       })
       .then(function(artwork) {
         artwork_instance = artwork;
-        artwork.setUploader(user);
-      })
-      .then(function() {
-        return song.setArtwork(artwork_instance);
+        return Q.all([
+          artwork.setUploader(user),
+          song.setArtwork(artwork_instance)
+        ]);
       })
       .then(deferred.resolve)
       .catch(function(err) {
@@ -339,7 +339,7 @@ function processSong(path, user, name) {
   })
   .finally(function() {
     // Always delete original song file; it's no longer needed.
-    fs_.unlink(path, true);
+    fs_.unlink(uploadedpath, true);
   });
 
   return ret;
@@ -386,12 +386,11 @@ function enqueueSong(song, user) {
 function addSong(path, user, name) {
   var process = processSong(path, user, name);
   
-  return {
-    id: process.id,
-    promise: process.promise.then(function(song) {
-      return enqueueSong(song, user);
-    })
-  };
+  process.promise = process.promise.then(function(song) {
+    return enqueueSong(song, user);
+  });
+
+  return process;
 }
 
 exports.addSong = addSong;

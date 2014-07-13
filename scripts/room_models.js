@@ -281,7 +281,7 @@ $(function() {
     onSuccess: function(data, textStatus, jqXHR) {
       this.stopUpdatingProgress();
 
-      if (data.id) {
+      if (typeof data.id === 'number') {
         this.set({
           progress: 100,
           status: 'processing',
