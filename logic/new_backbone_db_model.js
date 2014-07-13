@@ -164,20 +164,21 @@ module.exports = Backbone.Model.extend({
           'Deleting instance from backbone db model: ' + this.getLogName());
         this.instance().destroy();
       }
-    } else if (method === 'read') {
-      // TODO
-      winston.error('NOT IMPLEMENTED:', method, this.getLogName());
-      return;
 
+    } else if (method === 'read') {
       if (this.has('id')) {
-        this.model().get(this.id, _.bind(function(err, instance) {
-          if (err) {
-            winston.error('Error reading model from database: ' + err);
-          } else {
-            this.set({ instance: instance });
+        this.model()
+        .find(this.id)
+        .then(_.bind(function(instance) {
+          this.set({ instance: instance });
+          this.getAssociations(instance).then(_.bind(function() {
             this.trigger('load');
-          }
-        }, this));
+          }, this));
+        }, this))
+        .catch(function(err) {
+          winston.error(
+            'Error reading model from database: ' + err.stack);
+        });
       } else {
         winston.error(
           'Can\'t read backbone db model because no id is set. Model: ' +

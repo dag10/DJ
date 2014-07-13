@@ -11,12 +11,13 @@ var Connection = require('../connection/connection');
 var connections = require('../connection/connections');
 
 exports.init = function(server) {
-  var deferred = Q.defer();
+  var deferred = Q.defer(),
+      noop = function() { /* nothing */ };
 
   var io = socketio.listen(server, {
     logger: {
-      debug: winston.debug,
-      info: function() { /* ignore */ },
+      debug: config.debug && config.debug_socketio ? winston.debug : noop,
+      info: noop,
       error: winston.error,
       warn: winston.warn
     }
@@ -28,6 +29,7 @@ exports.init = function(server) {
     io.enable('browser client gzip');
     io.set('heartbeat timeout', 25);
     io.set('heartbeat interval', 3);
+    io.set('log level', 1);
   });
 
   io.sockets.on('connection', function(socket) {

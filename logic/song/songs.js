@@ -1,233 +1,397 @@
 /* songs.js
  * Manages songs.
  */
+/*jshint es5: true */
 
 var winston = require('winston');
 var config = require('../../config');
 var fs = require('fs');
 var fs_ = require('../../utils/fs');
+var os = require('os');
 var upload = require('./upload');
 var ffmpeg = require('fluent-ffmpeg');
 var file_model = require('../../models/file');
 var song_model = require('../../models/song');
 var queues = require('./queues');
 var crypto = require('crypto');
+var Q = require('q');
 
-var generateShortName = function(name) {
+/** Temporary directory for saving extracted album artwork. */
+var artworkTmpDir = null;
+
+/** Incrementing unique ID for song processing jobs. */
+var nextJobId = 1;
+
+/** Encoding stages to show to user as progress. */
+exports.stages = {
+  transcoding: 'transcoding',
+  metadata: 'metadata',
+  artwork: 'artwork',
+  saving: 'saving',
+  added: 'added',
+};
+
+/**
+ * Generates a short name for a song from the original name.
+ *
+ * @param name Original song name, sans extension.
+ * @return Shortname.
+ */
+function generateShortName(name) {
   return name.toLowerCase()
       .replace(/[\s_\-]+/g, '-')
       .replace(/[^\w\-\.]/g, '');
-};
+}
 
-var filenameOfPath = function(path) {
+/**
+ * Returns the filename of a path, disregarding the directories and extension.
+ *
+ * @param path The file path string.
+ * @return The filename of the file.
+ */
+function filenameOfPath(path) {
   return path.replace(/^.*[\\\/]/, '');
-};
+}
 
-var removeExtension = function(file) {
+/**
+ * Removed the extension from a filename string.
+ *
+ * @param file The filename.
+ * @return String of the filename without the extension.
+ */
+function removeExtension(file) {
   return file.replace(/\.[^\.]*$/, '');
-};
+}
 
-var changeExtension = function(file, extension) {
+/**
+ * Changes the extension of a filename/filepath string.
+ *
+ * @param file String of the filename/path.
+ * @param extension Extension to change file to.
+ * @return String of the new filename/path with the extension updated.
+ */
+function changeExtension(file, extension) {
   return removeExtension(file) + '.' + extension;
-};
+}
 
-exports.addSong = function(path, user, name, callback) {
-  if (!fs.existsSync(path)) {
-    var err = new Error('Song path does not exist.');
-    winston.error(err.message);
-    callback(err);
-    return;
-  }
+/**
+ * Transcodes a song into an mp3.
+ *
+ * @param path The full path to the media file.
+ * @param newpath The full path what to save the converted file as.
+ * @return A promise resolving when the operation is complete.
+ */
+function transcodeSong(path, newpath) {
+  var deferred = Q.defer();
 
-  var now = new Date();
-
-  var shortname = generateShortName(removeExtension(name));
-  var newpath = upload.song_dir + '/' + changeExtension(shortname, 'mp3');
-  var screenshots = [];
-
-  var song, song_file, artwork_file;
-
-  var abort = function(err, stderr) {
-    if (stderr)
-      winston.error(err.message + '\n' + stderr);
-    else
-      winston.error(err.message);
-    callback(null, new Error('Failed to convert file.'));
-    if (song) {
-      var songid = song.id;
-      song.remove(function(err) {
-        if (err)
-          winston.error('Failed to delete song entity: ' + err.message);
-        else
-          winston.info('Abort; Deleted song entity: ' + songid);
-      });
-    }
-    if (song_file) {
-      var song_fileid = song_file.id;
-      song_file.remove(function(err) {
-        if (err)
-          winston.error('Failed to delete song file entity: ' + err.message);
-        else
-          winston.info('Abort; Deleted song file entity: ' + song_fileid);
-      });
-    }
-    if (artwork_file) {
-      var artwork_fileid = artwork_file.id;
-      artwork_file.remove(function(err) {
-        if (err)
-          winston.error(
-              'Failed to delete artwork file entity: ' + err.message);
-        else
-          winston.info(
-              'Abort; Deleted artwork file entity: ' + artwork_fileid);
-      });
-    }
-    fs_.unlink(path, true);
-    fs_.unlink(newpath, true);
-    screenshots.forEach(function(name) {
-      fs_.unlink(upload.artwork_dir + '/' + name, true);
-    });
-  };
-
-  // Convert file to mp3.
-  var proc = new ffmpeg({ source: path })
+  new ffmpeg({ source: path })
     .withAudioCodec('libmp3lame')
     .withAudioBitrate(320)
     .toFormat('mp3')
     .saveToFile(newpath, function(stdout, stderr, err) {
       if (err) {
-        abort(err, stderr);
+        winston.warn(
+          'Failed to transcode song: ' + path + '\n\nstderr: ' + stderr +
+          '\n\nstdout: ' + stdout);
+        deferred.reject(err);
+      } else if (stderr === 'timeout') {
+        deferred.reject(new Error('ffmpeg timed out.'));
+      } else {
+        deferred.resolve();
+      }
+    });
+
+  return deferred.promise;
+}
+
+/**
+ * Extracts metadata from an mp3, storing it in a Song model.
+ *
+ * @param song The song model to store the metadata in.
+ * @param path The full path to the media file.
+ * @return A promise resolving when the operation is complete.
+ */
+function extractMetadata(song, path) {
+  var deferred = Q.defer();
+
+  ffmpeg.Metadata(path, function(data, err) {
+    if (!err && !data.durationsec) {
+      err = new Error('No duration found.');
+    }
+
+    if (err) {
+      deferred.reject(err);
+      return;
+    }
+
+    if (data.title) song.title = data.title;
+    if (data.album) song.album = data.album;
+    if (data.artist) song.artist = data.artist;
+    song.duration = data.durationsec;
+
+    deferred.resolve();
+  });
+
+  return deferred.promise;
+}
+
+/**
+ * Extracts album artwork from an audio file.
+ *
+ * @param path The full path to the audio file.
+ * @return A promise resolving with the path of the saved album artwork
+ *         when the operation is complete. If there's no album art, the promise
+ *         is resolved to null.
+ */
+function extractArtwork(path) {
+  var deferred = Q.defer();
+
+  if (!artworkTmpDir) {
+    artworkTmpDir = os.tmpDir();
+  }
+
+  new ffmpeg({ source: path })
+    .withSize('800x800')
+    .takeScreenshots({
+      count: 1
+    },
+    artworkTmpDir,
+    function(err, filenames) {
+      if (err) {
+        winston.info('Failed to extract album art for ' + path);
+        filenames.forEach(function(name) {
+          fs_.unlink(artworkTmpDir + '/' + name, true);
+        });
+        deferred.resolve(null);
         return;
       }
 
-      // Extract album art (if any).
-      new ffmpeg({ source: newpath })
-        .withSize('800x800')
-        .takeScreenshots({
-          count: 1
-        }, upload.artwork_dir, function(err, filenames) {
-          if (err && filenames.length) {
-            winston.warn('Failed to extract album art for ' + newpath);
-            filenames.forEach(function(name) {
-              fs_.unlink(upload.artwork_dir + '/' + name);
-            });
-          } else if (!err) {
-            screenshots = filenames;
-          }
+      if (filenames.length === 0) {
+        deferred.resolve(null);
+        return;
+      }
 
-          // Extract metadata.
-          ffmpeg.Metadata(newpath, function(data, err) {
-            if (!err && !data.durationsec)
-              err = new Error('No duration found.');
+      while (filenames.length > 1) {
+        fs_.unlink(artworkTmpDir + '/' + filenames.pop());
+      }
 
-            if (err) {
-              abort(err, null);
-              return;
-            }
-
-            var sha1 = crypto.createHash('sha1');
-            sha1.update('upload:' + Math.random());
-            var uuid = sha1.digest('hex'); // temporary uuid, until save.
-            
-            song = new song_model.Song({
-              title: data.title || shortname,
-              album: data.album,
-              artist: data.artist,
-              duration: data.durationsec,
-              timeUploaded: now,
-              source: 'upload',
-              uuid: uuid,
-              uploader: user
-            }); 
-
-            song.save(function(err) {
-              if (err) {
-                abort(err, null);
-                return;
-              }
-
-              var base = song.id + '-' + generateShortName(song.title);
-              var oldnewpath = newpath;
-              var songfilename = changeExtension(base, 'mp3');
-              newpath = upload.song_dir + '/' + songfilename;
-              fs.renameSync(oldnewpath, newpath); 
-
-              sha1 = crypto.createHash('sha1');
-              sha1.update('upload:' + song.id);
-              song.uuid = sha1.digest('hex');
-
-              song_file = new file_model.File({
-                directory: upload.song_path,
-                filename: songfilename,
-                timeUploaded: now,
-                uploader: user
-              });
-
-              song_file.save(function(err) {
-                if (err) {
-                  abort(err, null);
-                  return;
-                }
-
-                song.file = song_file;
-
-                var next = function() {
-                  song.save(function(err) {
-                    if (err) {
-                      abort(err, null);
-                      return;
-                    }
-
-                    if (user) {
-                      winston.info(
-                        user.getLogName() + ' uploaded ' + song.getLogName());
-
-                      queues.addSongToQueue(song, user, function(data) {
-                        if (data.error) {
-                          winston.error(data.error.message);
-                          abort(new Error(
-                            'Failed to enqueue song ' + song.id), null);
-                        } else {
-                          callback(song, null);
-                        }
-                      });
-                    } else {
-                      winston.info('Song added: ' + song.getLogName());
-                      callback(song, null);
-                    }
-                  });
-                };
-
-                if (screenshots.length > 0) {
-                  var oldimage = screenshots[0];
-                  screenshots[0] = changeExtension(base, 'jpg');
-                  fs.renameSync(
-                      upload.artwork_dir + '/' + oldimage,
-                      upload.artwork_dir + '/' + screenshots[0]);
-
-                  artwork_file = new file_model.File({
-                    directory: upload.artwork_path,
-                    filename: screenshots[0],
-                    timeUploaded: now,
-                    uploader: user
-                  });
-
-                  artwork_file.save(function(err) {
-                    if (err) {
-                      abort(err, null);
-                      return;
-                    }
-
-                    song.artwork = artwork_file;
-                    next();
-                  });
-                } else {
-                  next();
-                }
-              });
-            });
-          });
-        });
+      deferred.resolve(artworkTmpDir + '/' + filenames[0]);
     });
-};
+
+  return deferred.promise;
+}
+
+/**
+ * Processes and adds a song to the system
+ *
+ * @param uploadedpath The full path to the media file.
+ * @param user The user model.
+ * @param name The original filename of the song.
+ * @return An object containing an id of the song adding process, and a promise
+ *         resolving with the added song, notifying of the current stage, and
+ *         rejecting with any errors.
+ */
+function processSong(uploadedpath, user, name) {
+  var deferred = Q.defer();
+  var ret = {
+    id: nextJobId++,
+    promise: deferred.promise
+  };
+
+  // Create shortname and decide where to save the song.
+  // I put a random number in the temporary filename to prevent filename
+  // collisions, which could be exploited by users to overwrite the audio
+  // of an existing song.
+  var rand = 'temp-' + Math.round(Math.random() * 10000) + '-';
+  var shortname = generateShortName(removeExtension(name));
+  var path = upload.song_dir + '/' +
+    rand + changeExtension(shortname, 'mp3');
+
+  // Create a new song model.
+  var song = song_model.Model.build({
+    title: shortname
+  });
+
+  // Make sure file exists.
+  fs_.exists(uploadedpath)
+  .then(function(exists) {
+    if (!exists) return Q.reject(new Error('Song path does not exist.'));
+  })
+
+  // Transcode song to mp3.
+  .then(function() {
+    deferred.notify(exports.stages.transcoding);
+    return transcodeSong(uploadedpath, path);
+  })
+
+  // Extract metadata.
+  .then(function() {
+    deferred.notify(exports.stages.metadata);
+    return extractMetadata(song, path);
+  })
+  
+  // Save song model.
+  .then(function() {
+    return song.save();
+  })
+
+  // Set uploader of song.
+  .then(function() {
+    if (user) return song.setUploader(user);
+  })
+
+  // Rename file to include song ID.
+  .then(function() {
+    var deferred = Q.defer();
+
+    var newfilename = song.id + '-' + generateShortName(song.title) + '.mp3';
+    var newpath = upload.song_dir + '/' + newfilename;
+
+    fs.rename(path, newpath, function(err) {
+      if (err) {
+        deferred.reject(err);
+      } else {
+        path = newpath;
+        deferred.resolve();
+      }
+    });
+
+    return deferred.promise;
+  })
+
+  // Create and save File instance pointing to the transcoded song.
+  .then(function() {
+    var file_instance;
+    return file_model.Model.create({
+      directory: upload.song_path,
+      filename: filenameOfPath(path)
+    })
+    .then(function(file) {
+      file_instance = file;
+      return file.setUploader(user);
+    })
+    .then(function() {
+      return song.setFile(file_instance);
+    })
+    .catch(function() {
+      file_instance.destroy();
+    });
+  })
+
+  // Extract album artwork.
+  .then(function() {
+    deferred.notify(exports.stages.artwork);
+    return extractArtwork(path);
+  })
+
+  // Save artwork file model.
+  .then(function(artworkpath) {
+    if (!artworkpath) return;
+    var deferred = Q.defer();
+
+    var newartworkfilename = song.id + '-' +
+      generateShortName(song.title) + '.jpg';
+    var newartworkpath = upload.artwork_dir + '/' + newartworkfilename;
+
+    fs.rename(artworkpath, newartworkpath, function(err) {
+      if (err) {
+        deferred.reject(err);
+        return;
+      }
+
+      var artwork_instance;
+      file_model.Model.create({
+        directory: upload.artwork_path,
+        filename: filenameOfPath(newartworkpath)
+      })
+      .then(function(artwork) {
+        artwork_instance = artwork;
+        return Q.all([
+          artwork.setUploader(user),
+          song.setArtwork(artwork_instance)
+        ]);
+      })
+      .then(deferred.resolve)
+      .catch(function(err) {
+        artwork_instance.destroy();
+        deferred.reject(err);
+      });
+    });
+
+    return deferred.promise;
+  })
+
+  // Pipe results to our deferred, without sending actual error message.
+  // Also cleans up if we have to abort.
+  .then(function() {
+    deferred.resolve(song);
+    if (user) {
+      winston.info(user.getLogName() + ' added song: ' + song.getLogName());
+    } else {
+      winston.info('Song added: ' + song.getLogName());
+    }
+  })
+  .progress(deferred.notify)
+  .catch(function(err) {
+    deferred.reject(new Error('Failed to transcode song.'));
+    winston.warn('Failed to process song: ' + name + '\n' + err.stack);
+    song.destroy();
+  })
+  .finally(function() {
+    // Always delete original song file; it's no longer needed.
+    fs_.unlink(uploadedpath, true);
+  });
+
+  return ret;
+}
+
+/**
+ * Enqueues a song for a user.
+ *
+ * @param song The song model.
+ * @param user The user model.
+ * @return A promise resolving with the QueuedSong model once enqueued.
+ *         The promise notifies of changes in stage.
+ */
+function enqueueSong(song, user) {
+  var deferred = Q.defer();
+
+  setTimeout(function() {
+    deferred.notify(exports.stages.saving);
+  }, 0);
+
+  queues
+  .addSongToQueue(song, user)
+  .then(deferred.resolve)
+  .catch(function(err) {
+    deferred.reject(new Error('Failed to enqueue song.'));
+    console.error('ERR:', err.stack);
+    winston.warn(
+      'Failed to enqueue song: ' + song.getLogName() + '\n' + err.stack);
+  });
+
+  return deferred.promise;
+}
+
+/**
+ * Adds and optionally enqueues a media file to one's queue.
+ *
+ * @param path The full path to the media file.
+ * @param user The user model.
+ * @param name The original filename of the song.
+ * @return An object containing an id of the song adding process, and a promise
+ *         resolving with the added song, notifying of the current stage, and
+ *         rejecting with any errors.
+ */
+function addSong(path, user, name) {
+  var process = processSong(path, user, name);
+  
+  process.promise = process.promise.then(function(song) {
+    return enqueueSong(song, user);
+  });
+
+  return process;
+}
+
+exports.addSong = addSong;
 

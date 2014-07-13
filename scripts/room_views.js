@@ -197,6 +197,214 @@ $(function() {
     }
   });
 
+  views.SongAdd = Backbone.View.extend({
+    tagName: 'li',
+
+    template: Handlebars.compile($('#song-add-template').html()),
+
+    initialize: function() {
+      this.model.on('change:status', this.render, this);
+      this.model.on('change:error', this.render, this);
+      this.model.on('change:progress', this.renderProgress, this);
+      this.render();
+    },
+
+    renderProgress: function() {
+      this
+        .$('.background-progress')
+        .css({ width: this.model.get('progress') + '%'});
+    },
+
+    render: function() {
+      var model = this.model.attributes;
+      model.added = model.status === 'added';
+      model.failed = model.status === 'failed';
+      
+      if (model.size) {
+        model.mb = Math.round(model.size / 1024 / 1024 * 10) / 10;
+      }
+
+      if (model.failed) {
+        this.$el.addClass('failed');
+      } else {
+        this.$el.removeClass('failed');
+      }
+
+      if (model.added) {
+        this.$el.addClass('added');
+      } else {
+        this.$el.removeClass('added');
+      }
+
+      switch (model.status.toLowerCase()) {
+        case 'metadata':
+          model.status = 'extracting metadata';
+          break;
+        case 'artwork':
+          model.status = 'extracting artwork';
+          break;
+        case 'transcoding':
+          model.status = 'transcoding audio';
+          break;
+      }
+
+      this.$el.html(this.template(model));
+      this.renderProgress();
+      return this;
+    }
+  });
+
+  views.SongAdds = Backbone.View.extend({
+    initialize: function() {
+      this.views = [];
+      this.closeable = false;
+
+      this.collection.on('add', this.add, this);
+      this.collection.on('remove', this.remove, this);
+      this.collection.on('reset', this.reset, this);
+      this.collection.on('change:status', this.updateCloseable, this);
+
+      this.initializeHeader();
+      this.reset();
+    },
+
+    reset: function(render) {
+      this.views = [];
+      this.collection.each(function(song_add) {
+        this.add(song_add, false);
+      }, this);
+
+      if (render || render === undefined) {
+        this.render();
+      }
+    },
+
+    add: function(song_add, render) {
+      var view = new views.SongAdd({
+        tagName: 'li',
+        model: song_add
+      });
+
+      this.views.push(view);
+
+      if (render || render === undefined) {
+        this.render();
+      }
+    },
+
+    remove: function(song_add, render) {
+      this.views = _(this.views).without(this.getViewForSongAdd(song_add));
+
+      if (render || render === undefined) {
+        this.render();
+      }
+    },
+
+    updateCloseable: function() {
+      var oldVal = this.closeable;
+      this.closeable = true;
+
+      this.collection.each(function(song_add) {
+        if (['added', 'failed'].indexOf(song_add.get('status')) < 0) {
+          this.closeable = false;
+        }
+      }, this);
+
+      if (this.closeable !== oldVal) {
+        this.renderHeader();
+      }
+    },
+
+    getViewForSongAdd: function(song_add) {
+      return _(this.views).select(function(view) {
+        return view.model === song_add;
+      })[0];
+    },
+
+    initializeHeader: function() {
+      this.
+      $('#btn-close-uploads')
+      .click(_.bind(function(e) {
+        e.preventDefault();
+        this.collection.reset();
+      }, this))
+      .tooltip({
+        title: 'Close',
+        trigger: 'hover'
+      });
+    },
+
+    renderHeader: function() {
+      var $header = this.$('#uploads-header');
+      var $btnClose = this.$('#btn-close-uploads');
+
+      $header.toggle(this.collection.length > 0);
+      $btnClose.toggle(this.closeable);
+
+      if (!this.collection.closeable || this.collection.length === 0) {
+        $btnClose.tooltip('hide');
+      }
+    },
+
+    render: function() {
+      var $ul = this.$('#previews');
+      var $uploads = this.$('#uploads-container');
+
+      var scrollTop = this.el.scrollTop;
+
+      $ul.empty();
+      this.collection.forEach(function(song_add) {
+        $ul.prepend(this.getViewForSongAdd(song_add).render().el);
+      }, this);
+
+      $uploads.toggle(this.collection.length > 0);
+
+      this.renderHeader();
+
+      this.el.scrollTop = scrollTop;
+    }
+  });
+
+  views.SongAdder = Backbone.View.extend({
+    initialize: function(opts) {
+      this.connection = opts.connection;
+
+      this.songAdds = new views.SongAdds({
+        el: this.el,
+        collection: this.model.get('adds')
+      });
+
+      this.$songupload = this.$('#songupload');
+      this.$songupload.fileupload({
+        url: '/song/upload',
+        replaceFileInput: false,
+        dataType: 'json',
+        limitConcurrentUploads: 10,
+        dropZone: this.$el,
+        add: _.bind(this.model.songUploadAdded, this.model)
+      });
+
+      this.$btnupload = this.$('#btn-upload');
+      this.$btnupload.click(_.bind(function(event) {
+        this.$songupload.click();
+        return false;
+      }, this));
+
+      this.$el.on('dragover', _.bind(function() {
+        this.$el.addClass('dragging');
+      }, this));
+
+      this.$el.on('dragleave', _.bind(function() {
+        this.$el.removeClass('dragging');
+      }, this));
+
+      this.$el.on('drop', _.bind(function(e) {
+        this.$el.removeClass('dragging');
+        e.preventDefault();
+      }, this));
+    }
+  });
+
   views.QueuedSong = Backbone.View.extend({
     tagName: 'li',
 
@@ -213,7 +421,9 @@ $(function() {
     },
 
     drop: function(event, index) {
-      this.$el.trigger('sorted', [this.model, index]);
+      if (typeof index === 'number') {
+        this.$el.trigger('sorted', [this.model, index]);
+      }
     },
 
     remove: function(event) {
@@ -264,7 +474,6 @@ $(function() {
       this.collection.on('add', this.add, this);
       this.collection.on('remove', this.remove, this);
       this.collection.on('reset', this.reset, this);
-      this.collection.on('change:playing', this.updateSkipButton, this);
 
       this.$('#queue-list').sortable({
         axis: 'y',

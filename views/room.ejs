@@ -11,8 +11,8 @@
   script('/scripts/connection.js');
   script('/scripts/room.js');
   if (user) {
-    script('/scripts/dropzone.js');
-    script('/scripts/upload.js');
+    script('/scripts/jquery.iframe-transport.js');
+    script('/scripts/jquery.fileupload.js');
     col_classes = {
       queue: 'col-sm-3 col-sm-12',
       users: 'col-sm-3 col-sm-12 col-sm-push-6',
@@ -34,6 +34,7 @@
 <div class="row room-container">
   <% if (user) { %>
     <div id="queue-column" class="fixed-column <%= col_classes.queue %>">
+      <input id="songupload" type="file" name="files[]" multiple>
       <div class="drag-overlay"><div>Upload Songs</div></div>
       <div class="column-table">
         <div class="column-table-row">
@@ -151,14 +152,24 @@
   </div>
 </div>
 
-<script type="text/template" id="upload-preview-template">
-  <li class="dz-preview dz-file-preview">
-    <div class="foreground">
-      <span data-dz-name></span> (<span data-dz-size></span>)
-      <div class="error-message" data-dz-errormessage></div>
+<script type="text/template" id="song-add-template">
+  <div class="foreground">
+    <div class="status">
+      {{#if mb}} <span class="size">({{ mb }}MB)</span>{{/if}} {{ status }}
+      {{#if added}}
+        <span class="glyphicon glyphicon-ok-sign"></span>
+      {{/if}}
+      {{#if failed}}
+        <span class="glyphicon glyphicon-exclamation-sign"></span>
+      {{/if}}
     </div>
-    <div class="background background-progress" data-dz-uploadprogress></div>
-  </li>
+    <div class="name">
+      {{ name }}    </div>
+    {{#if error}}
+      <div class="error">{{ error }}</div>
+    {{/if}}
+  </div>
+  <div class="background background-progress"></div>
 </script>
 
 <script type="text/x-handlebars-template" id="search-section-template">

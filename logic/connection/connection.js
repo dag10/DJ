@@ -1,6 +1,7 @@
 /* connection.js
  * Manages a socket.io connection for a user in a room.
  */
+/*jshint es5: true */
 
 var rooms = require('../room/rooms');
 var winston = require('winston');
@@ -45,6 +46,32 @@ module.exports = Backbone.Model.extend({
     
     // Set our id
     this.set({ id: socket.id });
+  },
+
+  watchSongAdd: function(song_add) {
+    var socket = this.socket(),
+        promise = song_add.promise;
+
+    promise.then(function(song) {
+      socket.emit('song:add:added', {
+        id: song_add.id,
+        song_id: song.id
+      });
+    });
+
+    promise.catch(function(err) {
+      socket.emit('song:add:failed', {
+        id: song_add.id,
+        error: err.message
+      });
+    });
+
+    promise.progress(function(stage) {
+      socket.emit('song:add:status', {
+        id: song_add.id,
+        status: stage
+      });
+    });
   },
 
   roomChanged: function() {
@@ -122,7 +149,9 @@ module.exports = Backbone.Model.extend({
   /* Queue */
 
   fetchQueue: function() {
-    queues.getQueue(this.user().id, _.bind(function(ret) {
+    queues
+    .getQueue(this.user().id)
+    .then(_.bind(function(ret) {
       if (ret instanceof Error) {
         winston.error('Failed to fetch queue: ' + ret.message);
         this.socket().emit('error', 'Failed to get queue.');
@@ -315,7 +344,6 @@ module.exports = Backbone.Model.extend({
   // Handle queue song order change.
   handleQueuedSongOrder: function(data, fn) {
     if (!data) return;
-
     if (!this.ensureAuth(fn)) return;
     this.get('queue').updateSongOrder(data[0], data[1]);
   },

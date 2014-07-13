@@ -9,7 +9,9 @@ var Backbone = require('backbone');
 var queued_song_model = require('../../models/queuedsong');
 var song_model = require('../../models/song');
 var file_model = require('../../models/file');
+var user_model = require('../../models/user');
 var QueuedSong = require('./queued_song');
+var Q = require('q');
 
 module.exports = Backbone.Collection.extend({
   comparator: 'order',
@@ -44,21 +46,31 @@ module.exports = Backbone.Collection.extend({
     return this.findWhere({ playing: true });
   },
 
-  addSongEntity: function(song_entity, callback) {
-    throw new Error('FUNC NOT UPDATED'); // TODO FIX THIS FUNCTION
-    var queued_song = new QueuedSong({
-      song: song_entity,
-      song_id: song_entity.id,
-      user_id: this.user_id,
+  addSongEntity: function(song_entity) {
+    var deferred = Q.defer();
+
+    queued_song_model.Model.create({
+      SongId: song_entity.id,
+      UserId: this.user_id,
       order: this.length + 1
-    });
-    queued_song.once('save', function() {
-      this.add(queued_song);
-      this.updateSongOrder(
-        queued_song.id, this.getPlayingSong() ? 2 : 1);
-      callback(queued_song);
-    }, this);
-    queued_song.save();
+    },
+    {
+      raw: true
+    })
+    .then(_.bind(function(queued_song) {
+      var queuedSongBackbone = new QueuedSong({ instance: queued_song });
+      queuedSongBackbone
+      .getAssociations(queuedSongBackbone)
+      .then(_.bind(function() {
+        this.add(queuedSongBackbone);
+        this.updateSongOrder(
+          queued_song.id, this.getPlayingSong() ? 2 : 1);
+        deferred.resolve(queued_song);
+      }, this));
+    }, this))
+    .catch(deferred.reject);
+
+    return deferred.promise;
   },
 
   rotate: function() {
@@ -103,6 +115,7 @@ module.exports = Backbone.Collection.extend({
       where: {
         UserId: this.user_id
       },
+      order: '`order` ASC',
       include: [
         {
           model: song_model.Model,
@@ -125,9 +138,21 @@ module.exports = Backbone.Collection.extend({
     }, this))
     .then(_.bind(function(queued_songs) {
       this.reset();
+
+      // While adding queueings to collection, ensure that orders are
+      // consecutive and starting at 1.
+      var nextOrder = 1;
       queued_songs.forEach(_.bind(function(queued_song) {
         var new_queued_song = new QueuedSong({ instance: queued_song });
-        this.add(new_queued_song);
+        if (new_queued_song.get('order') === nextOrder) {
+          this.add(new_queued_song);
+        } else {
+          new_queued_song.once('save', function() {
+            this.add(new_queued_song);
+          }, this);
+          new_queued_song.set({ order: nextOrder });
+        }
+        nextOrder++;
       }, this));
       this.trigger('load');
     }, this));

@@ -176,6 +176,212 @@ $(function() {
     }
   });
 
+  // Model representing a song being uploaded/added.
+  models.SongAdd = Backbone.Model.extend({
+    defaults: {
+      name: '',
+      size: 0,
+      progress: 100
+    },
+
+    initialize: function() {
+      this.on('remove', this.removed, this);
+      this.idChanged();
+    },
+
+    idChanged: function() {
+      if (!this.id) {
+        this.once('change:id', this.idChanged, this);
+        return;
+      }
+
+      this.get('connection').on(
+        'song:add:added:' + this.id, this.onAdded, this);
+      this.get('connection').on(
+        'song:add:failed:' + this.id, this.onFailed, this);
+      this.get('connection').on(
+        'song:add:status:' + this.id, this.statusChanged, this);
+    },
+
+    onAdded: function(data) {
+      this.set({
+        status: 'added'
+      });
+    },
+
+    onFailed: function(data) {
+      this.set({
+        status: 'failed',
+        error: data.error
+      });
+    },
+
+    statusChanged: function(data) {
+      this.set({
+        status: data.status
+      });
+    },
+
+    removed: function() {
+      if (this.id) {
+        this.get('connection').off('song:add:status:' + this.id);
+        this.get('connection').off('song:add:added:' + this.id);
+        this.get('connection').off('song:add:failed:' + this.id);
+      }
+    }
+  });
+
+  // Model representing a song being added by uploading.
+  models.SongUpload = models.SongAdd.extend({
+    defaults: {
+      progress: 0,
+      status: 'uploading'
+    },
+
+    initialize: function(attrs, upload) {
+      this.constructor.__super__.initialize.apply(this, arguments);
+
+      var file = upload.files[0];
+
+      this.set({
+        name: file.name,
+        size: file.size
+      });
+
+      if (file.size > window.config.max_file_size) {
+        var max_mb = Math.floor(window.config.max_file_size / 1024 / 1024);
+        this.set({
+          status: 'failed',
+          error: 'File cannot be larger than ' + max_mb + 'MB'
+        });
+        return;
+      }
+
+      upload.jqXHR = upload.submit();
+      upload.jqXHR.then(
+        _.bind(this.onSuccess, this),
+        _.bind(this.onFail, this));
+
+      var intervalId = setInterval(
+        _.bind(this.updateProgress, this),
+        upload.progressInterval);
+
+      this.set({
+        progressIntervalId: intervalId,
+        upload: upload
+      });
+
+      this.on('remove', this.abort, this);
+    },
+
+    abort: function() {
+      this.get('upload').jqXHR.abort();
+    },
+
+    onSuccess: function(data, textStatus, jqXHR) {
+      this.stopUpdatingProgress();
+
+      if (typeof data.id === 'number') {
+        this.set({
+          progress: 100,
+          status: 'processing',
+          id: data.id
+        });
+      } else {
+        this.set({
+          progress: 100,
+          status: 'failed',
+          error: 'Unknown response from server'
+        });
+      }
+    },
+
+    onFail: function(jqXHR, textStatus, errorThrown) {
+      this.stopUpdatingProgress();
+
+      var error;
+      if (textStatus === 'abort') {
+        error = 'Upload canceled.';
+      } else if (jqXHR.responseJSON) {
+        error = jqXHR.responseJSON.error;
+      }
+
+      this.set({
+        status: 'failed',
+        error: error
+      });
+    },
+
+    updateProgress: function() {
+      var upload = this.get('upload');
+      var progress = upload.progress();
+      var percent = progress.loaded / progress.total * 100;
+
+      if (percent >= 100) {
+        percent = 100;
+        this.stopUpdatingProgress();
+      }
+
+      this.set({ progress: percent });
+    },
+
+    stopUpdatingProgress: function() {
+      if (this.has('progressIntervalId')) {
+        clearInterval(this.get('progressIntervalId'));
+        this.unset('progressIntervalId');
+      }
+    }
+  });
+
+  // Collection for songs being added.
+  models.SongAdds = Backbone.Collection.extend({
+    model: models.SongAdd,
+
+    initialize: function() {
+      this.on('reset', this.handleReset, this);
+      this.on('add', this.songAddAdded, this);
+      this.on('remove', this.songAddRemoved, this);
+
+      this.handleReset();
+    },
+
+    songAddAdded: function(song_add) {
+      song_add.on('change:status', function() {
+        if (song_add.get('status') === 'added') {
+          setTimeout(_.bind(function() {
+            this.remove(song_add);
+          }, this), 3000);
+        }
+      }, this);
+    },
+
+    handleReset: function(models, options) {
+      if (options && options.previousModels) {
+        _.each(options.previousModels, function(model) {
+          model.trigger('remove');
+        });
+      }
+      this.each(this.songAddAdded, this);
+    },
+
+    songAddRemoved: function(song_add) {
+      song_add.off('change:status');
+    }
+  });
+
+  // Model managing the adding of songs.
+  models.SongAdder = Backbone.Model.extend({
+    initialize: function() {
+      this.set({ adds: new models.SongAdds() });
+    },
+
+    songUploadAdded: function(event, data) {
+      this.get('adds').add(new models.SongUpload({
+        connection: this.get('connection')
+      }, data));
+    }
+  });
+
   // Model representing a song in the song queue.
   models.QueuedSong = Backbone.Model.extend({
     defaults: {
@@ -216,13 +422,7 @@ $(function() {
     },
 
     songAdded: function(song) {
-      song.on('change:playing', function() {
-        this.trigger('change:playing');
-      }, this);
       song.on('change:order', this.sort, this);
-      song.on('changeOrder', function(data) {
-        this.trigger('changeOrder', data);
-      }, this);
     },
 
     songRemove: function(song) {
