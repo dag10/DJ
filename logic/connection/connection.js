@@ -149,7 +149,9 @@ module.exports = Backbone.Model.extend({
   /* Queue */
 
   fetchQueue: function() {
-    queues.getQueue(this.user().id, _.bind(function(ret) {
+    queues
+    .getQueue(this.user().id)
+    .then(_.bind(function(ret) {
       if (ret instanceof Error) {
         winston.error('Failed to fetch queue: ' + ret.message);
         this.socket().emit('error', 'Failed to get queue.');

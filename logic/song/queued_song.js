@@ -5,6 +5,11 @@
 
 var NewBackboneDBModel = require('../new_backbone_db_model');
 var queued_song_model = require('../../models/queuedsong');
+var song_model = require('../../models/song');
+var user_model = require('../../models/user');
+var file_model = require('../../models/file');
+var winston = require('winston');
+var _ = require('underscore');
 var Q = require('q');
 
 module.exports = NewBackboneDBModel.extend({
@@ -22,6 +27,7 @@ module.exports = NewBackboneDBModel.extend({
   },
 
   setAssociations: function(instance) {
+    if (!instance) instance = this.get('instance');
     var opts = [];
 
     if (this.has('song')) {
@@ -32,32 +38,55 @@ module.exports = NewBackboneDBModel.extend({
       opts.push(instance.setUser(this.get('user')));
     }
     
-    return Q.all(opts);
+    return Q.all(opts).then(_.bind(function() {
+      this.trigger('associations:save');
+    }, this));
   },
 
   getAssociations: function(instance) {
-    var songDeferred = Q.defer();
-    instance
-    .getSong()
-    .then(_.bind(function(song) {
-      this.set({ song: song });
-      songDeferred.resolve();
-    }, this))
-    .catch(songDeferred.reject);
+    if (!instance) instance = this.get('instance');
 
-    var userDeferred = Q.defer();
-    instance
-    .getUser()
+    var songPromise = song_model.Model
+    .find({
+      where: {
+        id: instance.attributes.SongId
+      },
+      include: [
+        {
+          model: file_model.Model,
+          as: 'File'
+        },
+        {
+          model: file_model.Model,
+          as: 'Artwork'
+        }
+      ]
+    })
+    .then(_.bind(function(song) {
+      this.set({ song: song }, { silent: true });
+    }, this));
+
+    var userPromise = user_model.Model
+    .find(instance.attributes.UserId)
     .then(_.bind(function(user) {
-      this.set({ user: song });
-      userDeferred.resolve();
-    }, this))
-    .catch(userDeferred.reject);
+      this.set({ user: user }, { silent: true });
+    }, this));
 
     return Q.all([
-      songDeferred,
-      userDeferred,
-    ]);
+      songPromise,
+      userPromise
+    ])
+    .then(_.bind(function() {
+      this.trigger('associations:load');
+      this.trigger('change:song', this.get('song'));
+      this.trigger('change:user', this.get('user'));
+      return Q();
+    }, this))
+    .catch(_.bind(function(err) {
+      winston.error(
+        'Failed to load song and user associations for queuedsong ' +
+        this.getLogName() + ': ' + err.stack);
+    }, this));
   },
 
   incrementOrder: function() {
@@ -73,7 +102,12 @@ module.exports = NewBackboneDBModel.extend({
   },
 
   getLogName: function() {
-    return this.get('song').getLogName();
+    var song = this.get('song');
+    if (song) {
+      return song.getLogName();
+    } else {
+      return this.get('instance').getLogName();
+    }
   },
 
   toJSON: function() {
