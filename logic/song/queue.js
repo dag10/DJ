@@ -115,6 +115,7 @@ module.exports = Backbone.Collection.extend({
       where: {
         UserId: this.user_id
       },
+      order: '`order` ASC',
       include: [
         {
           model: song_model.Model,
@@ -137,9 +138,21 @@ module.exports = Backbone.Collection.extend({
     }, this))
     .then(_.bind(function(queued_songs) {
       this.reset();
+
+      // While adding queueings to collection, ensure that orders are
+      // consecutive and starting at 1.
+      var nextOrder = 1;
       queued_songs.forEach(_.bind(function(queued_song) {
         var new_queued_song = new QueuedSong({ instance: queued_song });
-        this.add(new_queued_song);
+        if (new_queued_song.get('order') === nextOrder) {
+          this.add(new_queued_song);
+        } else {
+          new_queued_song.once('save', function() {
+            this.add(new_queued_song);
+          }, this);
+          new_queued_song.set({ order: nextOrder });
+        }
+        nextOrder++;
       }, this));
       this.trigger('load');
     }, this));
