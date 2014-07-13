@@ -104,7 +104,7 @@ module.exports = NewBackboneDBModel.extend({
   getLogName: function() {
     var song = this.get('song');
     if (song) {
-      return song.getLogName();
+      return song.title + ' (S:' + song.id + ', QS:' + this.id + ')';
     } else {
       return this.get('instance').getLogName();
     }

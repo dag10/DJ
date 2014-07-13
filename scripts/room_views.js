@@ -421,7 +421,9 @@ $(function() {
     },
 
     drop: function(event, index) {
-      this.$el.trigger('sorted', [this.model, index]);
+      if (typeof index === 'number') {
+        this.$el.trigger('sorted', [this.model, index]);
+      }
     },
 
     remove: function(event) {
