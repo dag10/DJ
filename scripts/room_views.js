@@ -205,6 +205,7 @@ $(function() {
     initialize: function() {
       this.model.on('change:status', this.render, this);
       this.model.on('change:error', this.render, this);
+      this.model.on('change:progress', this.renderProgress, this);
       this.render();
     },
 
@@ -341,7 +342,7 @@ $(function() {
 
       $ul.empty();
       this.collection.forEach(function(song_add) {
-        $ul.append(this.getViewForSongAdd(song_add).render().el);
+        $ul.prepend(this.getViewForSongAdd(song_add).render().el);
       }, this);
 
       $uploads.toggle(this.collection.length > 0);
@@ -353,10 +354,20 @@ $(function() {
   });
 
   views.SongAdder = Backbone.View.extend({
-    initialize: function() {
+    initialize: function(opts) {
+      this.connection = opts.connection;
+
       this.songAdds = new views.SongAdds({
         el: this.el,
         collection: this.model.get('adds')
+      });
+
+      this.$songupload = this.$('#songupload');
+
+      this.$songupload.fileupload({
+        url: '/song/upload',
+        dataType: 'json',
+        add: _.bind(this.model.songUploadAdded, this.model)
       });
     }
   });

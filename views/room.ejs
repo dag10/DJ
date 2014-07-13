@@ -11,6 +11,8 @@
   script('/scripts/connection.js');
   script('/scripts/room.js');
   if (user) {
+    script('/scripts/jquery.iframe-transport.js');
+    script('/scripts/jquery.fileupload.js');
     col_classes = {
       queue: 'col-sm-3 col-sm-12',
       users: 'col-sm-3 col-sm-12 col-sm-push-6',
@@ -32,6 +34,7 @@
 <div class="row room-container">
   <% if (user) { %>
     <div id="queue-column" class="fixed-column <%= col_classes.queue %>">
+      <input id="songupload" type="file" name="files[]" multiple>
       <div class="drag-overlay"><div>Upload Songs</div></div>
       <div class="column-table">
         <div class="column-table-row">

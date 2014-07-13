@@ -181,23 +181,12 @@ $(function() {
     defaults: {
       name: '',
       size: 0,
-      progress: 30
+      progress: 100
     },
 
     initialize: function() {
       this.on('remove', this.removed, this);
       this.idChanged();
-
-      var fail = this.get('name') == 'Bar';
-
-      setTimeout(_.bind(function() {
-        this.set({ status: fail ? 'failed' : 'added' });
-        if (fail) {
-          this.set({
-            error: 'File is too large.'
-          });
-        }
-      }, this), this.get('progress') * 20);
     },
 
     idChanged: function() {
@@ -206,12 +195,128 @@ $(function() {
         return;
       }
 
-      this.get('connection').on('song:add:status:' + this.id, this.set, this);
+      this.get('connection').on(
+        'song:add:added:' + this.id, this.onAdded, this);
+      this.get('connection').on(
+        'song:add:failed:' + this.id, this.onFailed, this);
+      this.get('connection').on(
+        'song:add:status:' + this.id, this.statusChanged, this);
+    },
+
+    onAdded: function(data) {
+      this.set({
+        status: 'added'
+      });
+    },
+
+    onFailed: function(data) {
+      this.set({
+        status: 'failed',
+        error: data.error
+      });
+    },
+
+    statusChanged: function(data) {
+      this.set({
+        status: data.status
+      });
     },
 
     removed: function() {
       if (this.id) {
         this.get('connection').off('song:add:status:' + this.id);
+        this.get('connection').off('song:add:added:' + this.id);
+        this.get('connection').off('song:add:failed:' + this.id);
+      }
+    }
+  });
+
+  // Model representing a song being added by uploading.
+  models.SongUpload = models.SongAdd.extend({
+    defaults: {
+      progress: 0,
+      status: 'uploading'
+    },
+
+    initialize: function(attrs, upload) {
+      this.constructor.__super__.initialize.apply(this, arguments);
+
+      var file = upload.files[0];
+
+      upload.jqXHR = upload.submit();
+      upload.jqXHR.then(
+        _.bind(this.onSuccess, this),
+        _.bind(this.onFail, this));
+
+      var intervalId = setInterval(
+        _.bind(this.updateProgress, this),
+        upload.progressInterval);
+
+      this.set({
+        name: file.name,
+        size: file.size,
+        progressIntervalId: intervalId,
+        upload: upload
+      });
+
+      this.on('remove', this.abort, this);
+    },
+
+    abort: function() {
+      this.get('upload').jqXHR.abort();
+    },
+
+    onSuccess: function(data, textStatus, jqXHR) {
+      this.stopUpdatingProgress();
+
+      if (data.id) {
+        this.set({
+          progress: 100,
+          status: 'processing',
+          id: data.id
+        });
+      } else {
+        this.set({
+          progress: 100,
+          status: 'failed',
+          error: 'Unknown response from server'
+        });
+      }
+    },
+
+    onFail: function(jqXHR, textStatus, errorThrown) {
+      this.stopUpdatingProgress();
+
+      var error;
+      if (textStatus === 'abort') {
+        error = 'Upload canceled.';
+      } else if (jqXHR.responseJSON) {
+        error = jqXHR.responseJSON.error;
+      }
+
+      this.set({
+        status: 'failed',
+        error: error
+      });
+    },
+
+    updateProgress: function() {
+      var upload = this.get('upload');
+      var progress = upload.progress();
+      var percent = progress.loaded / progress.total * 100;
+
+      if (percent >= 100) {
+        percent = 100;
+        this.stopUpdatingProgress();
+      }
+
+      this.set({ progress: percent });
+    },
+
+    stopUpdatingProgress: function() {
+      if (this.has('progressIntervalId')) {
+        clearInterval(this.get('progressIntervalId'));
+        this.unset('progressIntervalId');
       }
     }
   });
@@ -256,14 +361,12 @@ $(function() {
   models.SongAdder = Backbone.Model.extend({
     initialize: function() {
       this.set({ adds: new models.SongAdds() });
+    },
 
-      // TODO TEMP
-      setTimeout(_.bind(function() {
-        this.get('adds').reset([
-          { name: 'Foo-bar-baz-bing-boom-bop.flac', progress: 74, status: 'uploading', size: 100000 },
-          { name: 'Bar', progress: 80, status: 'processing' }
-        ]);
-      }, this), 1000);
+    songUploadAdded: function(event, data) {
+      this.get('adds').add(new models.SongUpload({
+        connection: this.get('connection')
+      }, data));
     }
   });
 

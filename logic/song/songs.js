@@ -30,15 +30,21 @@ exports.stages = {
  * @param path The full path to the media file.
  * @param user The user model.
  * @param name The original filename of the song.
- * @return A promise resolving with the song model.
+ * @return An object containing an id of the song adding process, and a promise
+ *         resolving with the added song, notifying of the current stage, and
+ *         rejecting with any errors.
  */
 function processSong(path, user, name) {
   var deferred = Q.defer();
+  var retObj = {
+    id: Math.round(Math.random() * 100000),
+    promise: deferred.promise
+  };
 
   // Make sure the provided file exists.
   if (!fs.existsSync(path)) {
     deferred.reject(new Error('Song path does not exist.'));
-    return deferred.promise;
+    return retObj;
   }
 
   // Send initial stage.
@@ -55,8 +61,33 @@ function processSong(path, user, name) {
   }, 600);
   setTimeout(function() {
     //deferred.reject(new Error('Not implemented yet, dawg!'));
-    deferred.resolve();
+    deferred.resolve({});
   }, 900);
+
+  return retObj;
+}
+
+/**
+ * Enqueues a song for a user.
+ *
+ * @param song The song model.
+ * @param user The user model.
+ * @return A promise resolving with the QueuedSong model once enqueued.
+ *         The promise notifies of changes in stage.
+ */
+function enqueueSong(song, user) {
+  var deferred = Q.defer();
+
+  // TODO: Delete these dummy events and actually enqueue the song.
+  setTimeout(function() {
+    deferred.notify(exports.stages.saving);
+  }, 600);
+  setTimeout(function() {
+    if (Math.random() > 0.5)
+      deferred.reject(new Error('Enqueueing still broken.'));
+    else
+      deferred.resolve({});
+  }, 1000);
 
   return deferred.promise;
 }
@@ -67,24 +98,19 @@ function processSong(path, user, name) {
  * @param path The full path to the media file.
  * @param user The user model.
  * @param name The original filename of the song.
- * @return A promise resolving with the song model.
+ * @return An object containing an id of the song adding process, and a promise
+ *         resolving with the added song, notifying of the current stage, and
+ *         rejecting with any errors.
  */
 function addSong(path, user, name) {
-  var deferred = Q.defer();
-
-  return processSong(path, user, name).then(function(song) {
-    var deferred = Q.defer();
-
-    // TODO: Delete these dummy events and actually enqueue the song.
-    setTimeout(function() {
-      deferred.notify(exports.stages.saving);
-    }, 600);
-    setTimeout(function() {
-      deferred.reject(new Error('Enqueueing still broken.'));
-    }, 1000);
-
-    return deferred.promise;
-  });
+  var process = processSong(path, user, name);
+  
+  return {
+    id: process.id,
+    promise: process.promise.then(function(song) {
+      return enqueueSong(song, user);
+    })
+  };
 }
 
 exports.addSong = addSong;

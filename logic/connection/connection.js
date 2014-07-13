@@ -1,6 +1,7 @@
 /* connection.js
  * Manages a socket.io connection for a user in a room.
  */
+/*jshint es5: true */
 
 var rooms = require('../room/rooms');
 var winston = require('winston');
@@ -45,6 +46,32 @@ module.exports = Backbone.Model.extend({
     
     // Set our id
     this.set({ id: socket.id });
+  },
+
+  watchSongAdd: function(song_add) {
+    var socket = this.socket(),
+        promise = song_add.promise;
+
+    promise.then(function(song) {
+      socket.emit('song:add:added', {
+        id: song_add.id,
+        song_id: song.id
+      });
+    });
+
+    promise.catch(function(err) {
+      socket.emit('song:add:failed', {
+        id: song_add.id,
+        error: err.message
+      });
+    });
+
+    promise.progress(function(stage) {
+      socket.emit('song:add:status', {
+        id: song_add.id,
+        status: stage
+      });
+    });
   },
 
   roomChanged: function() {

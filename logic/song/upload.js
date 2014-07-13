@@ -9,6 +9,7 @@ var fs = require('fs');
 var Q = require('q');
 var multiparty = require('multiparty');
 var songs = require('./songs');
+var connections = require('../connection/connections');
 
 var song_path = 'songs';
 var artwork_path = 'artwork';
@@ -42,7 +43,15 @@ exports.init = function() {
 exports.initHandlers = function(app, auth) {
   app.post('/song/upload', function(req, res, next) {
     res.plaintext = true;
-    auth.getUser(true, req, res, next, function(user) {
+    auth.getUser(false, req, res, next, function(user) {
+
+      if (!user) {
+        res.status(403);
+        res.end(JSON.stringify({
+          error: 'Please log in.'
+        }));
+        return;
+      }
 
       var form = new multiparty.Form({
         autoFiles: true,
@@ -56,18 +65,25 @@ exports.initHandlers = function(app, auth) {
           return;
         }
 
-        songs
-        .addSong(file.path, user, file.originalFilename)
-        .then(function(song) {
-            res.status(200);
-            res.end();
-        })
-        .catch(function(err) {
-          next(err);
-        })
-        .progress(function(stage) {
-          // TODO send progress to user over socket
-          winston.warn('NOTIFIED: ' + stage);
+        var adding = songs.addSong(file.path, user, file.originalFilename);
+
+        if (adding && adding.id) {
+          res.status(200);
+          res.end(JSON.stringify({
+            id: adding.id
+          }));
+        } else {
+          res.status(500);
+          res.end(JSON.stringify({
+            error: 'Error processing song.'
+          }));
+          winston.error('addSong() returned invalid adding object.');
+        }
+
+        connections
+        .connectionsForUsername(user.username)
+        .forEach(function(connection) {
+          connection.watchSongAdd(adding);
         });
       });
 
