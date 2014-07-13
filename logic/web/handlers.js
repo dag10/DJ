@@ -28,7 +28,7 @@ exports.init = function(app, auth) {
     limit: config.web.max_file_size + 'mb'
   }));
   app.use(express.cookieParser());
-  app.use(express.session({secret: Math.random() + '_'}));
+  app.use(express.session({secret: Math.random() + config.web.secret }));
 
   var tmpDir = os.tmpDir();
   app.use(lessMiddleware({

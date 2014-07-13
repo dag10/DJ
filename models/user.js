@@ -3,7 +3,7 @@
  */
 
 var config = require('../config');
-var secret = config.web.secret + '_hash';
+var secret = Math.random() + config.web.secret;
 var crypto = require('crypto');
 
 exports.Model = null;
