@@ -3,7 +3,7 @@
  */
 /*jshint es5: true */
 
-var NewBackboneDBModel = require('../new_backbone_db_model');
+var BackboneDBModel = require('../backbone_db_model');
 var queued_song_model = require('../../models/queuedsong');
 var song_model = require('../../models/song');
 var user_model = require('../../models/user');
@@ -12,7 +12,7 @@ var winston = require('winston');
 var _ = require('underscore');
 var Q = require('q');
 
-module.exports = NewBackboneDBModel.extend({
+module.exports = BackboneDBModel.extend({
   defaults: {
     playing: false,
     autosave: true

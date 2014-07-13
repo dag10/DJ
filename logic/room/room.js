@@ -6,11 +6,11 @@ var winston = require('winston');
 var _ = require('underscore');
 var room_model = require('../../models/room');
 var ConnectionManager = require('../connection/connection_manager');
-var NewBackboneDBModel = require('../new_backbone_db_model');
+var BackboneDBModel = require('../backbone_db_model');
 var connections = require('../connection/connections');
 var SongPlayback = require('../song/song_playback.js');
 
-module.exports = NewBackboneDBModel.extend({
+module.exports = BackboneDBModel.extend({
   initialize: function() {
     this.set({
       connections: new ConnectionManager(),

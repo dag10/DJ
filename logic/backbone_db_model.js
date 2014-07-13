@@ -1,6 +1,5 @@
-/* new_backbone_db_model.js
+/* backbone_db_model.js
  * A base Backbone model that encapsulates a sequelize db model.
- * TODO: Rename to backbone_db_model when old one is no longer used.
  */
 /*jshint es5: true */
 
