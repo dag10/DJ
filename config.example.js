@@ -16,6 +16,9 @@ module.exports = {
   // If true, uncaught errors won't be logged.
   debug: true,
 
+  // If true and debug is true, socket.io debug messages will be logged.
+  debug_socketio: false,
+
   web: {
     // Host for the server.
     host: '0.0.0.0',
