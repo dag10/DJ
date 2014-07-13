@@ -344,7 +344,6 @@ module.exports = Backbone.Model.extend({
   // Handle queue song order change.
   handleQueuedSongOrder: function(data, fn) {
     if (!data) return;
-
     if (!this.ensureAuth(fn)) return;
     this.get('queue').updateSongOrder(data[0], data[1]);
   },
