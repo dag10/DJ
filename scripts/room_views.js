@@ -236,6 +236,18 @@ $(function() {
         this.$el.removeClass('added');
       }
 
+      switch (model.status.toLowerCase()) {
+        case 'metadata':
+          model.status = 'extracting metadata';
+          break;
+        case 'artwork':
+          model.status = 'extracting artwork';
+          break;
+        case 'transcoding':
+          model.status = 'transcoding audio';
+          break;
+      }
+
       this.$el.html(this.template(model));
       this.renderProgress();
       return this;
