@@ -6,6 +6,11 @@
  *
  * Do not use this as an example for creating third-party song sources.
  */
+/*jshint es5: true */
+
+var Sequelize = require('sequelize');
+var song_model = require('../models/song');
+var file_model = require('../models/file');
 
 var log;
 
@@ -52,21 +57,37 @@ exports.init = function(logger, callback) {
  *             empty array.
  */
 exports.search = function(max_results, query, callback) {
-  // TODO: Actually return results existing in database.
-
-  var results = [];
-
-  for (var i = 0; i < max_results; i++) {
-    results.push({
-      id: i,
-      title: "Result " + i + '!',
-      artist: query,
-      album: "Some Album",
-      image_url: "http://placehold.it/32&text=" + (i + 1)
-    });
-  }
-
-  callback(results);
+  song_model.Model.findAll({
+    where: Sequelize.or(
+      { title: { like: '%' + query + '%' } },
+      { artist: { like: '%' + query + '%' } },
+      { album: { like: '%' + query + '%' } }
+    ),
+    limit: max_results,
+    include: [
+      {
+        model: file_model.Model,
+        as: 'Artwork'
+      }
+    ]
+  })
+  .then(function(songs) {
+    callback(songs.map(function(song) {
+      return {
+        id: song.id,
+        title: song.title,
+        artist: song.artist,
+        album: song.album,
+        image_url: song.artwork ? '/artwork/' + song.artwork.filename : null
+      };
+    }));
+  })
+  .catch(function(err) {
+    log.error(
+      'Failed to return upload search results for "' + query +
+      '": ' + err.stack);
+    callback([]);
+  });
 };
 
 /** Fetches the song of the specified id.
