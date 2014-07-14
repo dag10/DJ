@@ -57,11 +57,14 @@ exports.init = function(logger, callback) {
  *             empty array.
  */
 exports.search = function(max_results, query, callback) {
+  query = query.replace('%', '\\%').replace(/\s+/g, '%');
+  query = '%' + query + '%';
+
   song_model.Model.findAll({
     where: Sequelize.or(
-      { title: { like: '%' + query + '%' } },
-      { artist: { like: '%' + query + '%' } },
-      { album: { like: '%' + query + '%' } }
+      { title: { like: query } },
+      { artist: { like: query } },
+      { album: { like: query } }
     ),
     limit: max_results,
     include: [
