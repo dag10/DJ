@@ -320,6 +320,8 @@
           overflow-y: auto;
 
           & > ul {
+            height: 0;
+
             li:last-child {
               border-bottom-width: 1px;
             }
@@ -742,5 +744,17 @@
   visibility: hidden;
   height: 0;
   width: 0;
+}
+
+/* Firefox-only rules */
+@-moz-document url-prefix() {
+  .fixed-column .column-table .column-table-row .column-section {
+    &, &:before, &:after {
+      @box-sizing: padding-box;
+      -webkit-box-sizing: @box-sizing;
+      -moz-box-sizing: @box-sizing;
+      box-sizing: @box-sizing;
+    }
+  }
 }
 
