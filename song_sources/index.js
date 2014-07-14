@@ -36,8 +36,20 @@ exports.init = function() {
     // Initialize each model.
     function(callback) {
       async.map(modules, function(module, callback) {
+        var prefix = ('[' + module.name + ']').bold + ' ';
+        var createLogFunction = function(type) {
+          return function(msg) {
+            winston[type](prefix + msg);
+          };
+        };
         callback(null, function(cb) {
-          var err = module.init(function(err) {
+          var err = module.init({
+            debug: createLogFunction('debug'),
+            info: createLogFunction('info'),
+            log: createLogFunction('info'),
+            warn: createLogFunction('warn'),
+            error: createLogFunction('error')
+          }, function(err) {
             if (err) {
               winston.error(
                 'Failed to load song source ' + module.name +

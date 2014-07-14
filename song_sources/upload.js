@@ -7,6 +7,8 @@
  * Do not use this as an example for creating third-party song sources.
  */
 
+var log;
+
 /**
  * Name of song source.
  */
@@ -20,10 +22,12 @@ exports.display_name = 'Uploaded Songs';
 /** Initialize the song source.
  *
  * args:
+ *  logger: Logging object. Call functions (debug|info|warn|error) to log.
  *  callback: Function to call when song source is fully loaded.
  *            If there was an error loading, pass an Error object.
  */
-exports.init = function(callback) {
+exports.init = function(logger, callback) {
+  log = logger;
   callback();
 };
 
