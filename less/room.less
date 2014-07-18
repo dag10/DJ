@@ -364,9 +364,9 @@
         #search-results-list .section-header {
           position: relative;
           min-height: 24px;
-          border-bottom: none;
           background-color: darken(@color-grey-background, 3%);
           border: solid 1px lighten(@color-grey-border, 10%);
+          border-bottom: solid 1px lighten(@color-grey-border, 9%);
 
           .loading-gradient, .content {
             position: absolute;
@@ -535,6 +535,21 @@
                 -moz-box-shadow: @box-shadow;
                 box-shadow: @box-shadow;
               }
+            }
+          }
+        }
+
+        #search-results-list li.song {
+          &:hover, &.selected {
+            @background: darken(@color-grey-background, 3%);
+            background-color: @background;
+            cursor: pointer;
+
+            .faded-edge {
+              @box-shadow: inset -30px 0 24px -15px @background;
+              -webkit-box-shadow: @box-shadow;
+              -moz-box-shadow: @box-shadow;
+              box-shadow: @box-shadow;
             }
           }
         }
