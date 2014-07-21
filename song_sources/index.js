@@ -13,6 +13,7 @@ var file_model = require('../models/file');
 var song_model = require('../models/song');
 var songs = require('../logic/song/songs');
 var Q = require('q');
+var Sequelize = require('sequelize');
 
 // Checks whether the str ends with the suffix string.
 function endsWith(str, suffix) {
@@ -159,10 +160,10 @@ exports.search = function(query, callback) {
  */
 exports.fetch = function(source, source_id) {
   return Q(song_source_map_model.Model.find({
-    where: {
-      source: source,
-      sourceId: source_id
-    },
+    where: Sequelize.and(
+      { source: source },
+      { sourceId: source_id }
+    ),
     include: [
       {
         model: song_model.Model,
@@ -180,8 +181,8 @@ exports.fetch = function(source, source_id) {
       }
     ]
   }))
-  .then(function(song) {
-    if (song) return Q(song);
+  .then(function(song_map) {
+    if (song_map) return Q(song_map.getSong());
     var deferred = Q.defer();
 
     _.defer(function() {
