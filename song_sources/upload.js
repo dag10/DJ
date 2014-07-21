@@ -104,6 +104,6 @@ exports.search = function(max_results, query, callback) {
  *             If there was an error, pass an Error object describing it.
  */
 exports.fetch = function(id, download_location, callback) {
-  callback(new Error('Not implemented yet!'));
+  callback(new Error('Uploads should not be fetched.'));
 };
 

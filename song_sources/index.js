@@ -4,8 +4,14 @@
 
 var config = require('../config');
 var fs = require('fs');
+var os = require('os');
 var winston = require('winston');
 var async = require('async');
+var _ = require('underscore');
+var song_source_map_model = require('../models/songsourcemap');
+var file_model = require('../models/file');
+var song_model = require('../models/song');
+var songs = require('../logic/song/songs');
 var Q = require('q');
 
 // Checks whether the str ends with the suffix string.
@@ -56,6 +62,7 @@ exports.init = function() {
                 ': ' + err.message);
             } else {
               winston.info('Loaded song source: ' + module.name);
+              module.downloadDir = os.tmpdir();
               exports.sources[module.name] = module;
             }
             cb();
@@ -122,6 +129,11 @@ exports.search = function(query, callback) {
         var source_name = source_names[i];
         var source = exports.sources[source_name];
 
+        var result_objects = _.map(result_arrays[i], function(result) {
+          result.source_id = result.id;
+          return result;
+        });
+
         sections.push({
           source: source.name,
           title: source.display_name,
@@ -134,6 +146,81 @@ exports.search = function(query, callback) {
         sections: sections
       });
     });
+  });
+};
+
+/**
+ * Downloads or gets a Song entity from a song source.
+ *
+ * @param source Name of song source.
+ * @param source_id Source-specific id string of song to fetch.
+ * @return Promise resolving with the Song instance or null, or rejecting with
+ *                 an error.
+ */
+exports.fetch = function(source, source_id) {
+  return Q(song_source_map_model.Model.find({
+    where: {
+      source: source,
+      sourceId: source_id
+    },
+    include: [
+      {
+        model: song_model.Model,
+        as: 'Song',
+        include: [
+          {
+            model: file_model.Model,
+            as: 'File'
+          },
+          {
+            model: file_model.Model,
+            as: 'Artwork'
+          }
+        ]
+      }
+    ]
+  }))
+  .then(function(song) {
+    if (song) return Q(song);
+    var deferred = Q.defer();
+
+    _.defer(function() {
+      deferred.notify(songs.stages.downloading);
+    });
+
+    Q
+    .delay(1200)
+    .then(function() {
+      var source_module = exports.sources[source];
+      if (!source_module) {
+        return Q.reject(new Error('Source not found: ' + source));
+      }
+
+      var fetch_deferred = Q.defer();
+
+      source_module.fetch(
+          source_id, source_module.downloadDir, function(ret) {
+        if (typeof ret === 'string') {
+          var filename = ret.replace(/^.*[\\\/]/, '');
+          songs
+          .addSong(ret, user, filename)
+          .done(
+            fetch_deferred.resolve,
+            fetch_deferred.reject,
+            fetch_deferred.notify);
+        } else {
+          fetch_deferred.reject(ret);
+        }
+      });
+
+      return fetch_deferred.promise;
+    })
+    .done(
+      deferred.resolve,
+      deferred.reject,
+      deferred.notify);
+
+    return deferred.promise;
   });
 };
 

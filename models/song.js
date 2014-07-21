@@ -43,6 +43,9 @@ exports.define = function(sequelize, DataTypes) {
           as: 'Queueings',
           through: models.QueuedSong
         });
+        this.hasMany(models.SongSourceMap, {
+          as: 'SourceMappings'
+        });
 
         // When a song is delete, delete its queueings.
         this.beforeDestroy(function(song, fn) {

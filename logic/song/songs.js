@@ -12,6 +12,7 @@ var upload = require('./upload');
 var ffmpeg = require('fluent-ffmpeg');
 var file_model = require('../../models/file');
 var song_model = require('../../models/song');
+var song_sources = require('../../song_sources');
 var queues = require('./queues');
 var crypto = require('crypto');
 var Q = require('q');
@@ -24,12 +25,22 @@ var nextJobId = 1;
 
 /** Encoding stages to show to user as progress. */
 exports.stages = {
+  downloading: 'downloading',
   transcoding: 'transcoding',
   metadata: 'metadata',
   artwork: 'artwork',
   saving: 'saving',
   added: 'added',
 };
+
+/**
+ * Generates a new song add job ID.
+ *
+ * @return Integer value of new job ID.
+ */
+function createJobId() {
+  return nextJobId++;
+}
 
 /**
  * Generates a short name for a song from the original name.
@@ -194,7 +205,7 @@ function extractArtwork(path) {
 function processSong(uploadedpath, user, name) {
   var deferred = Q.defer();
   var ret = {
-    id: nextJobId++,
+    job_id: createJobId(),
     promise: deferred.promise
   };
 
@@ -364,8 +375,7 @@ function enqueueSong(song, user) {
   .addSongToQueue(song, user)
   .then(deferred.resolve)
   .catch(function(err) {
-    deferred.reject(new Error('Failed to enqueue song.'));
-    console.error('ERR:', err.stack);
+    deferred.reject(new Error('Failed to enqueue song'));
     winston.warn(
       'Failed to enqueue song: ' + song.getLogName() + '\n' + err.stack);
   });
@@ -393,5 +403,42 @@ function addSong(path, user, name) {
   return process;
 }
 
+/**
+ * Fetches and enqueues a song from a search result.
+ *
+ * @param source Name of song source.
+ * @param source_id Source-specific id string of song to fetch.
+ * @param user User entity to enqueue the song for.
+ * @return Promise resolving with Song when complete, or rejecting with a
+ *                 clean, displayable error.
+ */
+function addFromSearch(source, source_id, user) {
+  var deferred = Q.defer(),
+      _song = null;
+
+  song_sources
+  .fetch(source, source_id)
+  .then(function(song) {
+    _song = song;
+    return enqueueSong(song, user);
+  })
+  .then(function() {
+    deferred.resolve(_song);
+  })
+  .progress(deferred.notify)
+  .catch(function(error) {
+    deferred.reject(new Error('Failed to add song.'));
+    winston.warn(
+      'Failed to add song "' + source_id + '" from source "' + source +
+      '": ' + error.stack);
+  });
+
+  return {
+    job_id: createJobId(),
+    promise: deferred.promise
+  };
+}
+
 exports.addSong = addSong;
+exports.addFromSearch = addFromSearch;
 
