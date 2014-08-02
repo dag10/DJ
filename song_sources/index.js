@@ -26,6 +26,40 @@ var search_functions = [];
 // Map of loaded song source modules. Index by module name.
 exports.sources = {};
 
+/**
+ * Creates a log function that wraps a winston log function, prefixing the
+ * message.
+ *
+ * @param prefix String to prefix messages with.
+ * @param type Winston log function name to use (e.g. 'info', 'debug', etc).
+ * @return Function that accepts a string and logs the prefixed string.
+ */
+function createLogFunction(prefix, type) {
+  return function(msg) {
+    winston[type](prefix + msg);
+  };
+}
+
+/**
+ * Creates a logging function/object for a module.
+ *
+ * @param module The module object.
+ * @return Function with member functions to log a message prefixed by the
+ *         module's name.
+ */
+function createLogger(module) {
+  var prefix = ('[' + module.name + ']').bold + ' ';
+  var logger = createLogFunction(prefix, 'info');
+  logger.debug = createLogFunction(prefix, 'debug');
+  logger.info = createLogFunction(prefix, 'info');
+  logger.warn = createLogFunction(prefix, 'warn');
+  logger.error = createLogFunction(prefix, 'error');
+  return logger;
+
+
+
+}
+
 // Loads and initializes all local and external song sources.
 exports.init = function() {
   var deferred = Q.defer(),
@@ -38,25 +72,22 @@ exports.init = function() {
     modules.push(require('./' + file));
   });
 
+  // Find external modules.
+  config.song_sources.external_modules.forEach(function(module_name) {
+    var module = require(module_name);
+    module.name = module_name;
+    modules.push(module);
+  });
+
+
   async.series([
     
     // Initialize each model.
     function(callback) {
       async.map(modules, function(module, callback) {
-        var prefix = ('[' + module.name + ']').bold + ' ';
-        var createLogFunction = function(type) {
-          return function(msg) {
-            winston[type](prefix + msg);
-          };
-        };
         callback(null, function(cb) {
-          var err = module.init({
-            debug: createLogFunction('debug'),
-            info: createLogFunction('info'),
-            log: createLogFunction('info'),
-            warn: createLogFunction('warn'),
-            error: createLogFunction('error')
-          }, function(err) {
+          var log = createLogger(module);
+          var err = module.init(log, function(err) {
             if (err) {
               winston.error(
                 'Failed to load song source ' + module.name +
