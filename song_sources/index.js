@@ -55,12 +55,63 @@ function createLogger(module) {
   logger.warn = createLogFunction(prefix, 'warn');
   logger.error = createLogFunction(prefix, 'error');
   return logger;
-
-
-
 }
 
-// Loads and initializes all local and external song sources.
+/**
+ * Initializes a song source module.
+ *
+ * This function also adds the module to the modules list if it was
+ * successfully initialized.
+ *
+ * @param Module to initialize.
+ * @return Promise resolving with the module if successful, or resolving with
+ *         an Error if there was an error. It does not reject the promise.
+ */
+function initSongSource(module) {
+  var deferred = Q.defer();
+
+  var logger = createLogger(module);
+
+  module.init(logger, function(err) {
+    if (err) {
+      winston.error(
+        'Failed to load song source ' + module.name +
+        ': ' + err.message);
+      deferred.resolve(err);
+    } else {
+      winston.info('Loaded song source: ' + module.name);
+      module.downloadDir = os.tmpdir();
+      exports.sources[module.name] = module;
+      deferred.resolve(module);
+    }
+  });
+
+  return deferred.promise;
+}
+
+/**
+ * Creates a search function for a module.
+ *
+ * @param module Name of module.
+ * @return Function that accepts a query string and a callback for returning
+ *         a list of results.
+ */
+function createSearchFunction(module) {
+  var max_results = config.song_sources.results_format[module.name];
+  return function(query, callback) {
+    module.search(
+      max_results, query, function(results) {
+      callback(null, results);
+    });
+  };
+}
+
+/**
+ * Loads and initializes all local and external song sources.
+ *
+ * @return Promise resolving with successful initialization, or rejecting
+ *         with an error.
+ */
 exports.init = function() {
   var deferred = Q.defer(),
       modules = [];
@@ -79,70 +130,34 @@ exports.init = function() {
     modules.push(module);
   });
 
+  // Start of promise chain.
+  return Q
+  
+  // Initialize all song source modules.
+  .all(modules.map(initSongSource)).allSettled()
+  .then(function() {
+    var length = Object.keys(exports.sources).length;
+    var plural = length == 1 ? '' : 's';
+    winston.info('Loaded ' + length + ' source' + plural + '.');
 
-  async.series([
-    
-    // Initialize each model.
-    function(callback) {
-      async.map(modules, function(module, callback) {
-        callback(null, function(cb) {
-          var log = createLogger(module);
-          var err = module.init(log, function(err) {
-            if (err) {
-              winston.error(
-                'Failed to load song source ' + module.name +
-                ': ' + err.message);
-            } else {
-              winston.info('Loaded song source: ' + module.name);
-              module.downloadDir = os.tmpdir();
-              exports.sources[module.name] = module;
-            }
-            cb();
-          });
-        });
-      }, function(err, initializers) {
-        async.parallel(initializers, function(err, result) {
-          var length = Object.keys(exports.sources).length;
-          var plural = length == 1 ? '' : 's';
-          winston.info('Loaded ' + length + ' source' + plural + '.');
-
-          if (length > 0) {
-            callback();
-          } else {
-            callback(new Error('No song sources were loaded.'));
-          }
-        });
-      });
-    },
-
-    // Build internal array of search functions.
-    function(callback) {
-      async.map(
-        Object.keys(config.song_sources.results_format),
-        function(source_name, callback) {
-          var func = function(max_results, query, callback) {
-            exports.sources[source_name].search(
-                max_results, query, function(results) {
-              callback(null, results);
-            });
-          };
-          var max_results = config.song_sources.results_format[source_name];
-          callback(null, async.apply(func, max_results));
-        }, function(err, results) {
-          search_functions = results;
-          callback();
-        });
+    if (length === 0) {
+      return Q.reject(new Error('No song sources were loaded.'));
     }
+  })
 
-  ], function(err) {
-    if (err) {
-      deferred.reject(err);
-    } else {
-      deferred.resolve();
-    }
+  // Build internal array of search functions.
+  .then(function() {
+    var source_names = Object.keys(config.song_sources.results_format);
+    var search_modules = source_names
+    .map(function(source_name) {
+      return exports.sources[source_name];
+    })
+    .filter(function(module) {
+      return !!module;
+    });
+
+    search_functions = search_modules.map(createSearchFunction);
   });
-
-  return deferred.promise;
 };
 
 // Searches all song sources.
