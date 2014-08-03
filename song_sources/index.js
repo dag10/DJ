@@ -15,16 +15,22 @@ var songs = require('../logic/song/songs');
 var Q = require('q');
 var Sequelize = require('sequelize');
 
-// Checks whether the str ends with the suffix string.
-function endsWith(str, suffix) {
-  return str.indexOf(suffix, str.length - suffix.length) !== -1;
-}
-
 // Internal map of search functions for loaded sources.
 var search_functions = [];
 
 // Map of loaded song source modules. Index by module name.
 exports.sources = {};
+
+/**
+ * Checks whether the str ends with the suffix string.
+ *
+ * @param str String to test.
+ * @param suffix Suffix to test for.
+ * @return True if str ends with suffix.
+ */
+function endsWith(str, suffix) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
 
 /**
  * Creates a log function that wraps a winston log function, prefixing the
@@ -134,7 +140,7 @@ exports.init = function() {
   return Q
   
   // Initialize all song source modules.
-  .all(modules.map(initSongSource)).allSettled()
+  .allSettled(modules.map(initSongSource))
   .then(function() {
     var length = Object.keys(exports.sources).length;
     var plural = length == 1 ? '' : 's';
@@ -162,36 +168,48 @@ exports.init = function() {
 
 // Searches all song sources.
 exports.search = function(query, callback) {
-  // First, we apply the search query to all the sources' search functions.
-  async.map(search_functions, function(search_function, callback) {
-    callback(null, async.apply(search_function, query));
-  }, function(err, applied_search_functions) {
-    // Then we run all the functions in parallel, waiting until they finish.
-    async.parallel(applied_search_functions, function(err, result_arrays) {
-      var sections = [];
-      var source_names = Object.keys(config.song_sources.results_format);
+  Q.allSettled(search_functions.map(function(search_function) {
+    var deferred = Q.defer();
 
-      // Wrap the results objects in objects describing the song source.
-      for (var i = 0; i < result_arrays.length; i++) {
-        var source_name = source_names[i];
-        var source = exports.sources[source_name];
+    search_function(query, function(err, result) {
+      deferred.resolve(result || []);
+    });
 
-        var result_objects = _.map(result_arrays[i], function(result) {
-          result.source_id = result.id;
-          return result;
-        });
+    return deferred.promise;
+  }))
+  .then(function(results) {
+    var sections = [];
 
-        sections.push({
-          source: source.name,
-          title: source.display_name,
-          results: result_arrays[i]
-        });
-      }
+    var source_names = Object.keys(
+        config.song_sources.results_format).filter(function(source_name) {
+      return !!exports.sources[source_name];
+    });
 
-      callback({
-        query: query,
-        sections: sections
+    var search_modules = source_names
+    .map(function(source_name) {
+      return exports.sources[source_name];
+    })
+    .filter(function(module) {
+      return !!module;
+    });
+
+    for (var i = 0; i < results.length; i++) {
+      var result = results[i];
+      if (result.state !== 'fulfilled') continue;
+
+      var source_name = source_names[i];
+      var source = exports.sources[source_name];
+
+      sections.push({
+        source: source.name,
+        title: source.display_name,
+        results: result.value
       });
+    }
+
+    callback({
+      query: query,
+      sections: sections
     });
   });
 };
