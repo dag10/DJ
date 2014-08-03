@@ -1,6 +1,7 @@
 /* song_sources index.js
  * Loads all local and external song source modules.
  */
+/*jshint es5: true */
 
 var config = require('../config');
 var fs = require('fs');
@@ -63,6 +64,17 @@ function createLogger(module) {
 }
 
 /**
+ * Gets the configuration object for a module, if any.
+ *
+ * @param module The module object.
+ * @return Configuration object for the module. If no config is found, an
+ *         empty object is returned.
+ */
+function getConfig(module) {
+  return config.song_sources.configurations[module.name] || {};
+}
+
+/**
  * Initializes a song source module.
  *
  * This function also adds the module to the modules list if it was
@@ -73,25 +85,19 @@ function createLogger(module) {
  *         an Error if there was an error. It does not reject the promise.
  */
 function initSongSource(module) {
-  var deferred = Q.defer();
-
-  var logger = createLogger(module);
-
-  module.init(logger, function(err) {
-    if (err) {
-      winston.error(
-        'Failed to load song source ' + module.name +
-        ': ' + err.message);
-      deferred.resolve(err);
-    } else {
-      winston.info('Loaded song source: ' + module.name);
-      module.downloadDir = os.tmpdir();
-      exports.sources[module.name] = module;
-      deferred.resolve(module);
-    }
+  return module
+  .init(createLogger(module), getConfig(module))
+  .then(function() {
+    winston.info('Loaded song source: ' + module.name);
+    module.downloadDir = os.tmpdir();
+    exports.sources[module.name] = module;
+    return Q(module);
+  })
+  .catch(function(err) {
+    winston.error(
+      'Failed to load song source ' + module.name +
+      ': ' + err.message);
   });
-
-  return deferred.promise;
 }
 
 /**
@@ -103,11 +109,8 @@ function initSongSource(module) {
  */
 function createSearchFunction(module) {
   var max_results = config.song_sources.results_format[module.name];
-  return function(query, callback) {
-    module.search(
-      max_results, query, function(results) {
-      callback(null, results);
-    });
+  return function(query) {
+    return module.search(max_results, query);
   };
 }
 
@@ -170,8 +173,12 @@ exports.search = function(query, callback) {
   Q.allSettled(search_functions.map(function(search_function) {
     var deferred = Q.defer();
 
-    search_function(query, function(err, result) {
+    search_function(query)
+    .then(function(result) {
       deferred.resolve(result || []);
+    })
+    .catch(function(err) {
+      deferred.resolve([]);
     });
 
     return deferred.promise;
