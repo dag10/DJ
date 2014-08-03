@@ -6,7 +6,6 @@ var config = require('../config');
 var fs = require('fs');
 var os = require('os');
 var winston = require('winston');
-var async = require('async');
 var _ = require('underscore');
 var song_source_map_model = require('../models/songsourcemap');
 var file_model = require('../models/file');
