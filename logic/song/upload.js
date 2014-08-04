@@ -71,10 +71,10 @@ exports.initHandlers = function(app, auth) {
       form.on('file', function(name, file) {
         var adding = songs.addSong(file.path, user, file.originalFilename);
 
-        if (adding && typeof adding.id === 'number') {
+        if (adding && typeof adding.job_id === 'number') {
           res.status(200);
           res.end(JSON.stringify({
-            id: adding.id
+            job_id: adding.job_id
           }));
         } else {
           res.status(500);

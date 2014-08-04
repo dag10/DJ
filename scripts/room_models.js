@@ -201,6 +201,18 @@ $(function() {
         'song:add:failed:' + this.id, this.onFailed, this);
       this.get('connection').on(
         'song:add:status:' + this.id, this.statusChanged, this);
+
+      var adds = this.get('connection').get('song_adds');
+      if (adds[this.id]) {
+        this.set(adds[this.id]);
+      }
+    },
+
+    failed: function(error) {
+      this.set({
+        status: 'failed',
+        error: error
+      });
     },
 
     onAdded: function(data) {
@@ -210,10 +222,7 @@ $(function() {
     },
 
     onFailed: function(data) {
-      this.set({
-        status: 'failed',
-        error: data.error
-      });
+      this.failed(data.error);
     },
 
     statusChanged: function(data) {
@@ -228,6 +237,35 @@ $(function() {
         this.get('connection').off('song:add:added:' + this.id);
         this.get('connection').off('song:add:failed:' + this.id);
       }
+    }
+  });
+
+  // Model representing a search result being added to the queue.
+  models.SearchAdd = models.SongAdd.extend({
+    defaults: {
+      progress: 0,
+      status: 'adding'
+    },
+
+    initialize: function() {
+      this.constructor.__super__.initialize.apply(this, arguments);
+      var result = this.get('result');
+
+      this.set({
+        name: result.get('title'),
+        source: result.get('source'),
+        source_id: result.id
+      });
+
+      this.get('connection').enqueueFromSource(
+        this.get('source'), this.get('source_id'),
+        _.bind(function(data) {
+          if (data.error) {
+            this.failed(data.error);
+          } else {
+            this.set({ id: data.job_id });
+          }
+        }, this));
     }
   });
 
@@ -250,10 +288,7 @@ $(function() {
 
       if (file.size > window.config.max_file_size) {
         var max_mb = Math.floor(window.config.max_file_size / 1024 / 1024);
-        this.set({
-          status: 'failed',
-          error: 'File cannot be larger than ' + max_mb + 'MB'
-        });
+        this.failed('File cannot be larger than ' + max_mb + 'MB');
         return;
       }
 
@@ -281,11 +316,11 @@ $(function() {
     onSuccess: function(data, textStatus, jqXHR) {
       this.stopUpdatingProgress();
 
-      if (typeof data.id === 'number') {
+      if (typeof data.job_id === 'number') {
         this.set({
           progress: 100,
           status: 'processing',
-          id: data.id
+          id: data.job_id
         });
       } else {
         this.set({
@@ -379,6 +414,13 @@ $(function() {
       this.get('adds').add(new models.SongUpload({
         connection: this.get('connection')
       }, data));
+    },
+
+    enqueueSearchResult: function(result) {
+      this.get('adds').add(new models.SearchAdd({
+        result: result,
+        connection: this.get('connection')
+      }));
     }
   });
 
@@ -440,7 +482,11 @@ $(function() {
   });
 
   // Data for a song in a search result.
-  models.SearchResult = Backbone.Model.extend();
+  models.SearchResult = Backbone.Model.extend({
+    addToQueue: function() {
+      this.trigger('enqueue', this);
+    }
+  });
 
   // Collection of pure SearchResult entities.
   models.SearchResultList = Backbone.Collection.extend({
@@ -460,6 +506,12 @@ $(function() {
       this.set({
         results: new models.SearchResultList()
       });
+      this.get('results').on('enqueue', this.enqueue, this);
+    },
+
+    enqueue: function(result) {
+      result.set({ source: this.get('source') });
+      this.trigger('enqueue', result);
     },
 
     setResults: function(results) {
@@ -492,7 +544,12 @@ $(function() {
         sections: new models.SearchResultSections(this.get('sections'))
       });
 
+      this.get('sections').on('enqueue', this.enqueue, this);
       this.on('change:query', this.queryChanged, this);
+    },
+
+    enqueue: function(result) {
+      this.get('adder').enqueueSearchResult(result);
     },
 
     queryChanged: function() {

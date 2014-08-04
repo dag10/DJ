@@ -10,6 +10,7 @@ var _ = require('underscore');
 var Backbone = require('backbone');
 var queues = require('../song/queues');
 var song_sources = require('../../song_sources');
+var songs = require('../song/songs');
 
 module.exports = Backbone.Model.extend({
   defaults: {
@@ -38,6 +39,7 @@ module.exports = Backbone.Model.extend({
     socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
     socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
     socket.on('search', _.bind(this.handleSearch, this));
+    socket.on('search:add', _.bind(this.handleSearchAdd, this));
     socket.on('queue:change:order', _.bind(this.handleQueuedSongOrder, this));
     socket.on('queue:remove', _.bind(this.handleRemoveFromQueue, this));
     socket.on('skip', _.bind(this.handleSkip, this));
@@ -54,21 +56,21 @@ module.exports = Backbone.Model.extend({
 
     promise.then(function(song) {
       socket.emit('song:add:added', {
-        id: song_add.id,
+        job_id: song_add.job_id,
         song_id: song.id
       });
     });
 
     promise.catch(function(err) {
       socket.emit('song:add:failed', {
-        id: song_add.id,
+        job_id: song_add.job_id,
         error: err.message
       });
     });
 
     promise.progress(function(stage) {
       socket.emit('song:add:status', {
-        id: song_add.id,
+        job_id: song_add.job_id,
         status: stage
       });
     });
@@ -326,6 +328,17 @@ module.exports = Backbone.Model.extend({
   handleSearch: function(query, fn) {
     if (!query || !fn) return;
     song_sources.search(query.substr(0, 50), fn);
+  },
+
+  // Handle adding a search result to queue.
+  handleSearchAdd: function(data, fn) {
+    var source = data.source,
+        source_id = data.source_id;
+
+    var job = songs.addFromSearch(source, source_id, this.user());
+
+    fn({ job_id: job.job_id });
+    this.watchSongAdd(job);
   },
 
   // Handle client disconnect.
