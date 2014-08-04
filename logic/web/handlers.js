@@ -5,7 +5,7 @@
 var config = require('../../config');
 var express = require('express');
 var lessMiddleware = require('less-middleware');
-var os = require('os');
+var fs_ = require('../../utils/fs');
 var winston = require('winston');
 var Q = require('q');
 var rooms = require('../room/rooms');
@@ -30,7 +30,7 @@ exports.init = function(app, auth) {
   app.use(express.cookieParser());
   app.use(express.session({secret: Math.random() + config.web.secret }));
 
-  var tmpDir = os.tmpDir();
+  var tmpDir = fs_.createTmpDir();
   app.use(lessMiddleware({
     src: base_dir + '/less',
     dest: tmpDir,
