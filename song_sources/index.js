@@ -5,6 +5,7 @@
 
 var config = require('../config');
 var fs = require('fs');
+var fs_ = require('../utils/fs');
 var os = require('os');
 var winston = require('winston');
 var _ = require('underscore');
@@ -89,7 +90,8 @@ function initSongSource(module) {
   .init(createLogger(module), getConfig(module))
   .then(function() {
     winston.info('Loaded song source: ' + module.name);
-    module.downloadDir = os.tmpdir();
+    module.downloadDir = fs_.createTmpDir();
+    module.metadataCache = {};
     exports.sources[module.name] = module;
     return Q(module);
   })
@@ -206,6 +208,10 @@ exports.search = function(query, callback) {
       var source_name = source_names[i];
       var source = exports.sources[source_name];
 
+      result.value.forEach(function(metadata) {
+        source.metadataCache[metadata.id] = metadata;
+      });
+
       sections.push({
         source: source.name,
         title: source.display_name,
@@ -225,10 +231,12 @@ exports.search = function(query, callback) {
  *
  * @param source Name of song source.
  * @param source_id Source-specific id string of song to fetch.
+ * @param job Job object containing a job_id and promise.
+ * @param user Optional user object, if a user triggered this fetch.
  * @return Promise resolving with the Song instance or null, or rejecting with
  *                 an error.
  */
-exports.fetch = function(source, source_id) {
+exports.fetch = function(source, source_id, job, user) {
   return Q(song_source_map_model.Model.find({
     where: Sequelize.and(
       { source: source },
@@ -259,32 +267,31 @@ exports.fetch = function(source, source_id) {
       deferred.notify(songs.stages.downloading);
     });
 
-    Q
-    .delay(1200)
-    .then(function() {
-      var source_module = exports.sources[source];
-      if (!source_module) {
-        return Q.reject(new Error('Source not found: ' + source));
-      }
+    var source_module = exports.sources[source];
+    if (!source_module) {
+      return Q.reject(new Error('Source not found: ' + source));
+    }
 
-      var fetch_deferred = Q.defer();
+    var metadata = source_module.metadataCache[source_id];
+    if (!metadata) {
+      return Q.reject(new Error(
+        source_module.name + ' metadata for ID ' + source_id +
+        ' not found in metadata cache.'));
+    }
 
-      source_module.fetch(
-          source_id, source_module.downloadDir, function(ret) {
-        if (typeof ret === 'string') {
-          var filename = ret.replace(/^.*[\\\/]/, '');
-          songs
-          .addSong(ret, user, filename)
-          .done(
-            fetch_deferred.resolve,
-            fetch_deferred.reject,
-            fetch_deferred.notify);
-        } else {
-          fetch_deferred.reject(ret);
-        }
-      });
-
-      return fetch_deferred.promise;
+    source_module
+    .fetch(source_id, source_module.downloadDir)
+    .then(function(path) {
+      var filename = path.replace(/^.*[\\\/]/, '');
+      var opts = {
+        source: source,
+        source_id: source_id,
+        title: metadata.title,
+        artist: metadata.artist,
+        album: metadata.album,
+        image_url: metadata.image_url,
+      };
+      return songs.processSong(path, user, filename, opts);
     })
     .done(
       deferred.resolve,

@@ -64,7 +64,9 @@ exports.init = function(_log, config) {
  *                  title: Title of the song.
  *                  artist: Artist of the song. (optional)
  *                  album: Album of the song. (optional)
- *                  image_url: URL of the album art image. (optional)
+ *                  image_url: URL of the high-res album art image. (optional)
+ *                  thumbnail_url: URL of the low-res album art image for the
+ *                                 search result thumbnail. (optional)
  */
 exports.search = function(max_results, query) {
   var deferred = Q.defer();
@@ -88,12 +90,16 @@ exports.search = function(max_results, query) {
   })
   .then(function(songs) {
     deferred.resolve(songs.map(function(song) {
+      var image_url = song.artwork ?
+        '/artwork/' + song.artwork.filename : null;
+
       return {
         id: song.id,
         title: song.title,
         artist: song.artist,
         album: song.album,
-        image_url: song.artwork ? '/artwork/' + song.artwork.filename : null
+        image_url: image_url,
+        thumbnail_url: image_url,
       };
     }));
   })
