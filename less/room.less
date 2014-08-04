@@ -58,12 +58,11 @@
     max-height: 550px;
   }
 
-
   @height_iterations: 1000px;
   @height_difference: 180px;
   @min_height: @height_difference + 100px;
   .loopingClass (@index) when (@index > @min_height) {
-    @media only screen and (min-width: 768px) and (max-height: @index) {
+    @media only screen and (min-width: @single-col-width) and (max-height: @index) {
       height: @index - @height_difference;
       #previews, #dj-list {
         max-height: @index - @height_difference - 300px;
@@ -74,10 +73,13 @@
   .loopingClass (0) {}
   .loopingClass (@height_iterations);
 
-  @media only screen and (max-width: 768px) {
-    min-height: 400px;
-    #preview {
-      max-height: 200px;
+  @media only screen and (max-width: @single-col-width) {
+    min-height: 100px;
+    max-height: 400px;
+    margin-bottom: 20px;
+
+    #previews {
+      max-height: 150px;
     }
   }
 
@@ -173,8 +175,6 @@
             padding: 0;
             padding-right: 10px;
             position: absolute;
-            top: 0;
-            bottom: 0;
             left: 0;
             right: 0;
             width: 100%;
@@ -319,7 +319,9 @@
           overflow-x: hidden;
           overflow-y: auto;
 
-          & > ul {
+          & > ul:not(#search-results-list) {
+            height: 0;
+
             li:last-child {
               border-bottom-width: 1px;
             }
@@ -362,9 +364,9 @@
         #search-results-list .section-header {
           position: relative;
           min-height: 24px;
-          border-bottom: none;
           background-color: darken(@color-grey-background, 3%);
           border: solid 1px lighten(@color-grey-border, 10%);
+          border-bottom: solid 1px lighten(@color-grey-border, 9%);
 
           .loading-gradient, .content {
             position: absolute;
@@ -442,7 +444,8 @@
             height: @inner-height;
             background-color: darken(@color-grey-background, 10%);
             background-image: url('/images/unknown_song.png');
-            background-size: contain;
+            background-size: cover;
+            background-position: center;
             display: inline-block;
             border-radius: 3px;
           }
@@ -536,6 +539,21 @@
             }
           }
         }
+
+        #search-results-list li.song {
+          &:hover, &.selected {
+            @background: darken(@color-grey-background, 3%);
+            background-color: @background;
+            cursor: pointer;
+
+            .faded-edge {
+              @box-shadow: inset -30px 0 24px -15px @background;
+              -webkit-box-shadow: @box-shadow;
+              -moz-box-shadow: @box-shadow;
+              box-shadow: @box-shadow;
+            }
+          }
+        }
       }
     }
   }
@@ -585,7 +603,7 @@
     opacity: 1;
   }
 
-  @media only screen and (max-width: 767px) {
+  @media only screen and (max-width: @single-col-width - 1px) {
     height: 400px;
     margin: 10px;
   }
@@ -622,7 +640,8 @@
       width: @size;
       height: @size;
       float: left;
-      background-size: contain;
+      background-size: cover;
+      background-position: center;
       margin-right: @info-padding;
       border-radius: 3px;
 
@@ -742,5 +761,17 @@
   visibility: hidden;
   height: 0;
   width: 0;
+}
+
+/* Firefox-only rules */
+@-moz-document url-prefix() {
+  .fixed-column .column-table .column-table-row .column-section {
+    &, &:before, &:after {
+      @box-sizing: padding-box;
+      -webkit-box-sizing: @box-sizing;
+      -moz-box-sizing: @box-sizing;
+      box-sizing: @box-sizing;
+    }
+  }
 }
 

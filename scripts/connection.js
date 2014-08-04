@@ -31,6 +31,7 @@ $(function() {
     },
 
     initialize: function() {
+      this.set({ song_adds: [] });
       this.get('queue').on('changeOrder', function(data) {
         var queued_song = data[0];
         var order = data[1];
@@ -180,6 +181,13 @@ $(function() {
       this.get('socket').emit('queue:remove', queued_song.id);
     },
 
+    enqueueFromSource: function(source, source_id, callback) {
+      this.get('socket').emit('search:add', {
+        source: source,
+        source_id: source_id
+      }, callback);
+    },
+
     /* Socket Handlers */
 
     handleConnect: function() {
@@ -288,15 +296,28 @@ $(function() {
     },
 
     handleSongAddAdded: function(song_add) {
-      this.trigger('song:add:added:' + song_add.id, song_add);
+      this.get('song_adds')[song_add.job_id] = {
+        status: 'added'
+      };
+
+      this.trigger('song:add:added:' + song_add.job_id, song_add);
     },
 
     handleSongAddFailed: function(song_add) {
-      this.trigger('song:add:failed:' + song_add.id, song_add);
+      this.get('song_adds')[song_add.job_id] = {
+        status: 'failed',
+        error: song_add.error
+      };
+
+      this.trigger('song:add:failed:' + song_add.job_id, song_add);
     },
 
     handleSongAddStatus: function(song_add) {
-      this.trigger('song:add:status:' + song_add.id, song_add);
+      this.get('song_adds')[song_add.job_id] = {
+        status: song_add.status
+      };
+
+      this.trigger('song:add:status:' + song_add.job_id, song_add);
     }
   });
 });

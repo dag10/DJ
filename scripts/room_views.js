@@ -546,12 +546,21 @@ $(function() {
     tagName: 'li',
     className: 'song',
 
+    events: {
+      'click': 'addSong'
+    },
+
+    addSong: function() {
+      this.model.addToQueue();
+    },
+
     initialize: function() {
       this.render();
     },
 
     render: function() {
       this.$el.html(this.template(this.model.attributes));
+      return this;
     }
   });
 
@@ -649,12 +658,14 @@ $(function() {
     },
 
     endSearch: function() {
-      this.$('.queue-header').show();
-      this.$('.search-header').hide();
-      this.$('#search-input').val('');
-      this.$('#queue-list').show();
-      this.$('#search-results-list').hide();
-      this.model.set('query', '');
+      _.defer(_.bind(function() {
+        this.$('.queue-header').show();
+        this.$('.search-header').hide();
+        this.$('#search-input').val('');
+        this.$('#queue-list').show();
+        this.$('#search-results-list').hide();
+        this.model.set('query', '');
+      }, this));
     },
 
     searchKeyDown: function(event) {
@@ -681,8 +692,6 @@ $(function() {
     },
 
     updateLoading: function() {
-      console.log('SETTING LOADING TO:', this.model.get('loading'));
-
       if (this.model.get('loading')) {
         this.$search_results_list.addClass('loading');
       } else {

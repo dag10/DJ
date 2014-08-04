@@ -10,26 +10,40 @@ var fs_ = require('../../utils/fs');
 var os = require('os');
 var upload = require('./upload');
 var ffmpeg = require('fluent-ffmpeg');
+var song_source_map_model = require('../../models/songsourcemap');
 var file_model = require('../../models/file');
 var song_model = require('../../models/song');
+var song_sources = require('../../song_sources');
 var queues = require('./queues');
-var crypto = require('crypto');
+var request = require('request');
+var extensions = require('../../utils/extensions');
 var Q = require('q');
 
 /** Temporary directory for saving extracted album artwork. */
 var artworkTmpDir = null;
+var artworkTmpId = 1;
 
 /** Incrementing unique ID for song processing jobs. */
 var nextJobId = 1;
 
 /** Encoding stages to show to user as progress. */
 exports.stages = {
+  downloading: 'downloading',
   transcoding: 'transcoding',
   metadata: 'metadata',
   artwork: 'artwork',
   saving: 'saving',
   added: 'added',
 };
+
+/**
+ * Generates a new song add job ID.
+ *
+ * @return Integer value of new job ID.
+ */
+function createJobId() {
+  return nextJobId++;
+}
 
 /**
  * Generates a short name for a song from the original name.
@@ -109,9 +123,11 @@ function transcodeSong(path, newpath) {
  *
  * @param song The song model to store the metadata in.
  * @param path The full path to the media file.
+ * @param metadata Optional metadata to use instead of extracted metadata.
  * @return A promise resolving when the operation is complete.
  */
-function extractMetadata(song, path) {
+function extractMetadata(song, path, metadata) {
+  metadata = metadata || {};
   var deferred = Q.defer();
 
   ffmpeg.Metadata(path, function(data, err) {
@@ -124,12 +140,63 @@ function extractMetadata(song, path) {
       return;
     }
 
-    if (data.title) song.title = data.title;
-    if (data.album) song.album = data.album;
-    if (data.artist) song.artist = data.artist;
+    if (metadata.title) song.title = metadata.title;
+    else if (data.title) song.title = data.title;
+
+    if (metadata.album) song.album = metadata.album;
+    else if (data.album) song.album = data.album;
+
+    if (metadata.artist) song.artist = metadata.artist;
+    else if (data.artist) song.artist = data.artist;
+
     song.duration = data.durationsec;
 
     deferred.resolve();
+  });
+
+  return deferred.promise;
+}
+
+/**
+ * Downloads an album art image.
+ *
+ * @param url The URL of the album art image.
+ * @return A promise resolving with the path of the saved album artwork
+ *         when the operation is complete. If there's no album art, the promise
+ *         is resolved to null.
+ */
+function downloadArtwork(url) {
+  var deferred = Q.defer();
+
+  if (!artworkTmpDir) {
+    artworkTmpDir = fs_.createTmpDir();
+  }
+
+  var opts = {
+    url: url,
+    encoding: null,
+    timeout: 10 * 1000, // 10 seconds
+  };
+
+  request(opts, function(err, res, body) {
+    if (err) {
+      log.error('Failed to download album art from ' + url +
+                ': ' + (err.message || err));
+      deferred.reject(err);
+      return;
+    }
+
+    var content_type = res.headers['content-type'];
+    var extension = extensions.getExtension(content_type) || 'img';
+    var save_path = artworkTmpDir + (artworkTmpId++) + '-tmp.' + extension;
+    
+    fs.writeFile(save_path, res.body, function(err) {
+      if (err) {
+        deferred.reject(err);
+      } else {
+        deferred.resolve(save_path);
+      }
+    });
   });
 
   return deferred.promise;
@@ -147,7 +214,7 @@ function extractArtwork(path) {
   var deferred = Q.defer();
 
   if (!artworkTmpDir) {
-    artworkTmpDir = os.tmpDir();
+    artworkTmpDir = fs_.createTmpDir();
   }
 
   new ffmpeg({ source: path })
@@ -187,16 +254,25 @@ function extractArtwork(path) {
  * @param uploadedpath The full path to the media file.
  * @param user The user model.
  * @param name The original filename of the song.
- * @return An object containing an id of the song adding process, and a promise
- *         resolving with the added song, notifying of the current stage, and
- *         rejecting with any errors.
+ * @param opts Object containing optionally any of the following:
+ *               source: Name of song source downloaded from, if any.
+ *               source_id: ID from source.
+ *               title: Title of song.
+ *               artist: Artist of song.
+ *               album: Album of song.
+ *               image_url: URL of album art.
+ *             If source and source_id are provided, a song mapping is added
+ *             with the source being the original source.
+ *             If title is provided, title, album, and artist are used as
+ *             metadata, and no metadata is extracted with ffmpeg.
+ *             If image_url is provided, the album art is downloaded from there
+ *             instead of extracted with ffmpeg.
+ * @return A promise resolving with the added song, notifying of the current
+ *         stage, and rejecting with any errors.
  */
-function processSong(uploadedpath, user, name) {
+function processSong(uploadedpath, user, name, opts) {
   var deferred = Q.defer();
-  var ret = {
-    id: nextJobId++,
-    promise: deferred.promise
-  };
+  opts = opts || {};
 
   // Create shortname and decide where to save the song.
   // I put a random number in the temporary filename to prevent filename
@@ -227,7 +303,7 @@ function processSong(uploadedpath, user, name) {
   // Extract metadata.
   .then(function() {
     deferred.notify(exports.stages.metadata);
-    return extractMetadata(song, path);
+    return extractMetadata(song, path, opts);
   })
   
   // Save song model.
@@ -281,7 +357,12 @@ function processSong(uploadedpath, user, name) {
   // Extract album artwork.
   .then(function() {
     deferred.notify(exports.stages.artwork);
-    return extractArtwork(path);
+
+    if (opts.image_url) {
+      return downloadArtwork(opts.image_url);
+    } else {
+      return extractArtwork(path);
+    }
   })
 
   // Save artwork file model.
@@ -321,6 +402,34 @@ function processSong(uploadedpath, user, name) {
     return deferred.promise;
   })
 
+  // Map song upload for searching.
+  .then(function() {
+    return Q(song_source_map_model.Model.create({
+      source: 'upload',
+      sourceId: song.id,
+      confirmations: 0,
+      original: true
+    }))
+    .then(function(song_map) {
+      return Q(song_map.setSong(song));
+    });
+  })
+
+  // Map song from song source, if source is provided, for searching.
+  .then(function() {
+    if (!opts.source || !opts.source_id) return;
+
+    return Q(song_source_map_model.Model.create({
+      source: opts.source,
+      sourceId: opts.source_id,
+      confirmations: 0,
+      original: true
+    }))
+    .then(function(song_map) {
+      return Q(song_map.setSong(song));
+    });
+  })
+
   // Pipe results to our deferred, without sending actual error message.
   // Also cleans up if we have to abort.
   .then(function() {
@@ -342,7 +451,7 @@ function processSong(uploadedpath, user, name) {
     fs_.unlink(uploadedpath, true);
   });
 
-  return ret;
+  return deferred.promise;
 }
 
 /**
@@ -362,10 +471,11 @@ function enqueueSong(song, user) {
 
   queues
   .addSongToQueue(song, user)
-  .then(deferred.resolve)
+  .then(function(queued_song) {
+    deferred.resolve(queued_song);
+  })
   .catch(function(err) {
-    deferred.reject(new Error('Failed to enqueue song.'));
-    console.error('ERR:', err.stack);
+    deferred.reject(new Error('Failed to enqueue song'));
     winston.warn(
       'Failed to enqueue song: ' + song.getLogName() + '\n' + err.stack);
   });
@@ -379,19 +489,64 @@ function enqueueSong(song, user) {
  * @param path The full path to the media file.
  * @param user The user model.
  * @param name The original filename of the song.
- * @return An object containing an id of the song adding process, and a promise
+ * @param job_id Optional job_id of an existing job.
+ * @return Job object containing an id of the song adding process, and a promise
  *         resolving with the added song, notifying of the current stage, and
  *         rejecting with any errors.
  */
-function addSong(path, user, name) {
-  var process = processSong(path, user, name);
-  
-  process.promise = process.promise.then(function(song) {
+function addSong(path, user, name, job_id) {
+  var job = {
+    job_id: job_id || createJobId()
+  };
+
+  job.promise = processSong(path, user, name)
+  .then(function(song) {
     return enqueueSong(song, user);
   });
 
-  return process;
+  return job;
 }
 
+/**
+ * Fetches and enqueues a song from a search result.
+ *
+ * @param source Name of song source.
+ * @param source_id Source-specific id string of song to fetch.
+ * @param user User entity to enqueue the song for.
+ * @return Promise resolving with Song when complete, or rejecting with a
+ *                 clean, displayable error.
+ */
+function addFromSearch(source, source_id, user) {
+  var deferred = Q.defer(),
+      _song = null,
+      job = {
+        job_id: createJobId(),
+        promise: deferred.promise
+      };
+
+  song_sources
+  .fetch(source, source_id, job, user)
+  .then(function(song) {
+    _song = song;
+    if (user) {
+      return enqueueSong(song, user);
+    }
+  })
+  .then(function() {
+    deferred.resolve(_song);
+  })
+  .progress(deferred.notify)
+  .catch(function(error) {
+    deferred.reject(new Error('Failed to add song.'));
+    winston.warn(
+      'Failed to add song "' + source_id + '" from source "' + source +
+      '": ' + error.stack);
+  });
+
+  return job;
+}
+
+exports.processSong = processSong;
 exports.addSong = addSong;
+exports.addFromSearch = addFromSearch;
 
