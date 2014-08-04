@@ -38,7 +38,7 @@ function migrateToNewFiles(migration) {
     } else {
       deferred.resolve();
     }
-  }).catch(deferred.reject);
+  }).catch(deferred.resolve); // in case the table doesn't exist
 
   return deferred.promise;
 }
@@ -84,7 +84,7 @@ function migrateToNewSongs(migration) {
     } else {
       deferred.resolve();
     }
-  }).catch(deferred.reject);
+  }).catch(deferred.resolve); // in case the table doesn't exist
 
   return deferred.promise;
 }
@@ -125,7 +125,7 @@ function migrateToNewQueuedSongs(migration) {
     } else {
       deferred.resolve();
     }
-  }).catch(deferred.reject);
+  }).catch(deferred.resolve); // in case the table doesn't exist
 
   return deferred.promise;
 }
