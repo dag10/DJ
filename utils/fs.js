@@ -42,6 +42,7 @@ exports.exists = function(path) {
  */
 exports.createTmpDir = function() {
   var dir = os.tmpDir();
+  if (dir[dir.length - 1] !== '/') dir += '/';
 
   dir += 'cshdj/';
   try {

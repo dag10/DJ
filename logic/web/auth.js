@@ -150,6 +150,7 @@ exports.init = function(app) {
           firstName: session.firstName,
           lastName: session.lastName,
           fullName: session.fullName,
+          lastVisitedAt: new Date(),
           firstVisit: new Date(),
           lastVisit: new Date(),
           admin: config.superadmin == session.username
