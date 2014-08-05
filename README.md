@@ -24,6 +24,12 @@ Then rename config.example.js to config.js and set up the configuration.
 Launch the server and migrations will be executed automatically, populating
 the database.
 
+Installing Plugins
+--
+To install music sources such as YouTube, follow the instructions on the
+[Installing Music Sources](https://github.com/dag10/DJ/wiki/Installing-Music-Sources)
+section of the wiki.
+
 Updating
 --
 When updating an existing installation, restart the server. When it starts,
@@ -32,6 +38,12 @@ it will automatically run the necessary migrations.
 Running
 --
 To run, type `node app.js`.
+
+Troubleshooting
+--
+Please see the [Toubleshooting](https://github.com/dag10/DJ/wiki/Troubleshooting)
+section of the wiki. If your problem isn't listed,
+[contact me](mailto:gottlieb.drew@gmail.com) or file an issue.
 
 --
 
