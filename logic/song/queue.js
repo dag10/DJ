@@ -63,8 +63,6 @@ module.exports = Backbone.Collection.extend({
       .getAssociations(queuedSongBackbone)
       .then(_.bind(function() {
         this.add(queuedSongBackbone);
-        this.updateSongOrder(
-          queued_song.id, this.getPlayingSong() ? 2 : 1);
         deferred.resolve(queued_song);
       }, this));
     }, this))
