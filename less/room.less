@@ -57,6 +57,18 @@
   #previews, #dj-list {
     overflow: auto;
     max-height: 550px;
+
+    li {
+      .glyphicon-music {
+        color: @color-grey-background;
+        background-color: darken(@color-grey-background, 60%);
+        padding: 2px;
+        width: 17px;
+        font-size: 12px;
+        border-radius: 3px;
+        margin: 0 1px;
+      }
+    }
   }
 
   @height_iterations: 1000px;
