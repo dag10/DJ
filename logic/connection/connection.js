@@ -171,6 +171,11 @@ module.exports = Backbone.Model.extend({
     }, this);
     queue.on('songChanged add', this.sendQueuedSong, this);
     queue.on('remove', this.sendQueuedSongRemoved, this);
+    queue.on('remove', function() {
+      if (queue.length === 0) {
+        this.get('room').endDJ(this);
+      }
+    }, this);
     this.sendQueue(queue);
   },
 
