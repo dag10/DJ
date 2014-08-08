@@ -19,8 +19,8 @@ module.exports = BackboneDBModel.extend({
 
     this.playback().on('play', function() {
       winston.info(
-        this.getLogName() + ' started playing song: ' +
-        this.playback().song().getLogName());
+        this.playback().dj().getLogName() + ' started playing song ' +
+        this.playback().song().getLogName() + ' in room ' + this.getLogName());
     }, this);
 
     this.playback().on('stop', function() {
