@@ -13,7 +13,10 @@ It's still a work in progress. Here's a screenshot:
 
 Installation
 --
-Enter the project directory, and run `npm install` to install the dependencies.
+First, setup a new mysql database.
+
+Then enter the project directory and run `npm install` to install the
+dependencies.
 
 Install the following packages with your system's package manager:
 - lame

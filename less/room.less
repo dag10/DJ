@@ -1,5 +1,6 @@
 @import 'constants.less';
 
+@section-header-bg: darken(@color-grey-background, 5.5%);
 @column-border-radius: 5px;
 @activity-width: 500px;
 
@@ -100,7 +101,6 @@
       display: table-row;
 
       .column-section {
-        @section-header-bg: darken(@color-grey-background, 5.5%);
         position: relative;
         padding: @section-padding;
         height: 100%;
@@ -120,6 +120,27 @@
 
         &.section-header {
           background-color: @section-header-bg;
+        }
+
+        &::-webkit-scrollbar, ul::-webkit-scrollbar {
+          -webkit-appearance: none;
+          background: @color-grey-background;
+          margin-bottom: 5px;
+        }
+
+        &::-webkit-scrollbar:vertical, ul::-webkit-scrollbar:vertical {
+          width: 10px;
+        }
+
+        &::-webkit-scrollbar-thumb, ul::-webkit-scrollbar-thumb {
+          border-radius: 1px;
+          border: solid 1px @color-grey-background;
+          background-color: darken(@section-header-bg, 4%);
+          z-index: 1;
+          
+          &:hover {
+            background-color: darken(@section-header-bg, 8%);
+          }
         }
 
         & > h1 {
@@ -189,6 +210,7 @@
           list-style: none;
           margin: -@section-padding;
           padding: 0;
+          padding-bottom: 1px;
 
           li {
             @padding: 5px;
@@ -201,6 +223,7 @@
 
             &:last-child {
               border-bottom-width: 0;
+              margin-bottom: -1px;
             }
 
             .background {
@@ -668,6 +691,12 @@
       right: 0;
       padding-right: 5px;
       padding-top: 5px;
+      padding-left: 20px;
+      background: @nav-background;
+      @shadow: -14px 0px 27px 0px @nav-background;
+      -webkit-box-shadow: @shadow;
+      -moz-box-shadow: @shadow;
+      box-shadow: @shadow;
 
       &:empty {
         display: none;
@@ -740,7 +769,7 @@
         right: 0;
         width: 0%;
         background-color: @color-purple;
-        @box-shadow: inset 0 0 3px 0 rgba(0,0,0,0.4);
+        @box-shadow: inset 0 0 3px 0 rgba(0,0,0,0.1);
         -webkit-box-shadow: @box-shadow;
         box-shadow: @box-shadow;
       }
