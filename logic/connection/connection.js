@@ -111,6 +111,11 @@ module.exports = Backbone.Model.extend({
     return this.get('user') || null;
   },
 
+  getLogName: function() {
+    var user = this.user();
+    return user ? user.getLogName() : null;
+  },
+
   /* Utilities */
 
   ensureAuth: function(fn) {
