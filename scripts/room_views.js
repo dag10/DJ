@@ -407,6 +407,7 @@ $(function() {
 
   views.QueuedSong = Backbone.View.extend({
     tagName: 'li',
+    className: 'queued-song',
 
     template: Handlebars.compile($('#queue-item-template').html()), 
 

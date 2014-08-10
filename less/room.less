@@ -240,7 +240,6 @@
             margin: 0;
 
             &:last-child {
-              border-bottom-width: 0;
               margin-bottom: -1px;
             }
 
@@ -362,6 +361,12 @@
 
           & > ul:not(#search-results-list) {
             height: 0;
+            margin-top: -@section-padding - 1px;
+
+            li {
+              border-top: solid 1px @color-grey-border;
+              margin-top: -1px;
+            }
 
             li:last-child {
               border-bottom-width: 1px;
@@ -470,13 +475,26 @@
         #queue-list li, #search-results-list li.song {
           @height: 40px;
           @inner-height: @height - 10px;
+          @controls-width: 24px;
+          @controls-transition-speed: 0.1s;
 
           position: relative;
           height: @height;
 
-          &:hover {
-            .fg .controls {
-              opacity: 1;
+          &.ui-sortable-helper {
+            border-top: solid 1px @color-grey-border;
+            -webkit-box-shadow: @site-box-shadow;
+            box-shadow: @site-box-shadow;
+          }
+
+          &.queued-song:not(.playing):not(.ui-sortable-helper):hover {
+            .fg {
+              .controls {
+                right: 0;
+              }
+              .faded-edge {
+                right: @controls-width;
+              }
             }
           }
 
@@ -511,28 +529,47 @@
               box-shadow: @box-shadow;
               position: absolute;
               top: 0;
-              left: 0;
+              right: 0;
               width: 100%;
               height: 100%;
               pointer-events: none;
+              @transition: right @controls-transition-speed;
+              transition: @transition;
+              -moz-transition: @transition;
+              -webkit-transition: @transition;
             }
 
             .controls {
-              @transition: opacity .06s ease-in-out;
+              @transition: right @controls-transition-speed;
               transition: @transition;
               -moz-transition: @transition;
               -webkit-transition: @transition;
               z-index: 10;
-              opacity: 0;
               position: absolute;
               top: 0;
-              right: 0;
-              padding-top: 1px;
+              right: -24px;
+              padding-left: 6px;
               padding-right: 3px;
+              padding-top: 2px;
+              height: 100%;
+              background: @color-grey-background;
+
+              @box-shadow: inset 3px 0 3px -3px @color-grey-border;
+              -webkit-box-shadow: @box-shadow;
+              box-shadow: @box-shadow;
 
               a {
+                @fg: @color-grey-background;
+                @bg: darken(@color-grey-background, 50%);
+
                 text-decoration: none;
-                color: darken(@color-grey-background, 50%);
+                color: @fg;
+
+                .glyphicon {
+                  .glyphicon-inverted(@fg, @bg);
+                  font-size: 9px;
+                  width: 13px;
+                }
 
                 &:hover:not(.disabled) {
                   color: darken(@color-grey-background, 70%);
