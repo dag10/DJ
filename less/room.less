@@ -135,23 +135,23 @@
         }
 
         &::-webkit-scrollbar, ul::-webkit-scrollbar {
+          border-left: solid 1px @color-grey-border;
           -webkit-appearance: none;
           background: @color-grey-background;
           margin-bottom: 5px;
         }
 
         &::-webkit-scrollbar:vertical, ul::-webkit-scrollbar:vertical {
-          width: 10px;
+          width: 8px;
         }
 
         &::-webkit-scrollbar-thumb, ul::-webkit-scrollbar-thumb {
-          border-radius: 1px;
-          border: solid 1px @color-grey-background;
-          background-color: darken(@section-header-bg, 4%);
+          border-left: solid 1px @color-grey-border;
+          background-color: darken(@section-header-bg, 2%);
           z-index: 1;
           
           &:hover {
-            background-color: darken(@section-header-bg, 8%);
+            background-color: darken(@section-header-bg, 7%);
           }
         }
 
