@@ -488,6 +488,14 @@
             box-shadow: @site-box-shadow;
           }
 
+          &.queued-song {
+            cursor: -webkit-grab;
+
+            &.ui-sortable-helper {
+              cursor: -webkit-grabbing;
+            }
+          }
+
           &.queued-song:not(.playing):not(.ui-sortable-helper):hover {
             .fg {
               .controls {
