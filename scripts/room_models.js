@@ -427,11 +427,15 @@ $(function() {
   // Model representing a song in the song queue.
   models.QueuedSong = Backbone.Model.extend({
     defaults: {
-      order: 0
+      order: 0,
+      next: false
     },
 
     initialize: function() {
       this.on('change:order', this.orderChanged, this);
+      this.on('change:order', this.checkIfNext, this);
+      this.collection.on('change:playing', this.checkIfNext, this);
+      this.checkIfNext();
     },
 
     changePosition: function(position) {
@@ -444,6 +448,14 @@ $(function() {
 
     removeFromQueue: function() {
       this.trigger('removeFromQueue', this);
+    },
+
+    checkIfNext: function() {
+      var collectionPlaying = this.collection.hasPlayingSong();
+      var playing = this.get('playing');
+      var next = ((collectionPlaying && this.get('order') === 2) ||
+                 (!collectionPlaying && this.get('order') === 1));
+      this.set({ next: next });
     },
 
     orderChanged: function() {
@@ -465,6 +477,11 @@ $(function() {
       this.comparator = 'order';
       this.on('add', this.songAdded, this);
       this.on('remove', this.songRemoved, this);
+    },
+
+    hasPlayingSong: function() {
+      var songs = this.where({ playing: true });
+      return songs && songs.length > 0;
     },
 
     songAdded: function(song) {
