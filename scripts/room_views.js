@@ -418,6 +418,7 @@ $(function() {
 
     events: {
       'drop': 'drop',
+      'click .btn-escalate': 'escalate',
       'click .btn-remove': 'remove'
     },
 
@@ -427,8 +428,14 @@ $(function() {
       }
     },
 
-    remove: function(event) {
+    escalate: function() {
+      this.model.escalate();
+      return false;
+    },
+
+    remove: function() {
       this.model.removeFromQueue();
+      return false;
     },
 
     reindex: function(newIndex) {

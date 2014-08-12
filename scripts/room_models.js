@@ -438,6 +438,10 @@ $(function() {
       this.trigger('changeOrder', [ this, position ]);
     },
 
+    escalate: function() {
+      this.trigger('escalate', this);
+    },
+
     removeFromQueue: function() {
       this.trigger('removeFromQueue', this);
     },
