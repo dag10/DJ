@@ -41,6 +41,7 @@ module.exports = Backbone.Model.extend({
     socket.on('search', _.bind(this.handleSearch, this));
     socket.on('search:add', _.bind(this.handleSearchAdd, this));
     socket.on('queue:change:order', _.bind(this.handleQueuedSongOrder, this));
+    socket.on('queue:change:escalate', _.bind(this.handleEscalation, this));
     socket.on('queue:remove', _.bind(this.handleRemoveFromQueue, this));
     socket.on('skip', _.bind(this.handleSkip, this));
     socket.on('disconnect', _.bind(this.handleDisconnect, this));
@@ -177,8 +178,11 @@ module.exports = Backbone.Model.extend({
     queue.on('songChanged add', this.sendQueuedSong, this);
     queue.on('remove', this.sendQueuedSongRemoved, this);
     queue.on('remove', function() {
-      if (queue.length === 0) {
-        this.get('room').endDJ(this);
+      if (this.get('isDJ') && queue.length === 0) {
+        var room = this.get('room');
+        if (room) {
+          room.endDJ(this);
+        }
       }
     }, this);
     this.sendQueue(queue);
@@ -369,6 +373,12 @@ module.exports = Backbone.Model.extend({
     if (!data) return;
     if (!this.ensureAuth(fn)) return;
     this.get('queue').updateSongOrder(data[0], data[1]);
+  },
+
+  handleEscalation: function(queued_song_id, fn) {
+    if (!queued_song_id) return;
+    if (!this.ensureAuth(fn)) return;
+    this.get('queue').escalateSong(queued_song_id);
   },
 
   // Handle command to skip current song.

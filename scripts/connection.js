@@ -37,6 +37,9 @@ $(function() {
         var order = data[1];
         this.sendQueuedSongOrder(queued_song.id, order);
       }, this);
+      this.get('queue').on('escalate', function(queued_song) {
+        this.sendEscalation(queued_song.id);
+      }, this);
       this.get('queue').on('skip', this.sendSkip, this);
       this.get('queue').on('removeFromQueue', this.removeFromQueue, this);
       this.connect();
@@ -171,6 +174,10 @@ $(function() {
         queued_song_id,
         order
       ]);
+    },
+
+    sendEscalation: function(queued_song_id) {
+      this.get('socket').emit('queue:change:escalate', queued_song_id);
     },
 
     sendSkip: function() {
