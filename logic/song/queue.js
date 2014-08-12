@@ -101,6 +101,10 @@ module.exports = Backbone.Collection.extend({
     this.get(queued_song_id).set({ order: order });
   },
 
+  escalateSong: function(queued_song_id) {
+    this.updateSongOrder(queued_song_id, this.getPlayingSong() ? 2 : 1);
+  },
+
   sync: function(method, model) {
     if (!this.user_id) {
       winston.error('Can\'t fetch queue; no user_id set.');

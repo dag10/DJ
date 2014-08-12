@@ -414,10 +414,12 @@ $(function() {
     initialize: function() {
       this.model.on('reindex', this.reindex, this);
       this.model.on('change:playing', this.render, this);
+      this.model.on('change:next', this.render, this);
     },
 
     events: {
       'drop': 'drop',
+      'click .btn-escalate': 'escalate',
       'click .btn-remove': 'remove'
     },
 
@@ -427,8 +429,14 @@ $(function() {
       }
     },
 
-    remove: function(event) {
+    escalate: function() {
+      this.model.escalate();
+      return false;
+    },
+
+    remove: function() {
       this.model.removeFromQueue();
+      return false;
     },
 
     reindex: function(newIndex) {
@@ -451,10 +459,18 @@ $(function() {
       this.delegateEvents();
       this.$el.disableSelection();
 
-      if (this.model.get('playing'))
+      if (this.model.get('playing')) {
         this.$el.addClass('playing');
-      else
+      } else {
         this.$el.removeClass('playing');
+      }
+
+      if (this.model.get('next')) {
+        this.$el.addClass('next');
+        this.$('.btn-escalate').addClass('disabled');
+      } else {
+        this.$el.removeClass('next');
+      }
 
       return this;
     }
