@@ -341,7 +341,7 @@ module.exports = Backbone.Model.extend({
   // Handle request for search results.
   handleSearch: function(query, fn) {
     if (!query || !fn) return;
-    song_sources.search(query.substr(0, 50), fn);
+    song_sources.search(query.substr(0, 50)).done(fn);
   },
 
   // Handle adding a search result to queue.

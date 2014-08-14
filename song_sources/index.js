@@ -170,9 +170,14 @@ exports.init = function() {
   });
 };
 
-// Searches all song sources.
-exports.search = function(query, callback) {
-  Q.allSettled(search_functions.map(function(search_function) {
+/**
+ * Searches all song sources.
+ *
+ * @param query Search query.
+ * @return Promise resolving with list of search result objects.
+ */
+exports.search = function(query) {
+  return Q.allSettled(search_functions.map(function(search_function) {
     var deferred = Q.defer();
 
     search_function(query)
@@ -219,7 +224,7 @@ exports.search = function(query, callback) {
       });
     }
 
-    callback({
+    return Q({
       query: query,
       sections: sections
     });
