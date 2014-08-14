@@ -674,6 +674,14 @@ $(function() {
       users.forEach(_.bind(this.addUser, this));
     },
 
+    addActivity: function(activity) {
+      console.info('Room Activity:\n', activity);
+    },
+
+    setActivities: function(activities) {
+      activities.forEach(_.bind(this.addActivity, this));
+    },
+
     addUser: function(user) {
       var djs = this.get('djs');
       var listeners = this.get('listeners');

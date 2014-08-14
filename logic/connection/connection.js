@@ -225,6 +225,16 @@ module.exports = Backbone.Model.extend({
     }));
   },
 
+  // Sends a room activity.
+  sendRoomActivity: function(activity) {
+    this.socket().emit('room:activity', activity.toJSON());
+  },
+
+  // Sends the list of room activities.
+  sendRoomActivities: function(activities) {
+    this.socket().emit('room:activities', activities.toJSON());
+  },
+
   // Sends a queue to the user.
   sendQueue: function(queue) {
     this.socket().emit('queue', queue.toJSON());

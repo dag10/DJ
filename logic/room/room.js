@@ -9,10 +9,12 @@ var ConnectionManager = require('../connection/connection_manager');
 var BackboneDBModel = require('../backbone_db_model');
 var connections = require('../connection/connections');
 var SongPlayback = require('../song/song_playback.js');
+var activity = require('./activity');
 
 module.exports = BackboneDBModel.extend({
   initialize: function() {
     this.set({
+      activities: new activity.Activities(),
       connections: new ConnectionManager(),
       playback: new SongPlayback()
     });
@@ -21,6 +23,10 @@ module.exports = BackboneDBModel.extend({
       winston.info(
         this.playback().dj().getLogName() + ' started playing song ' +
         this.playback().song().getLogName() + ' in room ' + this.getLogName());
+      this.activities().add(new activity.SongActivity({
+        user_model: this.playback().dj().user(),
+        song_model: this.playback().song()
+      }));
     }, this);
 
     this.playback().on('stop', function() {
@@ -28,6 +34,10 @@ module.exports = BackboneDBModel.extend({
     }, this);
 
     this.playback().on('finish', this.playNextSong, this);
+
+    this.activities().on('add', function(activity) {
+      this.broadcastActivity(activity);
+    }, this);
 
     this.connections().on('add', this.connectionAdded, this);
     this.connections().on('remove', this.connectionRemoved, this);
@@ -56,6 +66,10 @@ module.exports = BackboneDBModel.extend({
   },
 
   /* Getters */
+
+  activities: function() {
+    return this.get('activities');
+  },
 
   connections: function() {
     return this.get('connections');
@@ -120,6 +134,12 @@ module.exports = BackboneDBModel.extend({
     });
   },
 
+  broadcastActivity: function(activity) {
+    this.eachConnection(function(conn) {
+      conn.sendRoomActivity(activity);
+    });
+  },
+
   /* Connection Management */
 
   addConnection: function(conn) {
@@ -152,6 +172,9 @@ module.exports = BackboneDBModel.extend({
       this.broadcastUserJoined(conn);
       winston.info(
         conn.user().getLogName() + ' joined room: ' + this.getLogName()); 
+      this.activities().add(new activity.JoinActivity({
+        user_model: conn.user()
+      }));
     } else {
       this.broadcastNumAnonymous();
       winston.info('An anonymous listener joined room: ' + this.getLogName());
@@ -160,6 +183,7 @@ module.exports = BackboneDBModel.extend({
     // Send this user all room data.
     conn.sendUserList(this.getAuthenticatedConnections());
     conn.sendNumAnonymous(this.numAnonymous());
+    conn.sendRoomActivities(this.activities());
 
     conn.on('change', this.connectionUpdated, this);
   },
@@ -177,6 +201,9 @@ module.exports = BackboneDBModel.extend({
       this.broadcastUserLeft(conn);
       winston.info(
         conn.user().getLogName() + ' left room: ' + this.getLogName()); 
+      this.activities().add(new activity.LeaveActivity({
+        user_model: conn.user()
+      }));
     } else {
       this.broadcastNumAnonymous();
       winston.info('An anonymous listener left room: ' + this.getLogName());
