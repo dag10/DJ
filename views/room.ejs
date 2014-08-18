@@ -151,46 +151,7 @@
     class="<%= col_classes.activity %>">
     <div class="bottom-fade"></div>
     <h1><span class="room-name"><%= room.get('name') %></span> Activity</h1>
-    <ul class="activity-container">
-      <% for (var j = 0; j < 30; j++) { %>
-      <li class="activity-join">
-        <h1>Drew Gottlieb joined the room.</h1>
-        <div class="timestamp">
-          12 minutes ago <span class="glyphicon glyphicon-time"></span>
-        </div>
-      </li>
-      <% for (var k = 0; k < 3; k++) { %>
-      <% var tmp = k == 1 ? 'Weird Al Yankovic - This Is A Nonexistant Yet Long Album Name Yeah Its Just Super Long' : 'Sir Sly - You Haunt Me (single)'; %>
-      <li class="activity-song test">
-        <div class="artwork" style="background-imagee: url('http://placehold.it/90');"></div>
-        <h1><span class="name">Drew Gottlieb</span> played:</h1>
-        <div class="song-info">
-          <div class="title">You Haunt Me</div>
-          <div class="artist-album"><%=tmp%></div>
-          <div class="actions">
-            <span class="action-enqueue">
-              <span class="glyphicon glyphicon-plus"></span>
-              Add to queue
-            </span>
-            <span class="action-download">
-              <span class="glyphicon glyphicon-download-alt"></span>
-              Download
-            </span>
-          </div>
-        </div>
-        <div class="timestamp">
-          1 hour ago <span class="glyphicon glyphicon-time"></span>
-        </div>
-      </li>
-      <% } %>
-      <li class="activity-leave">
-        <h1>Drew Gottlieb left the room.</h1>
-        <div class="timestamp">
-          2 hours ago <span class="glyphicon glyphicon-time"></span>
-        </div>
-      </li>
-      <% } %>
-    </ul>
+    <ul class="activity-container" id="activity-container"></ul>
   </div>
 </div>
 

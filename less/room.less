@@ -98,6 +98,7 @@
       right: 10px;
       overflow: auto;
       padding-bottom: 50px;
+      padding-top: 4px;
     }
 
     & > li {
@@ -182,39 +183,41 @@
           top: @vertical-padding;
         }
 
-        &.test {
-          .song-info {
-            font-size: 12px;
-            margin-top: 2px;
+        .song-info {
+          font-size: 12px;
+          margin-top: 2px;
 
-            &:after {
-              clear: both;
-              content: "";
-              display: block;
-            }
+          &:after {
+            clear: both;
+            content: "";
+            display: block;
+          }
 
-            .title {
-              font-weight: 500;
-              font-size: 14px;
-            }
+          .title {
+            font-weight: 500;
+            font-size: 14px;
+          }
 
-            .artist-album {
-              color: lighten(black, 40%);
-              display: inline-block;
-            }
+          .artist-album {
+            color: lighten(black, 40%);
+            display: inline-block;
+          }
 
-            .actions {
-              display: inline-block;
-              float: right;
+          .actions {
+            display: inline-block;
+            float: right;
+
+            & > * {
               color: lighten(black, 70%);
+              text-decoration: none;
+              margin-left: 12px;
 
-              & > * {
-                margin-left: 12px;
-                cursor: pointer;
+              &.disabled {
+                cursor: default;
+              }
 
-                &:hover {
-                  color: lighten(black, 50%);
-                }
+              &:not(.disabled):hover {
+                color: lighten(black, 50%);
               }
             }
           }
@@ -224,6 +227,10 @@
       &.activity-song:first-child,
       &:not(.activity-song) + .activity-song {
         border-top: none;
+        margin-top: -8px;
+      }
+
+      &.activity-song:first-child {
         margin-top: -3px;
       }
     }
