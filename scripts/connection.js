@@ -69,6 +69,8 @@ $(function() {
         socket.on('room:user:leave', _.bind(this.handleUserLeave, this));
         socket.on('room:user:update', _.bind(this.handleUserUpdate, this));
         socket.on('room:users', _.bind(this.handleUserList, this));
+        socket.on('room:activity', _.bind(this.handleRoomActivity, this));
+        socket.on('room:activities', _.bind(this.handleRoomActivities, this));
         socket.on('queue', _.bind(this.handleQueue, this));
         socket.on('queue:song', _.bind(this.handleQueuedSong, this));
         socket.on(
@@ -271,6 +273,14 @@ $(function() {
     handleUserList: function(users) {
       var room = this.get('room');
       room.setUsers(users);
+    },
+
+    handleRoomActivity: function(activity) {
+      this.get('room').addActivity(activity);
+    },
+
+    handleRoomActivities: function(activities) {
+      this.get('room').setActivities(activities);
     },
 
     handleQueue: function(queued_songs) {

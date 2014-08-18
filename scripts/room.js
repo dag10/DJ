@@ -56,6 +56,11 @@ $(function() {
       el: $('#listener-section')[0]
     });
 
+    new views.Activities({
+      collection: room.get('activities'),
+      el: $('#activity-container')[0]
+    });
+
     new views.Playback({
       model: room.get('playback'),
       el: $('#playback-container')
