@@ -3,6 +3,7 @@
 @section-header-bg: darken(@color-grey-background, 5.5%);
 @column-border-radius: 5px;
 @activity-width: 500px;
+@color-activity-border: lighten(@color-grey-border, 12%);
 
 .loading-shimmer-frames () {
   from {
@@ -32,15 +33,200 @@
 .room-container {
   margin-left: 0;
   margin-right: 0;
+  position: relative;
 }
 
 .room-activity {
+  @media only screen and (min-width: @single-col-width) {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+
+    &.rightmost {
+      right: 0;
+    }
+  }
+
+  @h1-height: 36px;
+
+  .bottom-fade {
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 50px;
+    z-index: 20;
+    pointer-events: none;
+
+    @box-shadow: inset 0px -75px 30px -50px white;
+    -webkit-box-shadow: @box-shadow;
+    -moz-box-shadow: @box-shadow;
+    box-shadow: @box-shadow;
+  }
+
   & > h1 {
-    border-bottom: solid 1px lighten(@color-grey-border, 10%);
-    margin-top: 0;
+    border-bottom: solid 1px @color-activity-border;
     text-align: center;
+    margin-top: 0;
     padding-bottom: 10px;
     font-size: 22px;
+    height: @h1-height;
+
+    @media only screen and (min-width: @single-col-width) {
+      position: absolute;
+      left: 10px;
+      right: 10px;
+      top: 0;
+      z-index: 10;
+
+      @box-shadow: 0px 5px 15px 0px white;
+      -webkit-box-shadow: @box-shadow;
+      -moz-box-shadow: @box-shadow;
+      box-shadow: @box-shadow;
+    }
+  }
+
+  .activity-container {
+    margin: 0;
+    padding: 0;
+
+    @media only screen and (min-width: @single-col-width) {
+      position: absolute;
+      top: @h1-height;
+      bottom: 0;
+      left: 10px;
+      right: 10px;
+      overflow: auto;
+      padding-bottom: 50px;
+    }
+
+    & > li {
+      @vertical-padding: 8px;
+      margin: @vertical-padding 0;
+      list-style: none;
+      position: relative;
+
+      h1 {
+        color: darken(@color-grey-border, 50%);
+        font-size: 12px;
+        padding: 0;
+        margin: 0;
+      }
+
+      .timestamp {
+        position: absolute;
+        top: 0;
+        right: 5px;
+        font-size: 10px;
+        color: darken(@color-grey-border, 8%);
+        text-transform: uppercase;
+      }
+
+      &.activity-join, &.activity-leave {
+        background-color: darken(@color-grey-background, 2%);
+        border-radius: 5px;
+        height: 20px;
+
+        h1 {
+          font-size: 11px;
+          line-height: 20px;
+          font-weight: 400;
+
+          @media only screen and (min-width: @single-col-width) {
+            text-align: center;
+          }
+        }
+
+        .timestamp {
+          line-height: 20px;
+          color: darken(@color-grey-border, 12%);
+        }
+      }
+
+      &.activity-song {
+        @height: 50px;
+        @line-height: @height * 0.25;
+        padding-left: @height + 10px;
+        padding-top: @vertical-padding;
+        margin-top: 0;
+        border-top: solid 1px @color-activity-border;
+
+        &:after {
+          clear: both;
+          content: "";
+          display: block;
+        }
+
+        h1 {
+          line-height: @line-height;
+          color: lighten(black, 50%);
+
+          .name {
+            color: lighten(black, 10%);
+          }
+        }
+
+        .timestamp {
+          top: @vertical-padding;
+        }
+
+        .artwork {
+          background-image: url('/images/unknown_song.png');
+          width: @height;
+          height: @height;
+          background-size: cover;
+          border-radius: 5px;
+          margin-right: 10px;
+          position: absolute;
+          left: 0;
+          top: @vertical-padding;
+        }
+
+        &.test {
+          .song-info {
+            font-size: 12px;
+            margin-top: 2px;
+
+            &:after {
+              clear: both;
+              content: "";
+              display: block;
+            }
+
+            .title {
+              font-weight: 500;
+              font-size: 14px;
+            }
+
+            .artist-album {
+              color: lighten(black, 40%);
+              display: inline-block;
+            }
+
+            .actions {
+              display: inline-block;
+              float: right;
+              color: lighten(black, 70%);
+
+              & > * {
+                margin-left: 12px;
+                cursor: pointer;
+
+                &:hover {
+                  color: lighten(black, 50%);
+                }
+              }
+            }
+          }
+        }
+      }
+
+      &.activity-song:first-child,
+      &:not(.activity-song) + .activity-song {
+        border-top: none;
+        margin-top: -3px;
+      }
+    }
   }
 }
 
