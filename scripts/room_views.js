@@ -197,6 +197,132 @@ $(function() {
     }
   });
 
+  views.Activity = Backbone.View.extend({
+    tagName: 'li',
+
+    initialize: function() {
+      this.model.set({ prettyDate: this.prettyDate(this.model.get('date')) });
+    },
+
+    prettyDate: function(date) {
+      return moment(date).format('MMM Do, h:mm:ss a');
+    },
+
+    updateRelativeDate: function() {
+      this.$('.fuzzytime').text(moment(this.model.get('date')).fromNow());
+    },
+
+    render: function() {
+      if (this.template) {
+        this.$el.html(this.template(this.model.attributes));
+        this.$el.addClass('activity-' + this.model.get('type'));
+      } else {
+        this.$el.text('Unknown activity type: ' + this.model.get('type'));
+      }
+
+      this.updateRelativeDate();
+      return this;
+    }
+  });
+
+  views.JoinLeaveActivity = views.Activity.extend({
+    template: Handlebars.compile($('#activity-join-leave-template').html()),
+
+    initialize: function() {
+      views.Activity.prototype.initialize.apply(this);
+
+      this.model.set({
+        verb: this.model.get('type') === 'join' ? 'joined' : 'left'
+      });
+    }
+  });
+
+  views.SongActivity = views.Activity.extend({
+    template: Handlebars.compile($('#activity-song-template').html()),
+
+    events: {
+      'click .action-enqueue': 'enqueue'
+    },
+
+    initialize: function() {
+      views.Activity.prototype.initialize.apply(this);
+
+      this.model.set({ enqueued: false });
+      this.model.on('change', this.render, this);
+    },
+
+    enqueue: function() {
+      if (!this.model.get('enqueued') && !this.model.get('enqueueing')) {
+        this.model.enqueue();
+      }
+
+      return false;
+    }
+  });
+
+  views.Activities = Backbone.View.extend({
+    initialize: function() {
+      this.views = [];
+
+      this.collection.on('add', this.add, this);
+      this.collection.on('remove', this.remove, this);
+      this.collection.on('reset', this.reset, this);
+
+      this.collection.each(this.add, this);
+      this.render();
+
+      this.interval = setInterval(_.bind(function() {
+        this.views.forEach(function(view) {
+          view.updateRelativeDate();
+        });
+      }, this), 5000);
+
+      this.on('remove', _.bind(function() {
+        clearInterval(this.interval);
+      }, this));
+    },
+
+    reset: function() {
+      _.each(this.views, function(view) {
+        view.remove();
+      });
+
+      this.views = [];
+      this.collection.each(this.add, this);
+      this.render();
+    },
+
+    add: function(activity) {
+      var viewtype = views.Activity;
+      var type = activity.get('type');
+
+      if (type === 'join' || type === 'leave') {
+        viewtype = views.JoinLeaveActivity;
+      } else if (type === 'song') {
+        viewtype = views.SongActivity;
+      }
+
+      var view = new viewtype({
+        tagName: 'li',
+        model: activity
+      });
+
+      this.views.push(view);
+      this.$el.prepend(view.render().el);
+    },
+
+    remove: function(activity) {
+      this.views = _(this.views).without(this.getViewForActivity(activity));
+      this.render();
+    },
+
+    getViewForActivity: function(activity) {
+      return _(this.views).select(function(view) {
+        return view.model === activity;
+      })[0];
+    }
+  });
+
   views.SongAdd = Backbone.View.extend({
     tagName: 'li',
 

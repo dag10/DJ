@@ -225,6 +225,16 @@ module.exports = Backbone.Model.extend({
     }));
   },
 
+  // Sends a room activity.
+  sendRoomActivity: function(activity) {
+    this.socket().emit('room:activity', activity.toJSON());
+  },
+
+  // Sends the list of room activities.
+  sendRoomActivities: function(activities) {
+    this.socket().emit('room:activities', activities.toJSON());
+  },
+
   // Sends a queue to the user.
   sendQueue: function(queue) {
     this.socket().emit('queue', queue.toJSON());
@@ -330,7 +340,6 @@ module.exports = Backbone.Model.extend({
   // Handle request to stop being a DJ.
   handleEndDJ: function(fn) {
     if (!fn) return;
-
     if (!this.ensureAuth(fn)) return;
     if (!this.ensureRoom(fn)) return;
 
@@ -341,17 +350,21 @@ module.exports = Backbone.Model.extend({
   // Handle request for search results.
   handleSearch: function(query, fn) {
     if (!query || !fn) return;
-    song_sources.search(query.substr(0, 50), fn);
+    if (!this.ensureAuth(fn)) return;
+    song_sources.search(query.substr(0, 50)).done(fn);
   },
 
   // Handle adding a search result to queue.
   handleSearchAdd: function(data, fn) {
+    if (!data || !fn) return;
+    if (!this.ensureAuth(fn)) return;
+
     var source = data.source,
         source_id = data.source_id;
 
     var job = songs.addFromSearch(source, source_id, this.user());
 
-    fn({ job_id: job.job_id });
+    if (fn) fn({ job_id: job.job_id });
     this.watchSongAdd(job);
   },
 
