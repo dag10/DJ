@@ -636,9 +636,52 @@ $(function() {
     }
   });
 
+  // Model representing an activity in a room.
+  models.Activity = Backbone.Model.extend({
+    defaults: {
+      type: null
+    }
+  });
+
+  // Model representing specifically a song-playing activity.
+  models.SongActivity = Backbone.Model.extend({
+    enqueue: function(callback) {
+      this.set({ enqueueing: true });
+      this.collection.room.get('connection').enqueueFromSource(
+        'upload', this.get('song_id'), _.bind(function() {
+        this.set({
+          enqueueing: false,
+          enqueued: true
+        });
+      }, this));
+    }
+  });
+
+  // Collection holding activities.
+  models.Activities = Backbone.Collection.extend({
+    model: models.Activity,
+
+    addActivity: function(activityData) {
+      var model = this.model;
+
+      if (activityData.type === 'song') {
+        model = models.SongActivity;
+      }
+
+      this.add(new model(activityData));
+    },
+
+    resetWithActivities: function(activities) {
+      activities = activities || [];
+      this.reset();
+      _.each(activities, _.bind(this.addActivity, this));
+    }
+  });
+
   // Model representing the state of the current room.
   models.Room = Backbone.Model.extend({
     defaults: {
+      activities: new models.Activities(),
       anonymous_listeners: 0,
       connected: false,
       listeners: new models.Users(),
@@ -648,6 +691,7 @@ $(function() {
     },
 
     initialize: function() {
+      this.get('activities').room = this;
       this.get('playback').set({ room: this });
       this.get('listeners').comparator = 'username';
       this.get('djs').comparator = 'djOrder';
@@ -662,6 +706,7 @@ $(function() {
       this.set(this.defaults);
       this.resetUsers();
       this.get('playback').reset();
+      this.get('activities').reset();
     },
 
     resetUsers: function() {
@@ -675,11 +720,11 @@ $(function() {
     },
 
     addActivity: function(activity) {
-      console.info('Room Activity:\n', activity);
+      this.get('activities').addActivity(activity);
     },
 
     setActivities: function(activities) {
-      activities.forEach(_.bind(this.addActivity, this));
+      this.get('activities').resetWithActivities(activities);
     },
 
     addUser: function(user) {
