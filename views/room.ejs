@@ -158,6 +158,10 @@
 </div>
 
 <script type="text/template" id="activity-song-template">
+  <div class="timestamp">
+    <span class="fuzzytime" title="{{prettyDate}}"></span>
+    <span class="glyphicon glyphicon-time"></span>
+  </div>
   <div class="artwork" {{#if image_url}}style="background-image: url('{{image_url}}');"{{/if}}></div>
   <h1><span class="name">{{fullName}}</span> played:</h1>
   <div class="song-info">
@@ -197,18 +201,18 @@
     </div>
     <% } %>
   </div>
-  <div class="timestamp">
-    <span class="fuzzytime" title="{{prettyDate}}"></span>
-    <span class="glyphicon glyphicon-time"></span>
-  </div>
 </script>
 
 <script type="text/template" id="activity-join-leave-template">
-  <h1>{{fullName}} {{verb}} the room.</h1>
+  <div class="timestamp counter-padding">
+    <span class="fuzzytime" title="{{prettyDate}}"></span>
+    <span class="glyphicon glyphicon-time"></span>
+  </div>
   <div class="timestamp">
     <span class="fuzzytime" title="{{prettyDate}}"></span>
     <span class="glyphicon glyphicon-time"></span>
   </div>
+  <h1>{{fullName}} {{verb}} the room.</h1>
 </script>
 
 <script type="text/template" id="song-add-template">

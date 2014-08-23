@@ -127,21 +127,30 @@
         font-size: 12px;
         padding: 0;
         margin: 0;
+        display: block;
       }
 
       .timestamp {
-        position: absolute;
-        top: 0;
-        right: 5px;
+        float: right;
+        margin-right: 5px;
         font-size: 10px;
         color: darken(@color-grey-border, 8%);
         text-transform: uppercase;
+
+        &.counter-padding {
+          float: left;
+          visibility: hidden;
+
+          display: none;
+          @media only screen and (min-width: @single-col-width) {
+            display: block;
+          }
+        }
       }
 
       &.activity-join, &.activity-leave {
         background-color: darken(@color-grey-background, 2%);
         border-radius: 5px;
-        height: 20px;
 
         h1 {
           font-size: 11px;
