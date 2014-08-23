@@ -48,15 +48,34 @@
   }
 
   @h1-height: 36px;
+  @activities-side-padding: 15px;
 
-  .bottom-fade {
+  .top-fade, .bottom-fade {
     position: absolute;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    height: 50px;
+    left: 10px + @activities-side-padding;
+    right: 10px + @activities-side-padding;
     z-index: 20;
     pointer-events: none;
+
+    display: none;
+    @media only screen and (min-width: @single-col-width) {
+      display: block;
+    }
+  }
+
+  .top-fade {
+    top: @h1-height;
+    height: 15px;
+
+    @box-shadow: inset 0px 20px 10px -15px white;
+    -webkit-box-shadow: @box-shadow;
+    -moz-box-shadow: @box-shadow;
+    box-shadow: @box-shadow;
+  }
+
+  .bottom-fade {
+    bottom: 0;
+    height: 50px;
 
     @box-shadow: inset 0px -75px 30px -50px white;
     -webkit-box-shadow: @box-shadow;
@@ -77,12 +96,6 @@
       left: 10px;
       right: 10px;
       top: 0;
-      z-index: 10;
-
-      @box-shadow: 0px 5px 15px 0px white;
-      -webkit-box-shadow: @box-shadow;
-      -moz-box-shadow: @box-shadow;
-      box-shadow: @box-shadow;
     }
   }
 
@@ -99,6 +112,8 @@
       overflow: auto;
       padding-bottom: 50px;
       padding-top: 4px;
+      padding-left: @activities-side-padding;
+      padding-right: @activities-side-padding;
     }
 
     & > li {
