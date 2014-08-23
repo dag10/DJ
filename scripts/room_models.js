@@ -497,6 +497,7 @@ $(function() {
       if (existing_model) {
         existing_model.set(queued_song_data);
       } else {
+        queued_song_data.reasonAdded = 'enqueue';
         this.add(queued_song_data);
       }
     }

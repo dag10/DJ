@@ -541,6 +541,7 @@ $(function() {
       this.model.on('reindex', this.reindex, this);
       this.model.on('change:playing', this.render, this);
       this.model.on('change:next', this.render, this);
+      this.firstRender = true;
     },
 
     events: {
@@ -556,12 +557,20 @@ $(function() {
     },
 
     escalate: function() {
-      this.model.escalate();
+      var speed = 120;
+      this.slideFromLeft(true, speed).then(_.bind(function() {
+        this.model.once('change:order', function() {
+          this.slideFromLeft(false, speed);
+        }, this);
+        this.model.escalate();
+      }, this));
       return false;
     },
 
     remove: function() {
-      this.model.removeFromQueue();
+      this.slideFromRight(true).then(_.bind(function() {
+        this.model.removeFromQueue();
+      }, this));
       return false;
     },
 
@@ -579,7 +588,48 @@ $(function() {
       this.render();
     },
 
+    animate: function(from, to, speed) {
+      speed = speed || 330;
+      var deferred = $.Deferred();
+      this.$el.css(from).animate(to, 330, $.swing, deferred.resolve);
+      return deferred.promise();
+    },
+
+    slideFromLeft: function(reverse, speed) {
+      reverse = reverse || false;
+
+      var from = { left: -300 };
+      var to = { left: 0 };
+
+      if (reverse === true) {
+        return this.animate(to, from, speed);
+      } else {
+        return this.animate(from, to, speed);
+      }
+    },
+
+    slideFromRight: function(reverse, speed) {
+      reverse = reverse || false;
+      
+      var from = { right: -300 };
+      var to = { right: 0 };
+
+      if (reverse === true) {
+        return this.animate(to, from, speed);
+      } else {
+        return this.animate(from, to, speed);
+      }
+    },
+
     render: function() {
+      if (this.firstRender) {
+        this.firstRender = false;
+
+        if (this.model.get('reasonAdded') === 'enqueue') {
+          this.slideFromRight();
+        }
+      }
+
       this.undelegateEvents();
       this.$el.html(this.template(this.model.attributes));
       this.delegateEvents();
