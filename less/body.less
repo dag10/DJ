@@ -6,6 +6,10 @@
   padding: 0 10px;
   font-family: @font-family;
   cursor: default;
+  
+  @media only screen and (min-width: @widescreen-width) {
+    max-width: @site-width-widescreen;
+  }
 
   h1 {
     font-size: 25px;

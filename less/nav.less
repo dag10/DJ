@@ -15,8 +15,12 @@
   max-width: @site-width;
   margin: 0 auto;
 
-  @media only screen and (min-width: 769px) {
+  @media only screen and (min-width: @single-col-width) {
     padding-right: 15px;
+  }
+
+  @media only screen and (min-width: @widescreen-width) {
+    max-width: @site-width-widescreen;
   }
 
   .navbar-middle {
