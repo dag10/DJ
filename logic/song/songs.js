@@ -305,6 +305,14 @@ function processSong(uploadedpath, user, name, opts) {
     deferred.notify(exports.stages.metadata);
     return extractMetadata(song, path, opts);
   })
+
+  // Check song duration.
+  .then(function() {
+    if (song.duration / 60 > config.max_duration) {
+      return Q.reject(new Error(
+        'Song cannot be longer than ' + config.max_duration + ' minutes.'));
+    }
+  })
   
   // Save song model.
   .then(function() {

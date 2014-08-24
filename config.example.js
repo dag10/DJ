@@ -19,6 +19,9 @@ module.exports = {
   // If true and debug is true, socket.io debug messages will be logged.
   debug_socketio: false,
 
+  // Maximum duration (in minutes) of songs that can be added.
+  max_duration: 10,
+
   web: {
     // Host for the server.
     host: '0.0.0.0',
