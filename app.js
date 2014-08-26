@@ -27,6 +27,13 @@ var server = http.createServer(app);
 // Initialize logging.
 logging.init()
 
+// Show config warnings (if any).
+.then(function() {
+  config.warnings.forEach(function(str) {
+    winston.warn(str);
+  });
+})
+
 // Initialize socket.io.
 .then(function() {
   return socket.init(server);
