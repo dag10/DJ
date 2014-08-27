@@ -1,6 +1,7 @@
 /* load_config.js
  * Loads config.js or outputs an error.
  */
+/*jshint es5: true */
 
 var colors = require('colors');
 var fs = require('fs');
@@ -20,24 +21,24 @@ var default_values = {
     debug: true,
     title: 'CSH DJ',
     secret: 'change me!',
-    max_file_size: 50
+    max_file_size: 50,
   },
   auth: {
-    method: 'dev'
+    method: 'dev',
   },
   db: {
     host: 'localhost',
     username: 'user',
     password: 'pass',
-    database: 'dj'
+    database: 'dj',
   },
   song_sources: {
     external_modules: [],
     configurations: {},
     results_format: {
-      upload: 6
-    }
-  }
+      upload: 6,
+    },
+  },
 };
 
 // Make sure config exists.
@@ -80,13 +81,7 @@ function check_values(path, config, reference) {
     var cfg_value = config[key];
     var type = type_name(ref_value);
 
-    if (cfg_value !== undefined) {
-      if (type === 'object') {
-        var new_path = path.slice(0);
-        new_path.push(key);
-        check_values(new_path, cfg_value, ref_value);
-      }
-    } else {
+    if (cfg_value === undefined) {
       config[key] = ref_value;
       var period = path.length > 0 ? '.' : '';
       var path_str = path.join('.') + period + key;
@@ -104,6 +99,12 @@ function check_values(path, config, reference) {
         'Config value ' + path_str.red.bold + ' not found. ' +
         'Please add it from config.example.js. Assuming default value: ' +
         default_value_str.bold);
+    }
+
+    if (type === 'object') {
+      var new_path = path.slice(0);
+      new_path.push(key);
+      check_values(new_path, cfg_value || {}, ref_value);
     }
   });
 }
