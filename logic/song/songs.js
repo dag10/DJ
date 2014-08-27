@@ -545,7 +545,7 @@ function addFromSearch(source, source_id, user) {
   })
   .progress(deferred.notify)
   .catch(function(error) {
-    deferred.reject(new Error('Failed to add song.'));
+    deferred.reject(new Error(error.displaytext || 'Failed to add song.'));
     winston.warn(
       'Failed to add song "' + source_id + '" from source "' + source +
       '": ' + error.stack);

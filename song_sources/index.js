@@ -184,9 +184,7 @@ exports.search = function(query) {
     .then(function(result) {
       deferred.resolve(result || []);
     })
-    .catch(function(err) {
-      deferred.resolve([]);
-    });
+    .catch(deferred.reject);
 
     return deferred.promise;
   }))
@@ -208,10 +206,15 @@ exports.search = function(query) {
 
     for (var i = 0; i < results.length; i++) {
       var result = results[i];
-      if (result.state !== 'fulfilled') continue;
-
       var source_name = source_names[i];
       var source = exports.sources[source_name];
+
+      if (result.state !== 'fulfilled') {
+        winston.warn(
+          'Search for ' + source_name + ' failed for "' + query + '": ' +
+          result.reason);
+        continue;
+      }
 
       result.value.forEach(function(metadata) {
         source.metadataCache[metadata.id] = metadata;
