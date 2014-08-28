@@ -17,6 +17,7 @@ var song_sources = require('../../song_sources');
 var queues = require('./queues');
 var request = require('request');
 var extensions = require('../../utils/extensions');
+var ConcurrencyLimiter = require('../../utils/concurrency_limiter');
 var Q = require('q');
 
 /** Temporary directory for saving extracted album artwork. */
@@ -29,12 +30,19 @@ var nextJobId = 1;
 /** Encoding stages to show to user as progress. */
 exports.stages = {
   downloading: 'downloading',
+  waiting: 'waiting',
   transcoding: 'transcoding',
   metadata: 'metadata',
   artwork: 'artwork',
   saving: 'saving',
   added: 'added',
 };
+
+/**
+ * ConcurrencyLimiter for song transcoding jobs.
+ */
+var transcodingLimiter = new ConcurrencyLimiter(
+  config.transcoding.max_concurrent_jobs);
 
 /**
  * Generates a new song add job ID.
@@ -98,22 +106,30 @@ function changeExtension(file, extension) {
 function transcodeSong(path, newpath) {
   var deferred = Q.defer();
 
-  new ffmpeg({ source: path })
-    .withAudioCodec('libmp3lame')
-    .withAudioBitrate(320)
-    .toFormat('mp3')
-    .saveToFile(newpath, function(stdout, stderr, err) {
-      if (err) {
-        winston.warn(
-          'Failed to transcode song: ' + path + '\n\nstderr: ' + stderr +
-          '\n\nstdout: ' + stdout);
-        deferred.reject(err);
-      } else if (stderr === 'timeout') {
-        deferred.reject(new Error('ffmpeg timed out.'));
-      } else {
-        deferred.resolve();
-      }
-    });
+
+  transcodingLimiter.newJob().then(function(jobFinished) {
+    deferred.notify(exports.stages.transcoding);
+
+    new ffmpeg({ source: path })
+      .withAudioCodec('libmp3lame')
+      .withAudioBitrate(320)
+      .toFormat('mp3')
+      .saveToFile(newpath, function(stdout, stderr, err) {
+        if (err) {
+          winston.warn(
+            'Failed to transcode song: ' + path + '\n\nstderr: ' + stderr +
+            '\n\nstdout: ' + stdout);
+          deferred.reject(err);
+          jobFinished();
+        } else if (stderr === 'timeout') {
+          deferred.reject(new Error('ffmpeg timed out.'));
+          jobFinished();
+        } else {
+          deferred.resolve();
+          jobFinished();
+        }
+      });
+  });
 
   return deferred.promise;
 }
@@ -296,7 +312,7 @@ function processSong(uploadedpath, user, name, opts) {
 
   // Transcode song to mp3.
   .then(function() {
-    deferred.notify(exports.stages.transcoding);
+    deferred.notify(exports.stages.waiting);
     return transcodeSong(uploadedpath, path);
   })
 

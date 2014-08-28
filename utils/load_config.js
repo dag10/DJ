@@ -15,6 +15,9 @@ var default_values = {
   debug: true,
   debug_socketio: false,
   max_duration: 10,
+  transcoding: {
+    max_concurrent_jobs: 2,
+  },
   web: {
     host: '0.0.0.0',
     port: process.env.PORT || 9867,

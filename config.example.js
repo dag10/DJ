@@ -22,6 +22,11 @@ module.exports = {
   // Maximum duration (in minutes) of songs that can be added.
   max_duration: 10,
 
+  transcoding: {
+    // Maximum number of jobs to run concurrently, due to memory use.
+    max_concurrent_jobs: 2
+  },
+
   web: {
     // Host for the server.
     host: '0.0.0.0',

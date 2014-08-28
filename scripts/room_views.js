@@ -369,6 +369,9 @@ $(function() {
         case 'artwork':
           model.status = 'extracting artwork';
           break;
+        case 'waiting':
+          model.status = 'waiting to transcode';
+          break;
         case 'transcoding':
           model.status = 'transcoding audio';
           break;
