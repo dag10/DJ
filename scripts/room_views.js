@@ -560,6 +560,8 @@ $(function() {
     },
 
     escalate: function() {
+      if (this.model.get('next')) return false;
+
       var speed = 120;
       this.slideFromLeft(true, speed).then(_.bind(function() {
         this.model.once('change:order', function() {
