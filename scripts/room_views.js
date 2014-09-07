@@ -209,7 +209,10 @@ $(function() {
     },
 
     updateRelativeDate: function() {
-      this.$('.fuzzytime').text(moment(this.model.get('date')).fromNow());
+      var date = this.model.get('date');
+      var now = Date.now();
+      if (date > now) date = now;
+      this.$('.fuzzytime').text(moment(date).fromNow());
     },
 
     render: function() {
