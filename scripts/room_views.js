@@ -209,7 +209,10 @@ $(function() {
     },
 
     updateRelativeDate: function() {
-      this.$('.fuzzytime').text(moment(this.model.get('date')).fromNow());
+      var date = this.model.get('date');
+      var now = Date.now();
+      if (date > now) date = now;
+      this.$('.fuzzytime').text(moment(date).fromNow());
     },
 
     render: function() {
@@ -368,6 +371,9 @@ $(function() {
           break;
         case 'artwork':
           model.status = 'extracting artwork';
+          break;
+        case 'waiting':
+          model.status = 'waiting to transcode';
           break;
         case 'transcoding':
           model.status = 'transcoding audio';
@@ -557,6 +563,8 @@ $(function() {
     },
 
     escalate: function() {
+      if (this.model.get('next')) return false;
+
       var speed = 120;
       this.slideFromLeft(true, speed).then(_.bind(function() {
         this.model.once('change:order', function() {
@@ -801,13 +809,16 @@ $(function() {
       'blur #search-input': 'searchBlurred',
       'keydown #search-input': 'searchKeyDown',
       'paste #search-input': 'searchPaste',
-      'mousedown #search-results-list': 'listMouseDown'
+      'mousedown #search-results-list': 'listMouseDown',
+      'mousedown #search-input': 'searchInputMouseDown'
     },
 
     initialize: function() {
       this.listMousePressed = false;
+      this.searchInputMousePressed = false;
       window.bodyView.on('mouseup', function() {
         this.listMousePressed = false;
+        this.searchInputMousePressed = false;
       }, this);
 
       this.model.on('change:loading', this.updateLoading, this);
@@ -843,6 +854,7 @@ $(function() {
     },
 
     searchBlurred: function() {
+      if (this.searchInputMousePressed) return;
       if (this.listMousePressed) {
         window.bodyView.once('mouseup', this.endSearch, this);
       } else {
@@ -882,6 +894,11 @@ $(function() {
     listMouseDown: function() {
       this.listMousePressed = true;
       this.trigger('listMouseDown');
+    },
+
+    searchInputMouseDown: function() {
+      this.searchInputMousePressed = true;
+      this.trigger('searchInputMouseDown');
     },
 
     updateLoading: function() {

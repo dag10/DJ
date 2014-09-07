@@ -518,6 +518,7 @@ $(function() {
   // Model representing a section of the search results.
   models.SearchResultSection = Backbone.Model.extend({
     defaults: {
+      loading: false,
       source: null,
       title: null
     },
@@ -526,9 +527,67 @@ $(function() {
       this.id = this.get('source');
       this.on('change:source', function(source) { this.id = source; }, this);
       this.set({
-        results: new models.SearchResultList()
+        results: new models.SearchResultList(),
+        resultsCache: {}
       });
       this.get('results').on('enqueue', this.enqueue, this);
+
+      this.collection.resultsModel.on('change:query', this.queryChanged, this);
+    },
+
+    queryChanged: function() {
+      var query = this.collection.resultsModel.get('query');
+
+      if (query && query.trim().length > 0) {
+        var cache = this.get('resultsCache');
+
+        if (query in cache) {
+          this.handleResults(query, cache[query]);
+        } else {
+          this.requestResults(query);
+        }
+      } else {
+        this.clearResults();
+      }
+    },
+
+    requestResults: function(query) {
+      this.set({ loading: true });
+      this.collection.resultsModel.get('connection').searchSource(
+        this.get('source'), query, _.bind(this.resultsReceived, this));
+    },
+
+    resultsReceived: function(resultsData) {
+      if (!resultsData) {
+        resultsData = {
+          error: 'No results data received.',
+          query: '(unknown)'
+        };
+      }
+
+      var query = resultsData.query;
+
+      if (resultsData.error) {
+        console.warn('Error with ' + this.get('source') + ' search results ' +
+                     'for "' + query + '":', resultsData.error);
+      } else if (query && typeof query === 'string') {
+        this.get('resultsCache')[query] = resultsData;
+        this.handleResults(query, resultsData);
+      }
+    },
+
+    handleResults: function(query, resultsData) {
+      var resultsModel = this.collection.resultsModel;
+
+      if (resultsModel.get('query').trim().length === 0 ||
+          query === resultsModel.get('query')) {
+        this.set({ loading: false });
+      }
+
+      if (resultsModel.get('query').trim().length === 0 ||
+          resultsModel.get('locked')) return;
+
+      this.setResults(resultsData.results);
     },
 
     enqueue: function(result) {
@@ -547,14 +606,17 @@ $(function() {
 
   // Collection of SearchResultSections.
   models.SearchResultSections = Backbone.Collection.extend({
-    model: models.SearchResultSection
+    model: models.SearchResultSection,
+
+    initialize: function(items, opts) {
+      this.resultsModel = opts.resultsModel;
+    }
   });
 
   // Model representing the entire state of the search results.
   models.SearchResults = Backbone.Model.extend({
     defaults: {
       query: '',
-      loading: false,
       locked: false
     },
 
@@ -563,73 +625,21 @@ $(function() {
 
       var sections = this.get('sections') || [];
       this.set({
-        sections: new models.SearchResultSections(this.get('sections'))
+        sections: new models.SearchResultSections(sections, {
+          resultsModel: this
+        })
       });
 
       this.get('sections').on('enqueue', this.enqueue, this);
-      this.on('change:query', this.queryChanged, this);
     },
 
     enqueue: function(result) {
       this.get('adder').enqueueSearchResult(result);
     },
 
-    queryChanged: function() {
-      var query = this.get('query');
-
-      if (query && query.trim().length > 0) {
-        var cache = this.get('resultsCache');
-
-        if (query in cache) {
-          this.handleResults(query, cache[query]);
-        } else {
-          this.requestResults(query);
-        }
-      } else {
-        this.clearResults();
-      }
-    },
-
-    requestResults: _.throttle(function(query) {
-      this.set({ loading: true });
-      this.get('connection').search(
-        query, _.bind(this.resultsReceived, this));
-    }, search_throttle_ms),
-
-    resultsReceived: function(resultsData) {
-      var query = resultsData.query;
-
-      if (resultsData.error) {
-        console.error('Error with search results:', resultsData.error);
-      } else if (query && typeof query === 'string') {
-        this.get('resultsCache')[query] = resultsData;
-        this.handleResults(query, resultsData);
-      }
-    },
-
-    handleResults: function(query, resultsData) {
-      if (this.get('query').trim().length === 0 ||
-          query === this.get('query')) {
-        this.set({ loading: false });
-      }
-
-      if (this.get('query').trim().length === 0 || this.get('locked')) return;
-
-      var sections = this.get('sections');
-      resultsData.sections.forEach(function(sectionData) {
-        var section = sections.get(sectionData.source);
-        if (section) {
-          section.setResults(sectionData.results);
-        } else {
-          console.warn('Unknown section:', sectionData.source);
-        }
-      });
-    },
-
     clearResults: function() {
       this.set({
-        locked: false,
-        loading: false
+        locked: false
       });
       this.get('sections').forEach(function(section) {
         section.clearResults();
