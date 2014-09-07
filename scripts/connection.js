@@ -171,6 +171,13 @@ $(function() {
       this.get('socket').emit('search', query, callback);
     },
 
+    searchSource: function(source, query, callback) {
+      this.get('socket').emit('search:source', {
+        source: source,
+        query: query
+      }, callback);
+    },
+
     sendQueuedSongOrder: function(queued_song_id, order) {
       this.get('socket').emit('queue:change:order', [
         queued_song_id,

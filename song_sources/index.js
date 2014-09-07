@@ -171,23 +171,68 @@ exports.init = function() {
 };
 
 /**
+ * Searches a specific song source.
+ *
+ * @param source Name of source to search.
+ * @param query Search query.
+ * @return Promise resolving with search result object.
+ */
+exports.searchSource = function(source, query) {
+  if (!source) return Q.reject(new Error('No source specified.'));
+  if (!query) return Q.reject(new Error('No query specified.'));
+  
+  var max_results = config.song_sources.results_format[source];
+  var search_module = exports.sources[source];
+  if (!search_module) return Q.reject(new Error('Song source not found.'));
+
+  var deferred = Q.defer();
+
+  search_module.search(max_results, query)
+  .then(function(results) {
+    while (results.length > max_results) {
+      results.pop();
+    }
+
+    results.forEach(function(metadata) {
+      search_module.metadataCache[metadata.id] = metadata;
+    });
+
+    deferred.resolve({
+      source: source,
+      title: search_module.display_name,
+      query: query,
+      results: results
+    });
+  })
+  .catch(function(err) {
+    winston.warn(
+      'Search for ' + source + ' failed for "' + query + '": ' +
+      err.stack);
+    deferred.resolve({
+      source: source,
+      title: search_module.display_name,
+      query: query,
+      error: err.displaytext || 'An error occurred.'
+    });
+  });
+
+  return deferred.promise;
+};
+
+/**
  * Searches all song sources.
  *
  * @param query Search query.
  * @return Promise resolving with list of search result objects.
  */
 exports.search = function(query) {
-  return Q.allSettled(search_functions.map(function(search_function) {
-    var deferred = Q.defer();
+  if (!query) return Q.reject(new Error('No query specified.'));
 
-    search_function(query)
-    .then(function(result) {
-      deferred.resolve(result || []);
-    })
-    .catch(deferred.reject);
-
-    return deferred.promise;
-  }))
+  return Q.allSettled(Object.keys(exports.sources).map(
+    function(source_name) {
+      return exports.searchSource(source_name, query);
+    }
+  ))
   .then(function(results) {
     var sections = [];
 
@@ -206,25 +251,9 @@ exports.search = function(query) {
 
     for (var i = 0; i < results.length; i++) {
       var result = results[i];
-      var source_name = source_names[i];
-      var source = exports.sources[source_name];
-
-      if (result.state !== 'fulfilled') {
-        winston.warn(
-          'Search for ' + source_name + ' failed for "' + query + '": ' +
-          result.reason);
-        continue;
+      if (result.state === 'fulfilled') {
+        sections.push(result.value);
       }
-
-      result.value.forEach(function(metadata) {
-        source.metadataCache[metadata.id] = metadata;
-      });
-
-      sections.push({
-        source: source.name,
-        title: source.display_name,
-        results: result.value
-      });
     }
 
     return Q({

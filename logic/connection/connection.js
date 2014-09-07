@@ -39,6 +39,7 @@ module.exports = Backbone.Model.extend({
     socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
     socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
     socket.on('search', _.bind(this.handleSearch, this));
+    socket.on('search:source', _.bind(this.handleSourceSearch, this));
     socket.on('search:add', _.bind(this.handleSearchAdd, this));
     socket.on('queue:change:order', _.bind(this.handleQueuedSongOrder, this));
     socket.on('queue:change:escalate', _.bind(this.handleEscalation, this));
@@ -349,9 +350,19 @@ module.exports = Backbone.Model.extend({
 
   // Handle request for search results.
   handleSearch: function(query, fn) {
-    if (!query || !fn) return;
+    if (!query || !source || !fn) return;
     if (!this.ensureAuth(fn)) return;
     song_sources.search(query.substr(0, 50)).done(fn);
+  },
+
+  // Handle request for search results for a particular song source.
+  handleSourceSearch: function(data, fn) {
+    if (typeof data !== 'object') return;
+    var source = data.source;
+    var query = data.query;
+    if (!query || !source || !fn) return;
+    if (!this.ensureAuth(fn)) return;
+    song_sources.searchSource(source, query.substr(0, 50)).done(fn);
   },
 
   // Handle adding a search result to queue.
