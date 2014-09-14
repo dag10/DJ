@@ -9,6 +9,7 @@ var fs = require('fs');
 var Q = require('q');
 var _ = require('underscore');
 var multiparty = require('multiparty');
+var auth = require('../auth');
 var songs = require('./songs');
 var connections = require('../connection/connections');
 
@@ -41,12 +42,19 @@ exports.init = function() {
   return deferred.promise;
 };
 
-exports.initHandlers = function(app, auth) {
+exports.createWebHandlers = function(app) {
   app.post('/song/upload', function(req, res, next) {
     res.header('Connection', 'close');
     res.plaintext = true;
-    auth.getUser(false, req, res, next, function(user) {
-
+    
+    auth.getSessionUser(req, res)
+    .catch(function(err) {
+      renderResult(res, 'error.ejs', {
+        header: 'Authentication failed unexpectedly.',
+        error: err,
+      });
+    })
+    .then(function(user) {
       if (!user) {
         res.status(403);
         res.end(JSON.stringify({
