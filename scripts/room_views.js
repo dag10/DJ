@@ -773,6 +773,7 @@ $(function() {
       this.model.get('results').on('reset', this.resultsReset, this);
       this.model.get('results').on(
         'reset add remove', this.updatePlaceholder, this);
+      this.model.on('change:loading', this.updateLoading, this);
       this.render();
     },
 
@@ -785,6 +786,14 @@ $(function() {
       this.$results.append((new views.SearchResult({
         model: song
       })).$el);
+    },
+
+    updateLoading: function() {
+      if (this.model.get('loading')) {
+        this.$el.addClass('loading');
+      } else {
+        this.$el.removeClass('loading');
+      }
     },
 
     updatePlaceholder: function() {
@@ -800,6 +809,7 @@ $(function() {
       this.$results = this.$('.section-results');
       this.$placeholder = this.$('.section-results-placeholder');
       this.updatePlaceholder();
+      this.updateLoading();
     }
   });
 
@@ -820,8 +830,6 @@ $(function() {
         this.listMousePressed = false;
         this.searchInputMousePressed = false;
       }, this);
-
-      this.model.on('change:loading', this.updateLoading, this);
 
       this.section_views = [];
       this.sections = this.model.get('sections');
@@ -901,14 +909,6 @@ $(function() {
       this.trigger('searchInputMouseDown');
     },
 
-    updateLoading: function() {
-      if (this.model.get('loading')) {
-        this.$search_results_list.addClass('loading');
-      } else {
-        this.$search_results_list.removeClass('loading');
-      }
-    },
-
     render: function() {
       this.$search_results_list = this.$('#search-results-list');
       this.$btn_search_placeholder = this.$('#btn-search-placeholder');
@@ -926,7 +926,6 @@ $(function() {
         }
       });
 
-      this.updateLoading();
       this.updateSearchButton();
       return this;
     },
