@@ -3,6 +3,7 @@
  */
 
 var config = require('./utils/load_config') || process.exit(1);
+var auth = require('./logic/auth');
 var auth_module = require('./logic/web/auth');
 var express = require('express');
 var handlers = require('./logic/web/handlers');
@@ -44,6 +45,9 @@ logging.init()
 
 // Define models.
 .then(models.init)
+
+// Initialize authentication.
+.then(auth.init)
 
 // Do some procedural initialization steps, then do some steps concurrently.
 .then(function() {
