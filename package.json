@@ -17,7 +17,7 @@
     "winston": "0.7.2",
     "sanitizer": "0.1.1",
     "multiparty": "git://github.com/andrewrk/node-multiparty.git#3.3.0",
-    "fluent-ffmpeg": "1.5.2",
+    "fluent-ffmpeg": "2.0.0-rc2",
     "socket.io": "0.9.15",
     "underscore": "1.5.2",
     "backbone": "1.1.0",

@@ -110,25 +110,28 @@ function transcodeSong(path, newpath) {
   transcodingLimiter.newJob().then(function(jobFinished) {
     deferred.notify(exports.stages.transcoding);
 
-    new ffmpeg({ source: path })
-      .withAudioCodec('libmp3lame')
-      .withAudioBitrate(320)
-      .toFormat('mp3')
-      .saveToFile(newpath, function(stdout, stderr, err) {
-        if (err) {
-          winston.warn(
-            'Failed to transcode song: ' + path + '\n\nstderr: ' + stderr +
-            '\n\nstdout: ' + stdout);
-          deferred.reject(err);
-          jobFinished();
-        } else if (stderr === 'timeout') {
-          deferred.reject(new Error('ffmpeg timed out.'));
-          jobFinished();
-        } else {
-          deferred.resolve();
-          jobFinished();
-        }
-      });
+    ffmpeg(path)
+    .withAudioCodec('libmp3lame')
+    .withAudioBitrate(320)
+    .format('mp3')
+    .on('start', function(command) {
+      winston.debug('Running ffmpeg with command: ' + command);
+    })
+    .on('error', function(err, stdout, stderr) {
+      if (!err) return;
+
+      winston.warn(
+        'Failed to transcode song: ' + path + '\n\nstderr: ' + stderr +
+        '\n\nstdout: ' + stdout);
+      deferred.reject(err);
+      jobFinished();
+    })
+    .on('end', function() {
+      console.info('Resolving');
+      deferred.resolve();
+      jobFinished();
+    })
+    .save(newpath);
   });
 
   return deferred.promise;
@@ -146,8 +149,8 @@ function extractMetadata(song, path, metadata) {
   metadata = metadata || {};
   var deferred = Q.defer();
 
-  ffmpeg.Metadata(path, function(data, err) {
-    if (!err && !data.durationsec) {
+  ffmpeg.ffprobe(path, function(err, data) {
+    if (!err && !data.format.duration) {
       err = new Error('No duration found.');
     }
 
@@ -156,16 +159,18 @@ function extractMetadata(song, path, metadata) {
       return;
     }
 
+    var tags = data.format.tags || {};
+
     if (metadata.title) song.title = metadata.title;
-    else if (data.title) song.title = data.title;
+    else if (tags.title) song.title = tags.title;
 
     if (metadata.album) song.album = metadata.album;
-    else if (data.album) song.album = data.album;
+    else if (tags.album) song.album = tags.album;
 
     if (metadata.artist) song.artist = metadata.artist;
-    else if (data.artist) song.artist = data.artist;
+    else if (tags.artist) song.artist = tags.artist;
 
-    song.duration = data.durationsec;
+    song.duration = data.format.duration;
 
     deferred.resolve();
   });
@@ -233,33 +238,41 @@ function extractArtwork(path) {
     artworkTmpDir = fs_.createTmpDir();
   }
 
-  new ffmpeg({ source: path })
-    .withSize('800x800')
-    .takeScreenshots({
-      count: 1
-    },
-    artworkTmpDir,
-    function(err, filenames) {
-      if (err) {
-        winston.info('Failed to extract album art for ' + path);
-        filenames.forEach(function(name) {
-          fs_.unlink(artworkTmpDir + '/' + name, true);
-        });
-        deferred.resolve(null);
-        return;
-      }
+  var output_filenames = [];
 
-      if (filenames.length === 0) {
-        deferred.resolve(null);
-        return;
-      }
+  ffmpeg(path)
+  .on('filenames', function(filenames) {
+    if (filenames.length === 0) {
+      deferred.resolve(null);
+      return;
+    }
 
-      while (filenames.length > 1) {
-        fs_.unlink(artworkTmpDir + '/' + filenames.pop());
-      }
+    while (filenames.length > 1) {
+      fs_.unlink(artworkTmpDir + '/' + filenames.pop());
+    }
 
-      deferred.resolve(artworkTmpDir + '/' + filenames[0]);
+    output_filenames = filenames;
+  })
+  .on('error', function(err, stdout, stderr) {
+    winston.info('Failed to extract album art for ' + path);
+    output_filenames.forEach(function(name) {
+      fs_.unlink(artworkTmpDir + '/' + name, true);
     });
+    deferred.resolve(null);
+  })
+  .on('end', function() {
+    if (output_filenames && output_filenames.length > 0) {
+      deferred.resolve(artworkTmpDir + '/' + output_filenames[0]);
+    } else {
+      deferred.resolve(null);
+    }
+  })
+  .screenshots({
+    count: 1,
+    folder: artworkTmpDir,
+    filename: 'tn_%b_%i',
+    size: '800x800',
+  });
 
   return deferred.promise;
 }
@@ -467,7 +480,8 @@ function processSong(uploadedpath, user, name, opts) {
   .progress(deferred.notify)
   .catch(function(err) {
     deferred.reject(new Error('Failed to transcode song.'));
-    winston.warn('Failed to process song: ' + name + '\n' + err.stack);
+    var message = err.stack || err.message;
+    winston.warn('Failed to process song: ' + name + '\n' + message);
     song.destroy();
   })
   .finally(function() {
