@@ -257,10 +257,10 @@ function extractArtwork(path) {
   .on('error', function(err, stdout, stderr) {
     if (!err) return;
 
-    winston.warn(
+    winston.debug(
       'Failed to extract screenshot of: ' + path + '\n\nstderr: ' + stderr +
       '\n\nstdout: ' + stdout);
-    deferred.reject(err);
+    deferred.resolve(null);
   })
   .on('end', function() {
     deferred.resolve(artworkpath);
