@@ -106,7 +106,6 @@ function changeExtension(file, extension) {
 function transcodeSong(path, newpath) {
   var deferred = Q.defer();
 
-
   transcodingLimiter.newJob().then(function(jobFinished) {
     deferred.notify(exports.stages.transcoding);
 
@@ -238,41 +237,26 @@ function extractArtwork(path) {
     artworkTmpDir = fs_.createTmpDir();
   }
 
-  var output_filenames = [];
+  var filenames = [];
 
+  var artworkpath = (artworkTmpDir + '/' + 'artwork_' +
+                     filenameOfPath(path) + '.png');
   ffmpeg(path)
-  .on('filenames', function(filenames) {
-    if (filenames.length === 0) {
-      deferred.resolve(null);
-      return;
-    }
-
-    while (filenames.length > 1) {
-      fs_.unlink(artworkTmpDir + '/' + filenames.pop());
-    }
-
-    output_filenames = filenames;
+  .on('start', function(command) {
+    winston.debug('Running ffmpeg with command: ' + command);
   })
   .on('error', function(err, stdout, stderr) {
-    winston.info('Failed to extract album art for ' + path);
-    output_filenames.forEach(function(name) {
-      fs_.unlink(artworkTmpDir + '/' + name, true);
-    });
-    deferred.resolve(null);
+    if (!err) return;
+
+    winston.warn(
+      'Failed to extract screenshot of: ' + path + '\n\nstderr: ' + stderr +
+      '\n\nstdout: ' + stdout);
+    deferred.reject(err);
   })
   .on('end', function() {
-    if (output_filenames && output_filenames.length > 0) {
-      deferred.resolve(artworkTmpDir + '/' + output_filenames[0]);
-    } else {
-      deferred.resolve(null);
-    }
+    deferred.resolve(artworkpath);
   })
-  .screenshots({
-    count: 1,
-    folder: artworkTmpDir,
-    filename: 'tn_%b_%i',
-    size: '800x800',
-  });
+  .save(artworkpath);
 
   return deferred.promise;
 }
