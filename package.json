@@ -9,6 +9,7 @@
   },
   "main": "./app.js",
   "dependencies": {
+    "async": "0.9.0",
     "express": "3.x",
     "ejs": "0.8.5",
     "ejs-locals": "1.0.2",

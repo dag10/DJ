@@ -4,6 +4,7 @@
 /*jshint es5: true */
 
 var winston = require('winston');
+var async = require('async');
 var config = require('../../config');
 var fs = require('fs');
 var fs_ = require('../../utils/fs');
@@ -17,7 +18,6 @@ var song_sources = require('../../song_sources');
 var queues = require('./queues');
 var request = require('request');
 var extensions = require('../../utils/extensions');
-var ConcurrencyLimiter = require('../../utils/concurrency_limiter');
 var Q = require('q');
 
 /** Temporary directory for saving extracted album artwork. */
@@ -39,10 +39,11 @@ exports.stages = {
 };
 
 /**
- * ConcurrencyLimiter for song transcoding jobs.
+ * Concurrency-limiting queue for song transcoding jobs.
  */
-var transcodingLimiter = new ConcurrencyLimiter(
-  config.transcoding.max_concurrent_jobs);
+var transcodingQueue = async.queue(function(func, callback) {
+  func().then(callback, callback);
+}, config.transcoding.max_concurrent_jobs);
 
 /**
  * Generates a new song add job ID.
@@ -106,7 +107,9 @@ function changeExtension(file, extension) {
 function transcodeSong(path, newpath) {
   var deferred = Q.defer();
 
-  transcodingLimiter.newJob().then(function(jobFinished) {
+  transcodingQueue.push(function() {
+    var jobDeferred = Q.defer();
+
     deferred.notify(exports.stages.transcoding);
 
     ffmpeg(path)
@@ -122,15 +125,21 @@ function transcodeSong(path, newpath) {
       winston.warn(
         'Failed to transcode song: ' + path + '\n\nstderr: ' + stderr +
         '\n\nstdout: ' + stdout);
-      deferred.reject(err);
-      jobFinished();
+      jobDeferred.reject(err);
     })
     .on('end', function() {
       console.info('Resolving');
-      deferred.resolve();
-      jobFinished();
+      jobDeferred.resolve();
     })
     .save(newpath);
+
+    return jobDeferred.promise;
+  }, function(err) {
+    if (err) {
+      deferred.reject(err);
+    } else {
+      deferred.resolve();
+    }
   });
 
   return deferred.promise;
