@@ -52,7 +52,7 @@ exports.createTmpDir = function() {
   var prehash = new Date().valueOf() + '-' + tmpDirId++;
   var hash = crypto.createHash('md5').update(prehash).digest('hex');
 
-  dir += hash + '/';
+  dir += hash;
   fs.mkdirSync(dir);
 
   return dir;
