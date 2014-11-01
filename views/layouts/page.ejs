@@ -40,11 +40,11 @@
                 <%= user.fullName %> <b class="caret"></b>
               </a>
               <ul class="dropdown-menu">
-                <li><a href="<%= config.logoutUrl %>">Log Out</a></li>
+                <li><a href="<%= auth_urls.logout_url %>">Log Out</a></li>
               </ul>
             </li>
           <% } else if (!hide_login) { %>
-            <li><a href="/login">Log In</a></li>
+            <li><a href="<%= auth_urls.login_url %>">Log In</a></li>
           <% } %>
         </ul>
       </div>

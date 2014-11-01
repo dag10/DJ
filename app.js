@@ -3,7 +3,7 @@
  */
 
 var config = require('./utils/load_config') || process.exit(1);
-var auth_module = require('./logic/web/auth');
+var auth = require('./logic/auth');
 var express = require('express');
 var handlers = require('./logic/web/handlers');
 var database = require('./logic/database');
@@ -45,18 +45,18 @@ logging.init()
 // Define models.
 .then(models.init)
 
+// Initialize authentication.
+.then(auth.init)
+
 // Do some procedural initialization steps, then do some steps concurrently.
 .then(function() {
-
-  // Initialize auth.
-  var auth = auth_module.init(app);
 
   // Initialize the rest of these concurrently.
   return Q.all([
     song_sources.init(),
     rooms.loadRooms(),
     upload.init(),
-    handlers.init(app, auth)
+    handlers.init(app)
   ]);
 })
 

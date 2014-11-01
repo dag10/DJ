@@ -1,8 +1,10 @@
 /* handlers.js
  * Handlers for express web requests.
  */
+/*jshint es5: true */
 
 var config = require('../../config');
+var auth = require('../auth');
 var express = require('express');
 var lessMiddleware = require('less-middleware');
 var fs_ = require('../../utils/fs');
@@ -16,7 +18,7 @@ var song_sources = require('../../song_sources');
 
 var base_dir = __dirname + '/../..';
 
-exports.init = function(app, auth) {
+exports.init = function(app) {
   var deferred = Q.defer();
 
   app.enable('trust proxy');
@@ -39,7 +41,6 @@ exports.init = function(app, auth) {
     force: config.web.debug
   }));
 
-  /*jshint es5: true */
   app.use('/styles', express.static(base_dir + '/styles'));
   app.use('/images', express.static(base_dir + '/images'));
   app.use('/scripts', express.static(base_dir + '/scripts'));
@@ -48,21 +49,54 @@ exports.init = function(app, auth) {
   app.use('/artwork', express.static(upload.artwork_dir));
   app.use('/songs', express.static(upload.song_dir));
 
-  auth.initHandlers();
-  upload.initHandlers(app, auth);
+  var auth_urls = auth.createWebHandlers(app);
+
+  upload.createWebHandlers(app);
+
+  var default_objects = {
+    config: config,
+    auth_urls: auth_urls,
+    rooms: rooms,
+  };
+
+  function renderResult(res, template, objects) {
+    var objs = {};
+
+    // Copy default template objects.
+    Object.keys(default_objects).forEach(function(key) {
+      objs[key] = default_objects[key];
+    });
+
+    // Copy new template objects.
+    Object.keys(objects).forEach(function(key) {
+      objs[key] = objects[key];
+    });
+
+    // Return rendered template.
+    res.render(template, objs);
+  }
+
+  function renderAuthFailure(res, err) {
+    renderResult(res, 'error.ejs', {
+      header: 'Authentication failed unexpectedly.',
+      error: err,
+    });
+  }
 
   app.get('/', function(req, res, next) {
-    auth.getUser(false, req, res, next, function(user) {
-      res.render('index.ejs', {
+    auth.getSessionUser(req, res)
+    .catch(renderAuthFailure)
+    .then(function(user) {
+      renderResult(res, 'index.ejs', {
         user: user,
-        config: config,
-        rooms: rooms
       });
     });
   });
 
   app.get('/room/:room', function(req, res, next) {
-    auth.getUser(false, req, res, next, function(user) {
+    auth.getSessionUser(req, res)
+    .catch(renderAuthFailure)
+    .then(function(user) {
       var room = rooms.roomForShortname(req.param('room'));
       var search_sections = [];
       Object.keys(config.song_sources.results_format).forEach(function(name) {
@@ -75,18 +109,15 @@ exports.init = function(app, auth) {
         }
       });
       if (room) {
-        res.render('room.ejs', {
+        renderResult(res, 'room.ejs', {
+          room: room,
           user: user,
-          config: config,
           userhash: user ? user.hash() : '',
           search_sections: search_sections,
-          room: room
         });
       } else {
         res.status(404);
-        res.render('error.ejs', {
-          user: user,
-          config: config,
+        renderResult(res, 'error.ejs', {
           header: 'Room "' + req.param('room') + '" does not exist.'
         });
       }
@@ -205,13 +236,13 @@ exports.init = function(app, auth) {
   });
 
   app.use(function(err, req, res, next) {
-    auth.getUser(false, req, res, next, function(user) {
+    auth.getSessionUser(req, res)
+    .catch(renderAuthFailure)
+    .then(function(user) {
       res.status(500);
       if (req.accepts('text/html')) {
-        res.render('error.ejs', {
-          user: user,
+        renderResult(res, 'error.ejs', {
           error: err,
-          config: config
         });
       } else if (req.accepts('application/json')) {
         res.json({ error: err.message });
@@ -223,14 +254,14 @@ exports.init = function(app, auth) {
   });
 
   app.use(function(req, res, next) {
-    auth.getUser(false, req, res, next, function(user) {
+    auth.getSessionUser(req, res)
+    .catch(renderAuthFailure)
+    .then(function(user) {
       res.status(404);
       var err_msg = 'Page not found: ' + req.url;
       if (req.accepts('text/html')) {
-        res.render('error.ejs', {
-          user: user,
+        renderResult(res, 'error.ejs', {
           header: err_msg,
-          config: config
         });
       } else if (req.accepts('application/json')) {
         res.json({ error: err_msg });

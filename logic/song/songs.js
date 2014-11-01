@@ -4,6 +4,7 @@
 /*jshint es5: true */
 
 var winston = require('winston');
+var async = require('async');
 var config = require('../../config');
 var fs = require('fs');
 var fs_ = require('../../utils/fs');
@@ -17,7 +18,6 @@ var song_sources = require('../../song_sources');
 var queues = require('./queues');
 var request = require('request');
 var extensions = require('../../utils/extensions');
-var ConcurrencyLimiter = require('../../utils/concurrency_limiter');
 var Q = require('q');
 
 /** Temporary directory for saving extracted album artwork. */
@@ -39,10 +39,11 @@ exports.stages = {
 };
 
 /**
- * ConcurrencyLimiter for song transcoding jobs.
+ * Concurrency-limiting queue for song transcoding jobs.
  */
-var transcodingLimiter = new ConcurrencyLimiter(
-  config.transcoding.max_concurrent_jobs);
+var transcodingQueue = async.queue(function(func, callback) {
+  func().then(callback, callback);
+}, config.transcoding.max_concurrent_jobs);
 
 /**
  * Generates a new song add job ID.
@@ -106,29 +107,39 @@ function changeExtension(file, extension) {
 function transcodeSong(path, newpath) {
   var deferred = Q.defer();
 
+  transcodingQueue.push(function() {
+    var jobDeferred = Q.defer();
 
-  transcodingLimiter.newJob().then(function(jobFinished) {
     deferred.notify(exports.stages.transcoding);
 
-    new ffmpeg({ source: path })
-      .withAudioCodec('libmp3lame')
-      .withAudioBitrate(320)
-      .toFormat('mp3')
-      .saveToFile(newpath, function(stdout, stderr, err) {
-        if (err) {
-          winston.warn(
-            'Failed to transcode song: ' + path + '\n\nstderr: ' + stderr +
-            '\n\nstdout: ' + stdout);
-          deferred.reject(err);
-          jobFinished();
-        } else if (stderr === 'timeout') {
-          deferred.reject(new Error('ffmpeg timed out.'));
-          jobFinished();
-        } else {
-          deferred.resolve();
-          jobFinished();
-        }
-      });
+    ffmpeg(path)
+    .withAudioCodec('libmp3lame')
+    .withAudioBitrate(320)
+    .format('mp3')
+    .on('start', function(command) {
+      winston.debug('Running ffmpeg with command: ' + command);
+    })
+    .on('error', function(err, stdout, stderr) {
+      if (!err) return;
+
+      winston.warn(
+        'Failed to transcode song: ' + path + '\n\nstderr: ' + stderr +
+        '\n\nstdout: ' + stdout);
+      jobDeferred.reject(err);
+    })
+    .on('end', function() {
+      console.info('Resolving');
+      jobDeferred.resolve();
+    })
+    .save(newpath);
+
+    return jobDeferred.promise;
+  }, function(err) {
+    if (err) {
+      deferred.reject(err);
+    } else {
+      deferred.resolve();
+    }
   });
 
   return deferred.promise;
@@ -146,8 +157,8 @@ function extractMetadata(song, path, metadata) {
   metadata = metadata || {};
   var deferred = Q.defer();
 
-  ffmpeg.Metadata(path, function(data, err) {
-    if (!err && !data.durationsec) {
+  ffmpeg.ffprobe(path, function(err, data) {
+    if (!err && !data.format.duration) {
       err = new Error('No duration found.');
     }
 
@@ -156,16 +167,18 @@ function extractMetadata(song, path, metadata) {
       return;
     }
 
+    var tags = data.format.tags || {};
+
     if (metadata.title) song.title = metadata.title;
-    else if (data.title) song.title = data.title;
+    else if (tags.title) song.title = tags.title;
 
     if (metadata.album) song.album = metadata.album;
-    else if (data.album) song.album = data.album;
+    else if (tags.album) song.album = tags.album;
 
     if (metadata.artist) song.artist = metadata.artist;
-    else if (data.artist) song.artist = data.artist;
+    else if (tags.artist) song.artist = tags.artist;
 
-    song.duration = data.durationsec;
+    song.duration = data.format.duration;
 
     deferred.resolve();
   });
@@ -233,33 +246,26 @@ function extractArtwork(path) {
     artworkTmpDir = fs_.createTmpDir();
   }
 
-  new ffmpeg({ source: path })
-    .withSize('800x800')
-    .takeScreenshots({
-      count: 1
-    },
-    artworkTmpDir,
-    function(err, filenames) {
-      if (err) {
-        winston.info('Failed to extract album art for ' + path);
-        filenames.forEach(function(name) {
-          fs_.unlink(artworkTmpDir + '/' + name, true);
-        });
-        deferred.resolve(null);
-        return;
-      }
+  var filenames = [];
 
-      if (filenames.length === 0) {
-        deferred.resolve(null);
-        return;
-      }
+  var artworkpath = (artworkTmpDir + '/' + 'artwork_' +
+                     filenameOfPath(path) + '.png');
+  ffmpeg(path)
+  .on('start', function(command) {
+    winston.debug('Running ffmpeg with command: ' + command);
+  })
+  .on('error', function(err, stdout, stderr) {
+    if (!err) return;
 
-      while (filenames.length > 1) {
-        fs_.unlink(artworkTmpDir + '/' + filenames.pop());
-      }
-
-      deferred.resolve(artworkTmpDir + '/' + filenames[0]);
-    });
+    winston.debug(
+      'Failed to extract screenshot of: ' + path + '\n\nstderr: ' + stderr +
+      '\n\nstdout: ' + stdout);
+    deferred.resolve(null);
+  })
+  .on('end', function() {
+    deferred.resolve(artworkpath);
+  })
+  .save(artworkpath);
 
   return deferred.promise;
 }
@@ -467,7 +473,8 @@ function processSong(uploadedpath, user, name, opts) {
   .progress(deferred.notify)
   .catch(function(err) {
     deferred.reject(new Error('Failed to transcode song.'));
-    winston.warn('Failed to process song: ' + name + '\n' + err.stack);
+    var message = err.stack || err.message;
+    winston.warn('Failed to process song: ' + name + '\n' + message);
     song.destroy();
   })
   .finally(function() {
