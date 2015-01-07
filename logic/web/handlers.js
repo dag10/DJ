@@ -168,7 +168,7 @@ exports.init = function(app) {
         'Expires': '0'
       });
 
-      var segments_sent = playback.get('played_segments');
+      var segment_index = playback.get('played_segments');
       var ended = false;
 
       // Create a pass-through stream that pipes to the response. This is
@@ -197,21 +197,27 @@ exports.init = function(app) {
       // fills up, or we sent as many segments that have been loaded so far.
       var send_segments = function() {
         var segments = playback.segments();
-        var played_segments = playback.get('played_segments');
+        //var played_segments = playback.get('played_segments');
         if (!playback.song()) {
           end();
         }
 
+        var segments_sent = 0;
         while (!ended) {
-          var index = segments_sent - played_segments;
-          if (index < 0) index = 0;
-          if (index < segments.length) {
-            segments_sent++;
-            if (!res_stream.write(segments[index].data)) {
+          // Send at most 10 segments at a time.
+          if (segments_sent++ > 10) {
+            setTimeout(send_segments, 0);
+            break;
+          }
+
+          if (segment_index < segments.length) {
+            if (!res_stream.write(segments[segment_index].data)) {
               res_stream.once('drain', send_segments);
               break;
             }
+            segment_index++;
           } else if (playback.get('segments_loaded')) {
+            winston.debug('ALL SEGMENTS SENT!'.white.greenBG);
             end();
             break;
           } else {

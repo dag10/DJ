@@ -255,21 +255,24 @@ module.exports = Backbone.Model.extend({
   },
 
   sendSegment: function() {
-    var segment = this.segments().shift();
+    var segments = this.segments();
+    var played_segments = this.get('played_segments');
 
-    if (!segment) {
+    if (played_segments > segments.length) {
       this.once('segment_load', this.sendSegment, this);
       return;
     }
 
+    var segment = segments[played_segments];
     var sampleRate = this.encoder().sampleRate;
     var segment_duration = segment.num_samples / sampleRate * 1000;
 
     this.set({
       segment_timeout: setTimeout(
         _.bind(this.sendSegment, this), segment_duration),
-      played_segments: this.get('played_segments') + 1
+      played_segments: played_segments + 1
     });
+
     this.trigger('segment', segment.data);
   }
 });
