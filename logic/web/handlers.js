@@ -196,13 +196,13 @@ exports.init = function(app) {
       // Function to send as many segments as possible until the stream
       // fills up, or we sent as many segments that have been loaded so far.
       var send_segments = function() {
-        var segments = playback.segments();
-        //var played_segments = playback.get('played_segments');
         if (!playback.song()) {
           end();
         }
 
+        var segments = playback.segments();
         var segments_sent = 0;
+
         while (!ended) {
           // Send at most 10 segments at a time.
           if (segments_sent++ > 10) {
@@ -211,13 +211,16 @@ exports.init = function(app) {
           }
 
           if (segment_index < segments.length) {
-            if (!res_stream.write(segments[segment_index].data)) {
+            // We increment the segment before the write attempt because
+            // even if the write attempt "fails", the segement will still be
+            // in the queue to send. If we send it again (by not incrementing),
+            // the user will hear segments repeat.
+            segment_index++;
+            if (!res_stream.write(segments[segment_index - 1].data)) {
               res_stream.once('drain', send_segments);
               break;
             }
-            segment_index++;
           } else if (playback.get('segments_loaded')) {
-            winston.debug('ALL SEGMENTS SENT!'.white.greenBG);
             end();
             break;
           } else {
