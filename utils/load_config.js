@@ -14,6 +14,7 @@ var default_values = {
   superadmin: 'dag10',
   debug: true,
   debug_socketio: false,
+  playback_gap: 1,
   max_duration: 10,
   transcoding: {
     max_concurrent_jobs: 2,

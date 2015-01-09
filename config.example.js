@@ -19,6 +19,9 @@ module.exports = {
   // If true and debug is true, socket.io debug messages will be logged.
   debug_socketio: false,
 
+  // Seconds of delay between starting the next song.
+  playback_gap: 1,
+
   // Maximum duration (in minutes) of songs that can be added.
   max_duration: 10,
 

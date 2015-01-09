@@ -23,7 +23,7 @@ module.exports = Backbone.Model.extend({
       segments_loaded: false,
       played_segments: 0
     });
-    this.once('segment_load', this.sendSegment, this);
+    this.once('segment_load', this.sendDelayedSegment, this);
   },
 
   /* Playback Control */
@@ -41,7 +41,8 @@ module.exports = Backbone.Model.extend({
 
     this.set({
       finishedTimeout: setTimeout(
-        _.bind(this.finished, this), this.millisecondsRemaining())
+        _.bind(this.finished, this),
+        this.millisecondsRemaining() + (config.playback_gap * 1000))
     });
 
     this.startStream();
@@ -222,7 +223,7 @@ module.exports = Backbone.Model.extend({
     if (segment_timeout) {
       clearTimeout(segment_timeout);
       this.unset('segment_timeout');
-      this.once('segment_load', this.sendSegment, this);
+      this.once('segment_load', this.sendDelayedSegment, this);
     }
 
     if (fileStream) {
@@ -254,11 +255,28 @@ module.exports = Backbone.Model.extend({
     this.trigger('stream_end');
   },
 
+  /**
+   * Sents a timeout to sendSegment in half of the playback_gap time from now.
+   *
+   * This is to give clients a chance to start actually streaming the song
+   * without missing the first segment or two.
+   */
+  sendDelayedSegment: function() {
+    if (this.get('segment_timeout')) {
+      clearTimeout(this.get('segment_timeout'));
+    }
+
+    this.set({
+      segment_timeout: setTimeout(
+        _.bind(this.sendSegment, this), (config.playback_gap * 1000 / 2))
+    });
+  },
+
   sendSegment: function() {
     var segments = this.segments();
     var played_segments = this.get('played_segments');
 
-    if (played_segments > segments.length) {
+    if (played_segments >= segments.length) {
       this.once('segment_load', this.sendSegment, this);
       return;
     }
