@@ -179,7 +179,7 @@ $(function() {
 
     render: function() {
       var $ul = this.$('ul');
-      var $placeholder = this.$('#queue-placeholder');
+      var $placeholder = this.$('.section-empty');
 
       var scrollTop = this.el.scrollTop;
 
