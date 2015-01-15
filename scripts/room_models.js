@@ -20,10 +20,6 @@ $(function() {
     },
 
     initialize: function() {
-      var audio = new Audio();
-      audio.autoplay = true;
-      this.set({ audio: audio });
-
       this.on('change:song', this.songChanged, this);
       this.on('change:muted', this.mutedChanged, this);
     },
@@ -70,6 +66,22 @@ $(function() {
       this.stopAudio();
     },
 
+    createAudio: function() {
+      if (this.has('audio')) return;
+
+      var audio = new Audio();
+      audio.autoplay = true;
+      audio.muted = this.get('muted');
+      this.set({ audio: audio });
+    },
+
+    destroyAudio: function() {
+      if (!this.has('audio')) return;
+
+      this.get('audio').src = '';
+      this.unset('audio');
+    },
+
     startAudio: function() {
       this.stopAudio();
       this.updateProgress();
@@ -77,19 +89,38 @@ $(function() {
       if (!this.has('song'))
         return;
 
-      var audio = this.get('audio');
-      audio.src = '/stream/' + this.get('room').get('shortname') +
-        '/current?' + Math.floor(Math.random() * 100);
-      console.log('Setting audio src:', audio.src);
+      // If there is no audio object and we're not muted, create one.
+      if (!this.has('audio') && !this.get('muted')) {
+        this.createAudio();
+      }
+
+      if (this.has('audio')) {
+        var audio = this.get('audio');
+        audio.src = '';
+        audio.src = '/stream/' + this.get('room').get('shortname') +
+          '/current';
+      }
     },
 
     stopAudio: function() {
-      var audio = this.get('audio');
-      audio.src = '';
+      if (this.has('audio')) {
+        var audio = this.get('audio');
+        audio.src = '';
+
+        // Destroy audio if we're stopping audio and it's currently muted.
+        if (this.get('muted')) {
+          this.destroyAudio();
+        }
+      }
     },
 
     mutedChanged: function() {
-      this.get('audio').muted = this.get('muted');
+      if (this.has('audio')) {
+        this.get('audio').muted = this.get('muted');
+      } else if (!this.get('muted')) {
+        // There's no audio object but we're being unmuted, so let's make one.
+        this.startAudio();
+      }
     },
 
     updateProgress: function() {
