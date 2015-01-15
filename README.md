@@ -11,6 +11,8 @@ it should be easily deployable elsewhere.
 It's still a work in progress. Here's a screenshot:
 ![Screenshot](/screenshot.png)
 
+For a standalone client, see [DJ Listener](https://github.com/dag10/DJ-Listener).
+
 Installation
 --
 First, setup a new mysql database.
