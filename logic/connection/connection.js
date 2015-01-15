@@ -90,7 +90,7 @@ module.exports = Backbone.Model.extend({
       room.get('playback').on('play', function() {
         this.sendSongPlayback(room.get('playback'));
       }, this);
-      room.get('playback').on('end', function() {
+      room.get('playback').on('stop', function() {
         this.sendSongPlaybackStopped();
       }, this);
       if (room.get('playback').playing()) {
