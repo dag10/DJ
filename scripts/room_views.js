@@ -534,6 +534,14 @@ $(function() {
         this.$el.removeClass('dragging');
         e.preventDefault();
       }, this));
+
+      this.connection.on('change:connected', function() {
+        if (this.connection.get('connected')) {
+          this.$btnupload.removeAttr('disabled');
+        } else {
+          this.$btnupload.attr('disabled', 'disabled');
+        }
+      }, this);
     }
   });
 

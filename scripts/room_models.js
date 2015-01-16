@@ -479,6 +479,14 @@ $(function() {
   models.SongAdder = Backbone.Model.extend({
     initialize: function() {
       this.set({ adds: new models.SongAdds() });
+      this.get('connection').on(
+        'change:connected', this.connectedChanged, this);
+    },
+
+    connectedChanged: function() {
+      if (!this.get('connection').get('connected')) {
+        this.get('adds').reset();
+      }
     },
 
     songUploadAdded: function(event, data) {
@@ -781,8 +789,9 @@ $(function() {
       this.get('djs').comparator = 'djOrder';
       this.set({ username: this.get('connection').get('username') });
       this.on('change:connected', function() {
-        if (this.get('connected'))
+        if (this.get('connected')) {
           this.unset('kick_message');
+        }
       }, this);
     },
 
