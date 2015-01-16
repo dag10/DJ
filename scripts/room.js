@@ -15,7 +15,7 @@ $(function() {
       connection: connection
     });
 
-    new views.Queue({
+    var queueView = new views.Queue({
       collection: connection.get('queue'),
       connection: connection,
       el: $('#queue-column')[0]
@@ -33,6 +33,7 @@ $(function() {
         adder: songAdder,
         connection: connection
       }),
+      queueView: queueView,
       el: $('#queue-column')[0]
     });
   }
