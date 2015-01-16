@@ -4,6 +4,40 @@ $(function() {
   var progressInterval = 10;
   var search_throttle_ms = 200;
 
+  // Model managing cookies.
+  models.Cookies = Backbone.Model.extend({
+    defaults: {
+      muted: false
+    },
+
+    initialize: function() {
+      Object.keys(this.attributes).forEach(_.bind(function(key) {
+        var value = $.cookie(key);
+        if (typeof value !== 'undefined') {
+          if (value.toLowerCase() === 'true') {
+            value = true;
+          } else if (value.toLowerCase() === 'false') {
+            value = false;
+          } else if (typeof this.defaults[key] === 'number') {
+            value = Number.parseFloat(value);
+          }
+
+          this.set(key, value);
+        } else {
+          $.cookie(key, this.get(key));
+        }
+      }, this));
+
+      this.on('change', this.onChange, this);
+    },
+
+    onChange: function() {
+      Object.keys(this.changedAttributes()).forEach(_.bind(function(key) {
+        $.cookie(key, this.get(key));
+      }, this));
+    }
+  });
+
   // Model representing a song's information.
   models.Song = Backbone.Model.extend({
     defaults: {

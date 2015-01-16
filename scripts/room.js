@@ -1,9 +1,10 @@
 $(function() {
+  window.cookies = new models.Cookies();
+  window.bodyView = new views.Body();
+
   var connection = new Connection({
     room_shortname: window.room.shortname
   });
-
-  window.bodyView = new views.Body();
   
   if (window.user) {
     connection.set({
