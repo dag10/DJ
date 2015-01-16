@@ -54,6 +54,8 @@ $(function() {
     },
 
     initialize: function() {
+      this.set({ muted: cookies.get('muted') });
+
       this.on('change:song', this.songChanged, this);
       this.on('change:muted', this.mutedChanged, this);
     },
@@ -149,12 +151,16 @@ $(function() {
     },
 
     mutedChanged: function() {
+      var muted = this.get('muted');
+
       if (this.has('audio')) {
-        this.get('audio').muted = this.get('muted');
-      } else if (!this.get('muted')) {
+        this.get('audio').muted = muted;
+      } else if (!muted) {
         // There's no audio object but we're being unmuted, so let's make one.
         this.startAudio();
       }
+
+      cookies.set({ muted: muted });
     },
 
     updateProgress: function() {
@@ -757,16 +763,18 @@ $(function() {
   // Model representing the state of the current room.
   models.Room = Backbone.Model.extend({
     defaults: {
-      activities: new models.Activities(),
       anonymous_listeners: 0,
       connected: false,
-      listeners: new models.Users(),
-      dj: false,
-      djs: new models.Users(),
-      playback: new models.Playback()
+      dj: false
     },
 
     initialize: function() {
+      this.set({
+        activities: new models.Activities(),
+        listeners: new models.Users(),
+        djs: new models.Users(),
+        playback: new models.Playback()
+      });
       this.get('activities').room = this;
       this.get('playback').set({ room: this });
       this.get('listeners').comparator = 'username';
