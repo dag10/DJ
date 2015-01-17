@@ -793,6 +793,7 @@ $(function() {
           this.unset('kick_message');
         }
       }, this);
+      window.onbeforeunload = _.bind(this.unloadConfirmation, this);
     },
 
     reset: function() {
@@ -873,6 +874,20 @@ $(function() {
 
     endDJ: function() {
       this.get('connection').endDJ();
+    },
+
+    unloadConfirmation: function() {
+      if (this.get('dj')) {
+        if (this.get('playback').get('selfIsDJ')) {
+          return 'You\'re currently playing music. If you navigate away, ' +
+                 'your music will stop.';
+        } else {
+          return 'You\'re currently a DJ. If you navigate away, you will ' +
+                 'lose your spot in the queue.';
+        }
+      }
+
+      return null;
     }
   });
 });
