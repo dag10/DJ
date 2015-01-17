@@ -277,10 +277,7 @@
     class="fg"
     title="&quot;{{title}}&quot;{{#if artist}} by {{artist}}{{/if}}{{#if album}} on {{album}}{{/if}}">
     <span class="title">{{#if playing}}&#9658; {{/if}}{{title}}</span>
-    <span class="artist">{{artist}}</span>
-    {{#if album}}
-      <span class="album">- {{album}}</span>
-    {{/if}}
+    <span class="artist">{{formattedDuration}} - {{artist}}</span>
     <div class="controls">
       {{#unless playing}}
         <a href="#" class="btn-escalate" title="Move to top of queue (play next)">

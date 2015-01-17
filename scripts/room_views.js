@@ -1,4 +1,20 @@
 $(function() {
+  function secondsToTimestamp(seconds) {
+    if (seconds === 0) return '0:00';
+    seconds = Math.floor(seconds);
+
+    var remainingSeconds = seconds % 60;
+    var retStr = '';
+
+    retStr += Math.floor(seconds/60);
+    retStr += ':';
+    if (remainingSeconds < 10)
+      retStr += '0';
+    retStr += remainingSeconds;
+
+    return retStr;
+  }
+
   var views = window.views = {};
 
   views.Body = Backbone.View.extend({
@@ -646,8 +662,12 @@ $(function() {
         }
       }
 
+      var attributes = this.model.attributes;
+
+      attributes.formattedDuration = secondsToTimestamp(attributes.duration);
+
       this.undelegateEvents();
-      this.$el.html(this.template(this.model.attributes));
+      this.$el.html(this.template(attributes));
       this.delegateEvents();
       this.$el.disableSelection();
 
@@ -1016,31 +1036,15 @@ $(function() {
       this.render();
     },
 
-    secondsToTimestamp: function(seconds) {
-      if (seconds === 0) return '0:00';
-      seconds = Math.floor(seconds);
-
-      var remainingSeconds = seconds % 60;
-      var retStr = '';
-
-      retStr += Math.floor(seconds/60);
-      retStr += ':';
-      if (remainingSeconds < 10)
-        retStr += '0';
-      retStr += remainingSeconds;
-
-      return retStr;
-    },
-
     progressTimestamp: function() {
       var progress = this.model.get('progress') || 0;
-      return this.secondsToTimestamp(progress);
+      return secondsToTimestamp(progress);
     },
 
     durationTimestamp: function() {
       var song = this.model.get('song');
       var duration = song ? song.get('duration') || 0 : 0;
-      return this.secondsToTimestamp(duration);
+      return secondsToTimestamp(duration);
     },
 
     updateProgress: function() {
