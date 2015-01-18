@@ -6,6 +6,7 @@
   script('/scripts/backbone-min.js');
   script('/scripts/handlebars.js');
   script('/scripts/jquery-ui.custom.min.js');
+  script('/scripts/jquery.cookie.js');
   script('/scripts/moment.min.js');
   script('/scripts/room_models.js');
   script('/scripts/room_views.js');
@@ -66,12 +67,15 @@
         <div class="column-table-row stretch">
           <div class="column-section" id="queue-section">
             <ul id="queue-list"></ul>
-            <div class="section-empty center">
+            <div class="section-empty center" id="queue-placeholder">
               Your queue is empty.<br />
               <br />
               Search for songs or drag files here to get started.
             </div>
             <ul id="search-results-list" style="display: none;"></ul>
+            <div class="section-empty center" id="search-results-placeholder">
+              Type to search for a song, artist, or album.
+            </diV>
           </div>
         </div>
         <div class="column-table-row">
@@ -273,10 +277,7 @@
     class="fg"
     title="&quot;{{title}}&quot;{{#if artist}} by {{artist}}{{/if}}{{#if album}} on {{album}}{{/if}}">
     <span class="title">{{#if playing}}&#9658; {{/if}}{{title}}</span>
-    <span class="artist">{{artist}}</span>
-    {{#if album}}
-      <span class="album">- {{album}}</span>
-    {{/if}}
+    <span class="artist">{{formattedDuration}} - {{artist}}</span>
     <div class="controls">
       {{#unless playing}}
         <a href="#" class="btn-escalate" title="Move to top of queue (play next)">
@@ -325,6 +326,8 @@
       <div class="timeline">
         <div class="played-container">
           <div class="played"></div>
+          <div class="shape-top"></div>
+          <div class="shape-bottom"></div>
         </div>
         <div class="left progress-timestamp"></div>
         <div class="right duration-timestamp"></div>

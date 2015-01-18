@@ -168,7 +168,7 @@ exports.init = function(app) {
         'Expires': '0'
       });
 
-      var segments_sent = playback.get('played_segments');
+      var segment_index = playback.get('played_segments');
       var ended = false;
 
       // Create a pass-through stream that pipes to the response. This is
@@ -196,18 +196,27 @@ exports.init = function(app) {
       // Function to send as many segments as possible until the stream
       // fills up, or we sent as many segments that have been loaded so far.
       var send_segments = function() {
-        var segments = playback.segments();
-        var played_segments = playback.get('played_segments');
         if (!playback.song()) {
           end();
         }
 
+        var segments = playback.segments();
+        var segments_sent = 0;
+
         while (!ended) {
-          var index = segments_sent - played_segments;
-          if (index < 0) index = 0;
-          if (index < segments.length) {
-            segments_sent++;
-            if (!res_stream.write(segments[index].data)) {
+          // Send at most 10 segments at a time.
+          if (segments_sent++ > 10) {
+            setTimeout(send_segments, 0);
+            break;
+          }
+
+          if (segment_index < segments.length) {
+            // We increment the segment before the write attempt because
+            // even if the write attempt "fails", the segement will still be
+            // in the queue to send. If we send it again (by not incrementing),
+            // the user will hear segments repeat.
+            segment_index++;
+            if (!res_stream.write(segments[segment_index - 1].data)) {
               res_stream.once('drain', send_segments);
               break;
             }

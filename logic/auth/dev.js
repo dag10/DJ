@@ -123,6 +123,10 @@ exports.getSessionUser = function(req, res) {
     if (user) {
       user_info.id = user.id;
 
+      user.firstName = user_info.firstName;
+      user.lastName = user_info.lastName;
+      user.fullName = user_info.fullName;
+
       user.lastVisitedAt = new Date();
       user.admin = user.admin || (config.superadmin == user_info.username);
 
@@ -185,6 +189,8 @@ function handleLoginGetRequest(req, res) {
 
 /**
  * Handles a login post request.
+ *
+ * This function sanitizes the user data.
  *
  * @param req Express request object.
  * @param res Express response object.

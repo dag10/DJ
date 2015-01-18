@@ -1,4 +1,20 @@
 $(function() {
+  function secondsToTimestamp(seconds) {
+    if (seconds === 0) return '0:00';
+    seconds = Math.floor(seconds);
+
+    var remainingSeconds = seconds % 60;
+    var retStr = '';
+
+    retStr += Math.floor(seconds/60);
+    retStr += ':';
+    if (remainingSeconds < 10)
+      retStr += '0';
+    retStr += remainingSeconds;
+
+    return retStr;
+  }
+
   var views = window.views = {};
 
   views.Body = Backbone.View.extend({
@@ -534,6 +550,14 @@ $(function() {
         this.$el.removeClass('dragging');
         e.preventDefault();
       }, this));
+
+      this.connection.on('change:connected', function() {
+        if (this.connection.get('connected')) {
+          this.$btnupload.removeAttr('disabled');
+        } else {
+          this.$btnupload.attr('disabled', 'disabled');
+        }
+      }, this);
     }
   });
 
@@ -638,8 +662,12 @@ $(function() {
         }
       }
 
+      var attributes = this.model.attributes;
+
+      attributes.formattedDuration = secondsToTimestamp(attributes.duration);
+
       this.undelegateEvents();
-      this.$el.html(this.template(this.model.attributes));
+      this.$el.html(this.template(attributes));
       this.delegateEvents();
       this.$el.disableSelection();
 
@@ -666,6 +694,7 @@ $(function() {
     },
 
     initialize: function(opts) {
+      this.ui_hidden = false;
       this.views = [];
 
       this.connection = opts.connection;
@@ -716,6 +745,20 @@ $(function() {
       })[0];
     },
 
+    hideUI: function() {
+      this.ui_hidden = true;
+      this.$('.queue-header').hide();
+      this.$('#queue-list').hide();
+      this.updatePlaceholder();
+    },
+
+    showUI: function() {
+      this.ui_hidden = false;
+      this.$('.queue-header').show();
+      this.$('#queue-list').show();
+      this.updatePlaceholder();
+    },
+
     render: function() {
       var $ul = this.$('#queue-list');
 
@@ -729,12 +772,14 @@ $(function() {
     },
 
     updatePlaceholder: function() {
-      var $placeholder = this.$('.section-empty');
+      var $placeholder = this.$('#queue-placeholder');
 
-      if (this.connection.get('connected') && this.collection.length === 0)
+      if (!this.ui_hidden && this.connection.get('connected') &&
+          this.collection.length === 0) {
         $placeholder.show();
-      else
+      } else {
         $placeholder.hide();
+      }
     },
 
     sorted: function(event, model, position) {
@@ -823,13 +868,16 @@ $(function() {
       'mousedown #search-input': 'searchInputMouseDown'
     },
 
-    initialize: function() {
+    initialize: function(opts) {
+      this.ui_hidden = true;
       this.listMousePressed = false;
       this.searchInputMousePressed = false;
       window.bodyView.on('mouseup', function() {
         this.listMousePressed = false;
         this.searchInputMousePressed = false;
       }, this);
+
+      this.queueView = opts.queueView;
 
       this.section_views = [];
       this.sections = this.model.get('sections');
@@ -852,13 +900,30 @@ $(function() {
 
     search: function(event) {
       if (event) event.preventDefault();
+      this.showUI();
+      return false;
+    },
+
+    showUI: function() {
+      console.log('queueView:', this.queueView);
+      this.queueView.hideUI();
+
+      this.ui_hidden = false;
       this.$('#btn-search').tooltip('hide');
       this.$('.search-header').show();
-      this.$('.queue-header').hide();
       this.$('#search-input').focus();
       this.$('#search-results-list').show();
-      this.$('#queue-list').hide();
-      return false;
+      this.updateResultsPlaceholder();
+    },
+
+    hideUI: function() {
+      this.ui_hidden = true;
+      this.$('.search-header').hide();
+      this.$('#search-input').val('');
+      this.$('#search-results-list').hide();
+      this.$('#search-results-placeholder').hide();
+
+      this.queueView.showUI();
     },
 
     searchBlurred: function() {
@@ -872,12 +937,8 @@ $(function() {
 
     endSearch: function() {
       _.defer(_.bind(function() {
-        this.$('.queue-header').show();
-        this.$('.search-header').hide();
-        this.$('#search-input').val('');
-        this.$('#queue-list').show();
-        this.$('#search-results-list').hide();
         this.model.set('query', '');
+        this.hideUI();
       }, this));
     },
 
@@ -889,6 +950,7 @@ $(function() {
       } else {
         _.defer(_.bind(function() {
           this.model.set({ query: this.$('#search-input').val().trim() });
+          this.updateResultsPlaceholder();
         }, this));
       }
     },
@@ -896,6 +958,7 @@ $(function() {
     searchPaste: function(event) {
       _.defer(_.bind(function() {
         this.model.set({ query: this.$('#search-input').val().trim() });
+        this.updateResultsPlaceholder();
       }, this));
     },
 
@@ -912,7 +975,10 @@ $(function() {
     render: function() {
       this.$search_results_list = this.$('#search-results-list');
       this.$btn_search_placeholder = this.$('#btn-search-placeholder');
+      this.$results_placeholder = this.$('#search-results-placeholder');
       this.$btn_search = this.$('#btn-search');
+
+      this.$results_placeholder.hide();
 
       this.$btn_search.tooltip('destroy');
       this.$btn_search.tooltip({
@@ -928,6 +994,19 @@ $(function() {
 
       this.updateSearchButton();
       return this;
+    },
+
+    updateResultsPlaceholder: function() {
+      if (this.ui_hidden) {
+        this.$search_results_list.hide();
+        this.$results_placeholder.hide();
+      } else if (this.$('#search-input').val().trim().length > 0) {
+        this.$search_results_list.show();
+        this.$results_placeholder.hide();
+      } else {
+        this.$search_results_list.hide();
+        this.$results_placeholder.show();
+      }
     },
 
     updateSearchButton: function() {
@@ -957,31 +1036,15 @@ $(function() {
       this.render();
     },
 
-    secondsToTimestamp: function(seconds) {
-      if (seconds === 0) return '0:00';
-      seconds = Math.floor(seconds);
-
-      var remainingSeconds = seconds % 60;
-      var retStr = '';
-
-      retStr += Math.floor(seconds/60);
-      retStr += ':';
-      if (remainingSeconds < 10)
-        retStr += '0';
-      retStr += remainingSeconds;
-
-      return retStr;
-    },
-
     progressTimestamp: function() {
       var progress = this.model.get('progress') || 0;
-      return this.secondsToTimestamp(progress);
+      return secondsToTimestamp(progress);
     },
 
     durationTimestamp: function() {
       var song = this.model.get('song');
       var duration = song ? song.get('duration') || 0 : 0;
-      return this.secondsToTimestamp(duration);
+      return secondsToTimestamp(duration);
     },
 
     updateProgress: function() {

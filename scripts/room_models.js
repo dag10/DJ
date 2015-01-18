@@ -4,6 +4,40 @@ $(function() {
   var progressInterval = 10;
   var search_throttle_ms = 200;
 
+  // Model managing cookies.
+  models.Cookies = Backbone.Model.extend({
+    defaults: {
+      muted: false
+    },
+
+    initialize: function() {
+      Object.keys(this.attributes).forEach(_.bind(function(key) {
+        var value = $.cookie(key);
+        if (typeof value !== 'undefined') {
+          if (value.toLowerCase() === 'true') {
+            value = true;
+          } else if (value.toLowerCase() === 'false') {
+            value = false;
+          } else if (typeof this.defaults[key] === 'number') {
+            value = Number.parseFloat(value);
+          }
+
+          this.set(key, value);
+        } else {
+          $.cookie(key, this.get(key));
+        }
+      }, this));
+
+      this.on('change', this.onChange, this);
+    },
+
+    onChange: function() {
+      Object.keys(this.changedAttributes()).forEach(_.bind(function(key) {
+        $.cookie(key, this.get(key));
+      }, this));
+    }
+  });
+
   // Model representing a song's information.
   models.Song = Backbone.Model.extend({
     defaults: {
@@ -20,9 +54,7 @@ $(function() {
     },
 
     initialize: function() {
-      var audio = new Audio();
-      audio.autoplay = true;
-      this.set({ audio: audio });
+      this.set({ muted: cookies.get('muted') });
 
       this.on('change:song', this.songChanged, this);
       this.on('change:muted', this.mutedChanged, this);
@@ -70,6 +102,22 @@ $(function() {
       this.stopAudio();
     },
 
+    createAudio: function() {
+      if (this.has('audio')) return;
+
+      var audio = new Audio();
+      audio.autoplay = true;
+      audio.muted = this.get('muted');
+      this.set({ audio: audio });
+    },
+
+    destroyAudio: function() {
+      if (!this.has('audio')) return;
+
+      this.get('audio').src = '';
+      this.unset('audio');
+    },
+
     startAudio: function() {
       this.stopAudio();
       this.updateProgress();
@@ -77,19 +125,42 @@ $(function() {
       if (!this.has('song'))
         return;
 
-      var audio = this.get('audio');
-      audio.src = '/stream/' + this.get('room').get('shortname') +
-        '/current?' + Math.floor(Math.random() * 100);
-      console.log('Setting audio src:', audio.src);
+      // If there is no audio object and we're not muted, create one.
+      if (!this.has('audio') && !this.get('muted')) {
+        this.createAudio();
+      }
+
+      if (this.has('audio')) {
+        var audio = this.get('audio');
+        audio.src = '';
+        audio.src = '/stream/' + this.get('room').get('shortname') +
+          '/current';
+      }
     },
 
     stopAudio: function() {
-      var audio = this.get('audio');
-      audio.src = '';
+      if (this.has('audio')) {
+        var audio = this.get('audio');
+        audio.src = '';
+
+        // Destroy audio if we're stopping audio and it's currently muted.
+        if (this.get('muted')) {
+          this.destroyAudio();
+        }
+      }
     },
 
     mutedChanged: function() {
-      this.get('audio').muted = this.get('muted');
+      var muted = this.get('muted');
+
+      if (this.has('audio')) {
+        this.get('audio').muted = muted;
+      } else if (!muted) {
+        // There's no audio object but we're being unmuted, so let's make one.
+        this.startAudio();
+      }
+
+      cookies.set({ muted: muted });
     },
 
     updateProgress: function() {
@@ -408,6 +479,14 @@ $(function() {
   models.SongAdder = Backbone.Model.extend({
     initialize: function() {
       this.set({ adds: new models.SongAdds() });
+      this.get('connection').on(
+        'change:connected', this.connectedChanged, this);
+    },
+
+    connectedChanged: function() {
+      if (!this.get('connection').get('connected')) {
+        this.get('adds').reset();
+      }
     },
 
     songUploadAdded: function(event, data) {
@@ -692,25 +771,29 @@ $(function() {
   // Model representing the state of the current room.
   models.Room = Backbone.Model.extend({
     defaults: {
-      activities: new models.Activities(),
       anonymous_listeners: 0,
       connected: false,
-      listeners: new models.Users(),
-      dj: false,
-      djs: new models.Users(),
-      playback: new models.Playback()
+      dj: false
     },
 
     initialize: function() {
+      this.set({
+        activities: new models.Activities(),
+        listeners: new models.Users(),
+        djs: new models.Users(),
+        playback: new models.Playback()
+      });
       this.get('activities').room = this;
       this.get('playback').set({ room: this });
       this.get('listeners').comparator = 'username';
       this.get('djs').comparator = 'djOrder';
       this.set({ username: this.get('connection').get('username') });
       this.on('change:connected', function() {
-        if (this.get('connected'))
+        if (this.get('connected')) {
           this.unset('kick_message');
+        }
       }, this);
+      window.onbeforeunload = _.bind(this.unloadConfirmation, this);
     },
 
     reset: function() {
@@ -791,6 +874,20 @@ $(function() {
 
     endDJ: function() {
       this.get('connection').endDJ();
+    },
+
+    unloadConfirmation: function() {
+      if (this.get('dj')) {
+        if (this.get('playback').get('selfIsDJ')) {
+          return 'You\'re currently playing music. If you navigate away, ' +
+                 'your music will stop.';
+        } else {
+          return 'You\'re currently a DJ. If you navigate away, you will ' +
+                 'lose your spot in the queue.';
+        }
+      }
+
+      return null;
     }
   });
 });
