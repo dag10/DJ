@@ -1,7 +1,7 @@
 $(function() {
   var models = window.models = {};
 
-  var progressInterval = 10;
+  var progressInterval = 350;
   var search_throttle_ms = 200;
 
   // Model managing cookies.
