@@ -1018,7 +1018,7 @@
   }
 
   .timeline {
-    @inner-height: @timeline-height - (@timeline-padding * 2);
+    @inner-height: @timeline-height - (@timeline-padding * 2) - 1px;
     height: @inner-height;
     margin: @timeline-padding;
     background-color: darken(@color-grey-background, 12%);
@@ -1028,10 +1028,11 @@
 
     .left, .right {
       position: absolute;
-      font-size: 10px;
+      font-size: 9px;
       line-height: @inner-height;
       color: darken(@color-grey-background, 60%);
-      padding-bottom: 1px;
+      font-weight: bold;
+      letter-spacing: 0.6px;
     }
 
     .left {
