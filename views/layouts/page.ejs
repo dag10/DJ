@@ -52,6 +52,19 @@
     <div class="body-container">
       <%- body -%>
     </div>
+    <footer>
+    <div class="footer-section">
+      <a href="<%= package.repository.url %>" target="_blank">
+        DJ <%= package.version %>
+      </a>
+    </div>
+    <div class="footer-section">
+      Made with <span class="heart">&hearts;</span> by Drew
+    </div>
+    <div class="footer-section">
+      <a href="<%= package.bugs.url %>" target="_blank">Issues, Feature Requests</a>
+    </div>
+    </footer>
     <script>
       window.config = {
         max_file_size: <%= config.web.max_file_size*1024*1024 %>

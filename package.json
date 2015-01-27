@@ -5,7 +5,16 @@
   "author": "Drew Gottlieb (dag10) <gottlieb.drew@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/dag10/DJ.git"
+    "url": "https://github.com/dag10/DJ.git"
+  },
+  "contributors": [
+    {
+      "name": "Drew Gottlieb",
+      "email": "gottlieb.drew@gmail.com"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/dag10/DJ/issues"
   },
   "main": "./app.js",
   "dependencies": {
