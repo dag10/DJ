@@ -1,4 +1,5 @@
 @import 'constants.less';
+@import 'body.less';
 
 @section-header-bg: darken(@color-grey-background, 5.5%);
 @column-border-radius: 5px;
@@ -938,6 +939,10 @@
   @info-height: @playback-height - @timeline-height;
   @info-padding: @timeline-padding;
 
+  @media only screen and (max-width: @single-col-width) {
+    .body-container;
+  }
+
   .info {
     @inner-height: @info-height - @info-padding;
     @font-color: darken(@color-grey-background, 60%);
@@ -1084,6 +1089,68 @@
   visibility: hidden;
   height: 0;
   width: 0;
+}
+
+.mobile-top-controls {
+  @top-controls-height: 40px;
+  @top-padding: 500px;
+  height: @top-controls-height;
+  position: relative;
+  background: @nav-background;
+  margin: 10px -10px;
+  margin-top: -@top-padding - 20px;
+  display: none;
+  border-bottom: solid 1px @color-grey-border;
+  @box-shadow: 0 0 7px 0 darken(@color-grey-border, 5%);
+  -webkit-box-shadow: @box-shadow;
+  box-shadow: @box-shadow;
+  padding-top: @top-padding;
+  padding-bottom: @top-controls-height;
+
+  .navbar-container {
+    height: @top-controls-height;
+    position: relative;
+  }
+
+  .username {
+    position: absolute;
+    @width: 50%;
+    width: @width;
+    left: 50%;
+    top: 0;
+    margin-left: -@width / 2;
+    text-align: center;
+    line-height: @top-controls-height;
+    overflow: hidden;
+    color: #777;
+  }
+
+  & > ul {
+    position: absolute;
+    bottom: 0;
+  }
+
+  .navbar-left {
+    float: left;
+  }
+
+  .navbar-nav {
+    margin: 0;
+
+    a, a:link, a:hover, a:visited {
+      color: #777;
+      font-weight: bold;
+
+      .glyphicon {
+        position: relative;
+        top: 2px;
+      }
+    }
+  }
+
+  @media only screen and (max-width: @single-col-width) {
+    display: block;
+  }
 }
 
 /* Firefox-only rules */

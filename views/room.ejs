@@ -1,6 +1,7 @@
 <%
   layout('layouts/page');
   block('title', room.name);
+  stylesheet('/styles/room.custom.css');
   script('/socket.io/socket.io.js');
   script('/scripts/underscore-min.js');
   script('/scripts/backbone-min.js');
@@ -27,6 +28,37 @@
     };
   }
 %>
+
+<div class="row room-container mobile-top-controls">
+  <div class="navbar-container">
+    <ul class="nav room-nav navbar-nav navbar-left">
+      <li>
+        <a href="/">
+          <span class="glyphicon glyphicon-chevron-left"></span>
+          Rooms
+        </a>
+      </li>
+    </ul>
+    <% if (user) { %>
+    <div class="username">
+      <%= user.firstName %>
+    </div>
+    <% } %>
+    <ul class="nav room-nav navbar-nav navbar-right">
+      <li>
+        <% if (user) { %>
+        <a href="<%= auth_urls.logout_url %>">
+          Log Out
+        </a>
+        <% } else { %>
+        <a href="<%= auth_urls.login_url %>">
+          Log In
+        </a>
+        <% } %>
+      </li>
+    </ul>
+  </div>
+</div>
 <div class="row room-container">
   <div class="alert alert-danger room-alert"></div>
   <noscript>

@@ -23,7 +23,7 @@
   <body>
     <nav class="navbar navbar-default" role="navigation">
       <div class="navbar-container">
-        <div class="navbar-header">
+        <div class="navbar-header logo">
           <a href="/">
             <img
               src="/images/csh_dj_large.svg"
@@ -79,6 +79,8 @@
           hash: '<%= user.hash() %>'
         };
       <% } %>
+      // Enable :hover for links on Mobile Safari
+      document.addEventListener("touchstart", function() {},false);
     </script>
     <script src="/scripts/jquery-1.10.2.js"></script>
     <script src="/scripts/bootstrap.js"></script>

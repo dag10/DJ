@@ -1,5 +1,21 @@
 @import 'constants.less';
 
+body {
+  @media only screen and (max-width: @single-col-width) {
+    background-color: @nav-background;
+  }
+
+  & > .body-container {
+    overflow-x: hidden;
+    background-color: white;
+
+    @media only screen and (max-width: @single-col-width) {
+      padding-top: 70px;
+      padding-bottom: 20px;
+    }
+  }
+}
+
 .body-container {
   max-width: @site-width;
   margin: 0 auto;
@@ -29,7 +45,8 @@ footer {
   bottom: 0;
   left: 0;
   right: 0;
-  margin: 14px auto;
+  margin-bottom: 14px;
+  padding-top: 8px;
   opacity: 0.8;
   font-size: 12px;
 
@@ -53,6 +70,7 @@ footer {
 
   @media only screen and (max-width: @single-col-width) {
     position: relative;
+    border-top: solid 1px darken(@color-grey-background, 10%);
   }
 
   .footer-section {
