@@ -170,10 +170,11 @@ exports.getSessionUser = function(req, res) {
 /**
  * Handles a login get request.
  *
+ * @param render Function to render a response.
  * @param req Express request object.
  * @param res Express response object.
  */
-function handleLoginGetRequest(req, res) {
+function handleLoginGetRequest(render, req, res) {
   if (isLoggedIn(req, res)) {
     returnToReferer(req, res);
     return;
@@ -181,8 +182,7 @@ function handleLoginGetRequest(req, res) {
 
   setReturnUrl(req);
 
-  res.render('login.ejs', {
-    config: config,
+  render(res, 'login.ejs', {
     hide_login: true
   });
 }
@@ -192,19 +192,19 @@ function handleLoginGetRequest(req, res) {
  *
  * This function sanitizes the user data.
  *
+ * @param render Function to render a response.
  * @param req Express request object.
  * @param res Express response object.
  */
-function handleLoginPostRequest(req, res) {
+function handleLoginPostRequest(render, req, res) {
   var required_fields = ['username', 'first_name', 'last_name'];
 
   for (var i = 0; i < required_fields.length; i++) {
     var field = required_fields[i];
 
     if (!req.body || !req.body[field]) {
-      res.render('login.ejs', {
+      render(res, 'login.ejs', {
         error: 'Missing field: ' + field,
-        config: config,
         values: req.body,
         hide_login: true
       });
@@ -232,6 +232,7 @@ function handleLogoutGetRequest(req, res) {
   if (req.session && req.session.user) {
     req.session.user = null;
   }
+
   returnToReferer(req, res);
 }
 
@@ -239,11 +240,12 @@ function handleLogoutGetRequest(req, res) {
  * Defines web handlers (if any).
  *
  * @param express_app Express app object.
+ * @param render Function to render a page.
  * @return Object containing keys login_url and logout_url.
  */
-exports.createWebHandlers = function(express_app) {
-  express_app.get(login_url, handleLoginGetRequest);
-  express_app.post(login_url, handleLoginPostRequest);
+exports.createWebHandlers = function(express_app, render) {
+  express_app.get(login_url, handleLoginGetRequest.bind(null, render));
+  express_app.post(login_url, handleLoginPostRequest.bind(null, render));
   express_app.get(logout_url, handleLogoutGetRequest);
 
   return {

@@ -49,15 +49,16 @@ exports.init = function() {
 };
 
 /**
- * Defines web handlers (if any).
+ * Defines web handlers.
  *
- * Auth modules should implement this if needed. It's optional.
+ * Auth modules should implement this if needed.
  *
  * @param express_app Express app object.
+ * @param render Function to render a page.
  * @return Object containing keys login_url and logout_url.
  */
-exports.createWebHandlers = function() {
-  return {};
+exports.createWebHandlers = function(express_app, render) {
+  throw new Error('Auth module not loaded.');
 };
 
 /**
