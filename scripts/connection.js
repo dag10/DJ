@@ -1,7 +1,7 @@
 $(function() {
   var error = function(msg) {
     console.error(msg);
-    $('.room-alert').text('Error: ' + msg);
+    $('.alert-text').text('Error: ' + msg);
   };
 
   var headerErrorTimeout = {};
@@ -240,7 +240,7 @@ $(function() {
 
     handleReconnecting: function() {
       var attempts = this.get('reconnect_attempts') + 1;
-      $('.room-alert').text(
+      $('.alert-text').text(
         'Disconnected. Attempting to reconnect. (' + attempts + ')');
       this.set({ reconnect_attempts: attempts });
 

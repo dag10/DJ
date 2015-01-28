@@ -131,12 +131,12 @@ $(function() {
 
     renderAlert: function() {
       if (this.model.get('connected'))
-        $('.room-alert').text('');
+        $('.alert-text').text('');
       else if (this.model.has('kick_message'))
-        $('.room-alert').text(
+        $('.alert-text').text(
           'You were kicked: ' + this.model.get('kick_message'));
       else
-        $('.room-alert').text('Disconnected.');
+        $('.alert-text').text('Disconnected.');
     }
   });
 

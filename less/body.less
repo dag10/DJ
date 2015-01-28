@@ -7,14 +7,41 @@ body {
 
   & > .body-container {
     overflow-x: hidden;
+    padding-top: 20px;
     background-color: white;
 
     @media only screen and (max-width: @single-col-width) {
-      padding-top: 70px;
+      padding-top: 90px;
       padding-bottom: 20px;
     }
   }
 }
+
+.top-container {
+  position: relative;
+
+  @media only screen and (max-width: @single-col-width) {
+    display: none;
+  }
+
+  .top-alert {
+    padding: 5px;
+    text-align: center;
+    border-radius: 0;
+    border-width: 0 0 1px 0;
+    -moz-box-shadow: @site-box-shadow;
+    -webkit-box-shadow: @site-box-shadow;
+    box-shadow: @site-box-shadow;
+    margin-left: -1000px;
+    margin-right: -1000px;
+    margin-bottom: 0;
+
+    &:empty {
+      display: none;
+    }
+  }
+}
+
 
 .body-container {
   max-width: @site-width;
