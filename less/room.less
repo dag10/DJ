@@ -972,9 +972,8 @@
       right: 0;
       padding-right: 5px;
       padding-top: 5px;
-      padding-left: 20px;
       background: @nav-background;
-      @shadow: -14px 0px 27px 0px @nav-background;
+      @shadow: -5px 0px 27px 15px @nav-background;
       -webkit-box-shadow: @shadow;
       -moz-box-shadow: @shadow;
       box-shadow: @shadow;
@@ -986,6 +985,7 @@
       a {
         text-decoration: none;
         font-size: 22px;
+        margin: auto 2px;
         color: darken(@color-grey-background, 50%);
 
         &:hover:not(.disabled) {
