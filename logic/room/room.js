@@ -232,6 +232,7 @@ module.exports = BackboneDBModel.extend({
   connectionAdded: function(conn) {
     conn.set({
       room: this,
+      skipVoted: false,
       isDJ: false
     });
 
@@ -288,7 +289,7 @@ module.exports = BackboneDBModel.extend({
   },
 
   connectionUpdated: function(conn) {
-    var relevantAttributes = ['isDJ', 'djOrder', 'admin'];
+    var relevantAttributes = ['isDJ', 'djOrder', 'admin', 'skipVoted'];
     var changedAttributes = Object.keys(conn.changedAttributes());
 
     if (_.intersection(relevantAttributes, changedAttributes).length === 0)
@@ -344,6 +345,10 @@ module.exports = BackboneDBModel.extend({
       numSkipVotes: 0,
       numSkipVotesNeeded: skipVotesForUserCount(this.numUsers()),
     });
+
+    this.eachConnection(function(conn) {
+      conn.set({ skipVoted: false });
+    });
   },
 
   postSkipVote: function(conn) {
@@ -353,6 +358,7 @@ module.exports = BackboneDBModel.extend({
       return new Error('User already skip voted.');
     }
 
+    conn.set({ skipVoted: true });
     var skipVotes = this.skipVotes();
     skipVotes.push(conn);
     this.set({ 'numSkipVotes': skipVotes.length });
@@ -364,6 +370,7 @@ module.exports = BackboneDBModel.extend({
     if (index < 0) return;
     skipVotes.splice(index, 1);
     this.set({ 'numSkipVotes': skipVotes.length });
+    conn.set({ skipVoted: false });
   },
 
   skipVoted: function(conn) {

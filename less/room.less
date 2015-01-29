@@ -138,12 +138,22 @@
         @color: darken(@color-grey-border, 8%);
         color: @color;
         text-transform: uppercase;
+        height: 15px;
+
+        .timestamp-time {
+          display: inline-block;
+          line-height: 18px;
+          position: relative;
+          top: -2px;
+        }
 
         .activity-badge {
           display: inline-block;
           border: solid 1px @color;
           border-radius: 2px;
           padding: 0 3px;
+          position: relative;
+          top: -2px;
 
           &.emphasized {
             font-weight: bold;
@@ -205,6 +215,7 @@
         h1 {
           line-height: @line-height;
           color: lighten(black, 50%);
+          position: relative;
 
           .name {
             color: lighten(black, 10%);
@@ -240,6 +251,9 @@
           .title {
             font-weight: 500;
             font-size: 14px;
+            margin-top: 3px;
+            position: relative;
+            top: -1px;
           }
 
           .artist-album {
@@ -940,7 +954,7 @@
   @timeline-padding: 3px;
   @info-height: @playback-height - @timeline-height;
   @info-padding: @timeline-padding;
-
+  
   @media only screen and (max-width: @single-col-width) {
     .body-container;
   }
@@ -1140,6 +1154,56 @@
   visibility: hidden;
   height: 0;
   width: 0;
+}
+
+#listener-section, #dj-section {
+  @user-height: 30px;
+
+  .user {
+    position: relative;
+    height: @user-height;
+
+    .li-container {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      overflow: hidden;
+    }
+
+    .name {
+      padding-left: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      line-height: @user-height;
+    }
+
+    .votes {
+      background: @color-grey-background;
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      padding: 0 4px;
+      @shadow: -5px 0px 27px 15px @color-grey-background;
+      -webkit-box-shadow: @shadow;
+      -moz-box-shadow: @shadow;
+      box-shadow: @shadow;
+
+      .vote {
+        display: inline-block;
+        margin-top: 5px;
+        margin-right: 2px;
+        position: relative;
+        right: -20px;
+
+        &.skipvote {
+          color: @skipvote-color;
+        }
+      }
+    }
+  }
 }
 
 .mobile-top-controls {

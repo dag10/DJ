@@ -145,8 +145,28 @@ $(function() {
   views.User = Backbone.View.extend({
     template: Handlebars.compile($('#user-template').html()), 
 
+    initialize: function() {
+      this.model.on('change:skipVoted', this.updateVotes, this);
+    },
+
+    updateVotes: function(animated) {
+      if (animated === undefined) animated = true;
+      var duration = animated ? 150 : 0;
+
+      if (this.model.get('skipVoted')) {
+        this.$('.skipvote').animate({
+          right: 0
+        }, duration);
+      } else {
+        this.$('.skipvote').animate({
+          right: -20
+        }, duration);
+      }
+    },
+
     render: function() {
       this.$el.html(this.template(this.model.attributes));
+      this.updateVotes(false);
 
       return this;
     }
@@ -177,6 +197,7 @@ $(function() {
     add: function(user) {
       var userView = new views.User({
         tagName: 'li',
+        className: 'user',
         model: user
       });
 
