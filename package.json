@@ -1,7 +1,7 @@
 {
   "name": "DJ",
   "description": "A virtual DJ website, where you can play and listen to music together. Inspired by turntable.fm.",
-  "version": "1.4.1-alpha",
+  "version": "1.5.0-alpha",
   "author": "Drew Gottlieb (dag10) <gottlieb.drew@gmail.com>",
   "repository": {
     "type": "git",
