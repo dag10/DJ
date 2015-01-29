@@ -4,6 +4,18 @@
   if (typeof rooms === 'undefined') rooms = null;
   if (typeof hide_login === 'undefined') hide_login = null;
   var admin = user && user.admin;
+  var dropDownName = '';
+  if (user) {
+    var maxChars = 25;
+    if (user.fullName.length > maxChars) {
+      dropDownName = user.firstName;
+    } else {
+      dropDownName = user.fullName;
+    }
+    if (dropDownName.length > maxChars) {
+      dropDownName = dropDownName.substr(0, maxChars - 3) + '...'
+    }
+  }
 %>
 <html>
   <head>
@@ -38,7 +50,7 @@
           <% if (user) { %>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <%= user.fullName %> <b class="caret"></b>
+                <%= dropDownName %> <b class="caret"></b>
               </a>
               <ul class="dropdown-menu">
                 <li><a href="<%= auth_urls.logout_url %>">Log Out</a></li>
