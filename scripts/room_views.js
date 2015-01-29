@@ -146,12 +146,22 @@ $(function() {
     template: Handlebars.compile($('#user-template').html()), 
 
     initialize: function() {
-      this.model.on('change:skipVoted', this.updateVotes, this);
+      this.model.on('change:skipVoted change:liked', this.updateVotes, this);
     },
 
     updateVotes: function(animated) {
       if (animated === undefined) animated = true;
       var duration = animated ? 150 : 0;
+
+      if (this.model.get('liked')) {
+        this.$('.like').animate({
+          right: 0
+        }, duration);
+      } else {
+        this.$('.like').animate({
+          right: -20
+        }, duration);
+      }
 
       if (this.model.get('skipVoted')) {
         this.$('.skipvote').animate({

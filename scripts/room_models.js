@@ -245,6 +245,8 @@ $(function() {
     defaults: {
       admin: false,
       dj: false,
+      skipVoted: false,
+      liked: false,
       firstDJ: false
     },
 

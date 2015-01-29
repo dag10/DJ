@@ -153,6 +153,7 @@ module.exports = Backbone.Model.extend({
       firstName: user.firstName,
       lastName: user.lastName,
       fullName: user.fullName,
+      liked: this.get('liked') || false,
       skipVoted: this.get('skipVoted') || false,
       dj: this.get('isDJ') || false,
       djOrder: this.get('djOrder'),

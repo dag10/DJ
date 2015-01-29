@@ -307,7 +307,8 @@ module.exports = BackboneDBModel.extend({
   },
 
   connectionUpdated: function(conn) {
-    var relevantAttributes = ['isDJ', 'djOrder', 'admin', 'skipVoted'];
+    var relevantAttributes = [
+      'isDJ', 'djOrder', 'admin', 'skipVoted', 'liked'];
     var changedAttributes = Object.keys(conn.changedAttributes());
 
     if (_.intersection(relevantAttributes, changedAttributes).length === 0)
