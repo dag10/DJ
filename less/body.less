@@ -1,5 +1,48 @@
 @import 'constants.less';
 
+body {
+  @media only screen and (max-width: @single-col-width) {
+    background-color: @nav-background;
+  }
+
+  & > .body-container {
+    overflow-x: hidden;
+    padding-top: 20px;
+    background-color: white;
+
+    @media only screen and (max-width: @single-col-width) {
+      padding-top: 90px;
+      padding-bottom: 20px;
+    }
+  }
+}
+
+.top-container {
+  position: relative;
+
+  @media only screen and (max-width: @single-col-width) {
+    display: none;
+  }
+
+  .top-alert {
+    padding: 5px;
+    text-align: center;
+    border-radius: 0;
+    border-width: 0 0 1px 0;
+    -moz-box-shadow: @site-box-shadow;
+    -webkit-box-shadow: @site-box-shadow;
+    box-shadow: @site-box-shadow;
+    margin-left: -1000px;
+    margin-right: -1000px;
+    margin-bottom: 0;
+
+    &:empty {
+      display: none;
+    }
+  }
+}
+
+
 .body-container {
   max-width: @site-width;
   margin: 0 auto;
@@ -16,9 +59,50 @@
     font-weight: 300;
     margin-bottom: 20px;
 
-    @media only screen and (max-width: 768px) {
+    @media only screen and (max-width: @single-col-width) {
       font-size: 20px;
     }
+  }
+}
+
+footer {
+  .body-container;
+  text-align: center;
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  margin-bottom: 14px;
+  padding-top: 8px;
+  opacity: 0.8;
+  font-size: 12px;
+
+  .heart {
+    font-size: 10px;
+  }
+
+  a, a:visited, a:link {
+    border-radius: 3px;
+    padding: 3px 6px;
+    text-decoration: none;
+
+    &:hover {
+      background-color: darken(@color-grey-background, 8%);
+    }
+
+    &:active {
+      background-color: darken(@color-grey-background, 12%);
+    }
+  }
+
+  @media only screen and (max-width: @single-col-width) {
+    position: relative;
+    border-top: solid 1px darken(@color-grey-background, 10%);
+  }
+
+  .footer-section {
+    display: inline-block;
+    margin: auto 7px;
   }
 }
 

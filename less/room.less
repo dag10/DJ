@@ -1,4 +1,5 @@
 @import 'constants.less';
+@import 'body.less';
 
 @section-header-bg: darken(@color-grey-background, 5.5%);
 @column-border-radius: 5px;
@@ -134,8 +135,37 @@
         float: right;
         margin-right: 5px;
         font-size: 10px;
-        color: darken(@color-grey-border, 8%);
+        @color: darken(@color-grey-border, 8%);
+        color: @color;
         text-transform: uppercase;
+        height: 15px;
+
+        .timestamp-time {
+          display: inline-block;
+          line-height: 18px;
+          position: relative;
+          top: -2px;
+        }
+
+        .activity-badge {
+          display: inline-block;
+          border: solid 1px @color;
+          border-radius: 2px;
+          padding: 0 3px;
+          position: relative;
+          top: -2px;
+
+          &.emphasized {
+            font-weight: bold;
+            @color: @skipvote-color;
+            color: @color;
+            border-color: @color;
+          }
+        }
+
+        .activity-badge, .timestamp-time {
+          margin-left: 4px;
+        }
 
         &.counter-padding {
           float: left;
@@ -185,6 +215,7 @@
         h1 {
           line-height: @line-height;
           color: lighten(black, 50%);
+          position: relative;
 
           .name {
             color: lighten(black, 10%);
@@ -220,6 +251,9 @@
           .title {
             font-weight: 500;
             font-size: 14px;
+            margin-top: 3px;
+            position: relative;
+            top: -1px;
           }
 
           .artist-album {
@@ -263,23 +297,6 @@
         margin-top: -3px;
       }
     }
-  }
-}
-
-.room-alert {
-  padding: 5px;
-  text-align: center;
-  border-radius: 0;
-  border-width: 0 0 1px 0;
-  -moz-box-shadow: @site-box-shadow;
-  -webkit-box-shadow: @site-box-shadow;
-  box-shadow: @site-box-shadow;
-  margin-left: -1000px;
-  margin-right: -1000px;
-  margin-top: -20px;
-
-  &:empty {
-    display: none;
   }
 }
 
@@ -937,6 +954,10 @@
   @timeline-padding: 3px;
   @info-height: @playback-height - @timeline-height;
   @info-padding: @timeline-padding;
+  
+  @media only screen and (max-width: @single-col-width) {
+    .body-container;
+  }
 
   .info {
     @inner-height: @info-height - @info-padding;
@@ -984,9 +1005,8 @@
       right: 0;
       padding-right: 5px;
       padding-top: 5px;
-      padding-left: 20px;
       background: @nav-background;
-      @shadow: -14px 0px 27px 0px @nav-background;
+      @shadow: -5px 0px 27px 15px @nav-background;
       -webkit-box-shadow: @shadow;
       -moz-box-shadow: @shadow;
       box-shadow: @shadow;
@@ -995,17 +1015,81 @@
         display: none;
       }
 
-      a {
+      & > a {
+        display: inline-block;
         text-decoration: none;
         font-size: 22px;
+        margin: auto 1px;
         color: darken(@color-grey-background, 50%);
+        border: solid 1px @nav-background;
+        border-radius: 3px;
+        padding: 1px 3px;
+        -webkit-transition: border-color 1s;
+        transition: border-color 1s;
+
+        &.btn-skipvote, &.btn-like {
+          font-size: 16px;
+          position: relative;
+          bottom: 3px;
+
+          .value {
+            margin-bottom: 0px;
+          }
+        }
+
+        &.btn-skipvote.skipvoted {
+          border-color: @skipvote-color;
+          color: @skipvote-color;
+
+          .value {
+            color: @skipvote-color;
+          }
+        }
+
+        &.btn-like.liked {
+          border-color: @like-color;
+          color: @like-color;
+        }
+
+        &.btn-value {
+          border-color: #777;
+
+          .value {
+            display: inline-block;
+            opacity: 1;
+          }
+        }
+
+        &.disabled {
+          cursor: default;
+
+          .value {
+            color: #777;
+          }
+        }
 
         &:hover:not(.disabled) {
           color: darken(@color-grey-background, 70%);
+
+          &.btn-skipvote .glyphicon {
+            color: @skipvote-color;
+          }
         }
 
         &.disabled {
           color: darken(@color-grey-background, 30%);
+        }
+
+        .value {
+          display: none;
+          font-size: 11px;
+          letter-spacing: 0.5px;
+          font-weight: bold;
+          margin-bottom: 2px;
+          overflow: hidden;
+          opacity: 0;
+          -webkit-transition: opacity 1s;
+          transition: opacity 1s;
         }
       }
 
@@ -1018,7 +1102,7 @@
   }
 
   .timeline {
-    @inner-height: @timeline-height - (@timeline-padding * 2);
+    @inner-height: @timeline-height - (@timeline-padding * 2) - 1px;
     height: @inner-height;
     margin: @timeline-padding;
     background-color: darken(@color-grey-background, 12%);
@@ -1028,10 +1112,11 @@
 
     .left, .right {
       position: absolute;
-      font-size: 10px;
+      font-size: 9px;
       line-height: @inner-height;
       color: darken(@color-grey-background, 60%);
-      padding-bottom: 1px;
+      font-weight: bold;
+      letter-spacing: 0.6px;
     }
 
     .left {
@@ -1053,7 +1138,6 @@
       @box-shadow: inset 0 0 5px 0 rgba(0,0,0,0.05);
       -webkit-box-shadow: @box-shadow;
       box-shadow: @box-shadow;
-      overflow: hidden;
 
       .played {
         position: absolute;
@@ -1063,30 +1147,9 @@
         right: 0;
         width: 0%;
         background-color: @color-purple;
-      }
-
-      .shape-top, .shape-bottom {
-        background-color: @nav-background;
-        display: block;
-        position: absolute;
-        @side-offset: -32px;
-        left: @side-offset;
-        right: @side-offset;
-        border-radius: ~"80px /" (@inner-height / 2);
-        height: @inner-height;
-
-        @shadow: 0px 0px 5px 0px rgba(0, 0, 0, 0.06);
-        -webkit-box-shadow: @shadow;
-        -moz-box-shadow:    @shadow;
-        box-shadow:         @shadow;
-      }
-
-      .shape-top {
-        top: -@inner-height * 9/10;
-      }
-
-      .shape-bottom {
-        bottom: -@inner-height * 9/10;
+        @box-shadow: inset 0 0 3px 0 rgba(0,0,0,0.1);
+        -webkit-box-shadow: @box-shadow;
+        box-shadow: @box-shadow;
       }
     }
   }
@@ -1105,6 +1168,125 @@
   visibility: hidden;
   height: 0;
   width: 0;
+}
+
+#listener-section, #dj-section {
+  @user-height: 30px;
+
+  .user {
+    position: relative;
+    height: @user-height;
+    overflow: hidden;
+
+    .li-container {
+      position: absolute;
+      left: 0;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      overflow: hidden;
+    }
+
+    .name {
+      padding-left: 5px;
+      white-space: nowrap;
+      overflow: hidden;
+      line-height: @user-height;
+    }
+
+    .votes {
+      background: @color-grey-background;
+      position: absolute;
+      right: 0;
+      top: 0;
+      bottom: 0;
+      padding: 0 4px;
+      @shadow: -5px 0px 27px 15px @color-grey-background;
+      -webkit-box-shadow: @shadow;
+      -moz-box-shadow: @shadow;
+      box-shadow: @shadow;
+
+      .vote {
+        display: inline-block;
+        margin-top: 5px;
+        margin-right: 2px;
+        position: absolute;
+        right: -20px;
+        padding-right: 4px;
+        float: right;
+
+        &.like {
+          color: @like-color;
+        }
+
+        &.skipvote {
+          color: @skipvote-color;
+        }
+      }
+    }
+  }
+}
+
+.mobile-top-controls {
+  @top-controls-height: 40px;
+  @top-padding: 500px;
+  height: @top-controls-height;
+  position: relative;
+  background: @nav-background;
+  margin: 10px -10px;
+  margin-top: -@top-padding - 40px;
+  display: none;
+  border-bottom: solid 1px @color-grey-border;
+  @box-shadow: 0 0 7px 0 darken(@color-grey-border, 5%);
+  -webkit-box-shadow: @box-shadow;
+  box-shadow: @box-shadow;
+  padding-top: @top-padding;
+  padding-bottom: @top-controls-height;
+
+  .navbar-container {
+    height: @top-controls-height;
+    position: relative;
+  }
+
+  .username {
+    position: absolute;
+    @width: 50%;
+    width: @width;
+    left: 50%;
+    top: 0;
+    margin-left: -@width / 2;
+    text-align: center;
+    line-height: @top-controls-height;
+    overflow: hidden;
+    color: #777;
+  }
+
+  & > ul {
+    position: absolute;
+    bottom: 0;
+  }
+
+  .navbar-left {
+    float: left;
+  }
+
+  .navbar-nav {
+    margin: 0;
+
+    a, a:link, a:hover, a:visited {
+      color: #777;
+      font-weight: bold;
+
+      .glyphicon {
+        position: relative;
+        top: 2px;
+      }
+    }
+  }
+
+  @media only screen and (max-width: @single-col-width) {
+    display: block;
+  }
 }
 
 /* Firefox-only rules */

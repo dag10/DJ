@@ -1,6 +1,7 @@
 @import 'constants.less';
 
 .navbar-default {
+  background-color: @nav-background;
   border-radius: 0;
   border-top: none;
   border-left: none;
@@ -9,6 +10,20 @@
   -webkit-box-shadow: @site-box-shadow;
   box-shadow: @site-box-shadow;
   font-family: @font-family;
+  margin-bottom: 0;
+  z-index: 9002;
+
+  @media only screen and (max-width: @single-col-width) {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 9001;
+
+    @box-shadow: 0 0 7px 0 darken(@color-grey-border, 5%);
+    -webkit-box-shadow: @box-shadow;
+    box-shadow: @box-shadow;
+  }
 }
 
 .navbar-container {
@@ -35,6 +50,18 @@
       margin-left: -@width / 2;
     }
   }
+
+  @media only screen and (max-width: @single-col-width) {
+    .logo {
+      float: left;
+    }
+
+    .navbar-right {
+      float: right;
+      text-align: right;
+      margin-right: 10px;
+    }
+  }
 }
 
 .navbar-header {
@@ -59,5 +86,29 @@
 
 .navbar {
   background-color: @nav-background;
+
+  .nav-alert {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    margin: 0;
+    border-radius: 0;
+    border-left: none;
+    border-right: none;
+    border-top: none;
+    margin-bottom: -1px;
+    text-align: center;
+    cursor: default;
+
+    @media only screen and (min-width: (@single-col-width - 1px)) {
+      display: none;
+    }
+
+    &:empty {
+      display: none;
+    }
+  }
 }
 

@@ -15,6 +15,7 @@ var upload = require('../song/upload');
 var socket = require('../connection/socket');
 var stream = require('stream');
 var song_sources = require('../../song_sources');
+var package = require('../../package.json');
 
 var base_dir = __dirname + '/../..';
 
@@ -49,13 +50,9 @@ exports.init = function(app) {
   app.use('/artwork', express.static(upload.artwork_dir));
   app.use('/songs', express.static(upload.song_dir));
 
-  var auth_urls = auth.createWebHandlers(app);
-
-  upload.createWebHandlers(app);
-
   var default_objects = {
+    package: package,
     config: config,
-    auth_urls: auth_urls,
     rooms: rooms,
   };
 
@@ -75,6 +72,9 @@ exports.init = function(app) {
     // Return rendered template.
     res.render(template, objs);
   }
+
+  default_objects.auth_urls = auth.createWebHandlers(app, renderResult);
+  upload.createWebHandlers(app);
 
   function renderAuthFailure(res, err) {
     renderResult(res, 'error.ejs', {

@@ -4,6 +4,18 @@
   if (typeof rooms === 'undefined') rooms = null;
   if (typeof hide_login === 'undefined') hide_login = null;
   var admin = user && user.admin;
+  var dropDownName = '';
+  if (user) {
+    var maxChars = 25;
+    if (user.fullName.length > maxChars) {
+      dropDownName = user.firstName;
+    } else {
+      dropDownName = user.fullName;
+    }
+    if (dropDownName.length > maxChars) {
+      dropDownName = dropDownName.substr(0, maxChars - 3) + '...'
+    }
+  }
 %>
 <html>
   <head>
@@ -22,8 +34,9 @@
   </head>
   <body>
     <nav class="navbar navbar-default" role="navigation">
+      <div class="alert alert-danger nav-alert alert-text"></div>
       <div class="navbar-container">
-        <div class="navbar-header">
+        <div class="navbar-header logo">
           <a href="/">
             <img
               src="/images/csh_dj_large.svg"
@@ -37,7 +50,7 @@
           <% if (user) { %>
             <li class="dropdown">
               <a href="#" class="dropdown-toggle" data-toggle="dropdown">
-                <%= user.fullName %> <b class="caret"></b>
+                <%= dropDownName %> <b class="caret"></b>
               </a>
               <ul class="dropdown-menu">
                 <li><a href="<%= auth_urls.logout_url %>">Log Out</a></li>
@@ -49,9 +62,28 @@
         </ul>
       </div>
     </nav>
+    <div class="row top-container">
+      <div class="alert alert-danger top-alert alert-text"></div>
+      <noscript>
+        <div class="alert alert-danger top-alert">You must enable Javascript to use this site.</div>
+      </noscript>
+    </div>
     <div class="body-container">
       <%- body -%>
     </div>
+    <footer>
+    <div class="footer-section">
+      <a href="<%= package.repository.url %>" target="_blank">
+        DJ <%= package.version %>
+      </a>
+    </div>
+    <div class="footer-section">
+      Made with <span class="heart">&hearts;</span> by Drew
+    </div>
+    <div class="footer-section">
+      <a href="<%= package.bugs.url %>" target="_blank">Issues, Feature Requests</a>
+    </div>
+    </footer>
     <script>
       window.config = {
         max_file_size: <%= config.web.max_file_size*1024*1024 %>
@@ -66,6 +98,8 @@
           hash: '<%= user.hash() %>'
         };
       <% } %>
+      // Enable :hover for links on Mobile Safari
+      document.addEventListener("touchstart", function() {},false);
     </script>
     <script src="/scripts/jquery-1.10.2.js"></script>
     <script src="/scripts/bootstrap.js"></script>

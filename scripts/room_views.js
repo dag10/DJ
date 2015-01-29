@@ -1,3 +1,5 @@
+/*jshint es5: true */
+
 $(function() {
   function secondsToTimestamp(seconds) {
     if (seconds === 0) return '0:00';
@@ -131,20 +133,50 @@ $(function() {
 
     renderAlert: function() {
       if (this.model.get('connected'))
-        $('.room-alert').text('');
+        $('.alert-text').text('');
       else if (this.model.has('kick_message'))
-        $('.room-alert').text(
+        $('.alert-text').text(
           'You were kicked: ' + this.model.get('kick_message'));
       else
-        $('.room-alert').text('Disconnected.');
+        $('.alert-text').text('Disconnected.');
     }
   });
 
   views.User = Backbone.View.extend({
     template: Handlebars.compile($('#user-template').html()), 
 
+    initialize: function() {
+      this.model.on('change:skipVoted change:liked', this.updateVotes, this);
+    },
+
+    updateVotes: function(animated) {
+      if (animated === undefined) animated = true;
+      var duration = animated ? 150 : 0;
+
+      if (this.model.get('liked')) {
+        this.$('.like').animate({
+          right: 0
+        }, duration);
+      } else {
+        this.$('.like').animate({
+          right: -20
+        }, duration);
+      }
+
+      if (this.model.get('skipVoted')) {
+        this.$('.skipvote').animate({
+          right: 0
+        }, duration);
+      } else {
+        this.$('.skipvote').animate({
+          right: -20
+        }, duration);
+      }
+    },
+
     render: function() {
       this.$el.html(this.template(this.model.attributes));
+      this.updateVotes(false);
 
       return this;
     }
@@ -175,6 +207,7 @@ $(function() {
     add: function(user) {
       var userView = new views.User({
         tagName: 'li',
+        className: 'user',
         model: user
       });
 
@@ -231,9 +264,22 @@ $(function() {
       this.$('.fuzzytime').text(moment(date).fromNow());
     },
 
+    context: function() {
+      return {};
+    },
+
     render: function() {
       if (this.template) {
-        this.$el.html(this.template(this.model.attributes));
+        var context = {};
+        var attrs = this.model.attributes;
+        Object.keys(attrs).forEach(function(key) {
+          context[key] = attrs[key];
+        });
+        var customContext = this.context();
+        Object.keys(customContext).forEach(function(key) {
+          context[key] = customContext[key];
+        });
+        this.$el.html(this.template(context));
         this.$el.addClass('activity-' + this.model.get('type'));
       } else {
         this.$el.text('Unknown activity type: ' + this.model.get('type'));
@@ -1027,11 +1073,16 @@ $(function() {
     events: {
       'click .btn-mute': 'mute',
       'click .btn-unmute': 'unmute',
-      'click .btn-skip': 'skip'
+      'click .btn-skip': 'skip',
+      'click .btn-skipvote': 'skipvote',
+      'click .btn-like': 'like',
     },
 
     initialize: function() {
       this.model.on('change:song change:muted', this.render, this);
+      this.model.on(
+        'change:skipVotes change:skipVotesNeeded change:likes change:liked',
+        this.updateVotes, this);
       this.model.on('change:progress', this.updateProgress, this);
       this.render();
     },
@@ -1045,6 +1096,99 @@ $(function() {
       var song = this.model.get('song');
       var duration = song ? song.get('duration') || 0 : 0;
       return secondsToTimestamp(duration);
+    },
+
+    updateVotes: function() {
+      var canSkipVote = this.model.canSkipVote();
+      var hasSkipVotes = (this.model.get('skipVotes') > 0);
+      var canSeeSkipVotes = (canSkipVote || hasSkipVotes);
+      var skipVoted = this.model.get('skipVoted');
+
+      var hasLikes = (this.model.get('likes') > 0);
+      var canLike = this.model.canLike();
+      var canSeeLike = (canLike || hasLikes);
+
+      var $btnSkipVote = this.$('.btn-skipvote');
+      var $btnLike = this.$('.btn-like');
+
+      if (canSeeLike) {
+        $btnLike.show();
+
+        if (hasLikes) {
+          $btnLike.addClass('btn-value');
+        } else {
+          $btnLike.removeClass('btn-value');
+        }
+
+        if (this.model.get('liked')) {
+          $btnLike.addClass('liked');
+        } else {
+          $btnLike.removeClass('liked');
+        }
+        
+        if (canLike) {
+          $btnLike.removeClass('disabled');
+          $btnLike.tooltip({
+            title: 'Like This Song',
+            trigger: 'hover',
+            placement: 'left',
+            container: '#playback',
+            delay: {
+              show: 400,
+              hide: 0,
+            }
+          });
+        } else {
+          $btnLike.addClass('disabled');
+          $btnLike.tooltip('destroy');
+          $btnLike.attr('title', 'You liked this song.');
+        }
+
+        $btnLike.find('.value').text(this.model.get('likes'));
+      } else {
+        $btnLike.hide();
+      }
+
+      if (canSeeSkipVotes) {
+        if (hasSkipVotes) {
+          $btnSkipVote.addClass('btn-value');
+        } else {
+          $btnSkipVote.removeClass('btn-value');
+        }
+
+        if (skipVoted) {
+          $btnSkipVote.addClass('skipvoted');
+        } else {
+          $btnSkipVote.removeClass('skipvoted');
+        }
+
+        if (canSkipVote) {
+          $btnSkipVote.removeClass('disabled');
+          $btnSkipVote.tooltip({
+            title: 'Vote to Skip',
+            trigger: 'hover',
+            placement: 'left',
+            container: '#playback',
+            delay: {
+              show: 400,
+              hide: 0,
+            }
+          });
+          $btnSkipVote.attr('title', '');
+        } else {
+          $btnSkipVote.addClass('disabled');
+          $btnSkipVote.tooltip('destroy');
+          $btnSkipVote.attr('title', 'Votes to Skip Song');
+        }
+
+        var valueText = (this.model.get('skipVotes') + '/' +
+                         this.model.get('skipVotesNeeded'));
+
+        $btnSkipVote.find('.value').text(valueText);
+        $btnSkipVote.show();
+      } else {
+        $btnSkipVote.hide();
+      }
     },
 
     updateProgress: function() {
@@ -1066,6 +1210,7 @@ $(function() {
       this.$('.btn-mute').tooltip('destroy');
       this.$('.btn-unmute').tooltip('destroy');
       this.$('.btn-skip').tooltip('destroy');
+      this.$('.btn-skipvote').tooltip('destroy');
 
       var attrs = this.model.attributes;
       Object.keys(attrs).forEach(function(key) {
@@ -1083,6 +1228,7 @@ $(function() {
       this.$el.html(this.template(context));
       this.delegateEvents();
       this.updateProgress();
+      this.updateVotes();
 
       if (this.model.get('muted')) {
         this.$('.btn-unmute').tooltip({
@@ -1138,7 +1284,19 @@ $(function() {
       this.model.skip();
       event.preventDefault();
       return false;
-    }
+    },
+
+    skipvote: function(event) {
+      this.model.skipVote();
+      event.preventDefault();
+      return false;
+    },
+
+    like: function(event) {
+      this.model.like();
+      event.preventDefault();
+      return false;
+    },
   });
 });
 

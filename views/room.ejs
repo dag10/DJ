@@ -1,6 +1,7 @@
 <%
   layout('layouts/page');
   block('title', room.name);
+  stylesheet('/styles/room.custom.css');
   script('/socket.io/socket.io.js');
   script('/scripts/underscore-min.js');
   script('/scripts/backbone-min.js');
@@ -27,11 +28,36 @@
     };
   }
 %>
-<div class="row room-container">
-  <div class="alert alert-danger room-alert"></div>
-  <noscript>
-    <div class="alert alert-danger room-alert">Scripts must be enabled.</div>
-  </noscript>
+
+<div class="row room-container mobile-top-controls">
+  <div class="navbar-container">
+    <ul class="nav room-nav navbar-nav navbar-left">
+      <li>
+        <a href="/">
+          <span class="glyphicon glyphicon-chevron-left"></span>
+          Rooms
+        </a>
+      </li>
+    </ul>
+    <% if (user) { %>
+    <div class="username">
+      <%= user.firstName %>
+    </div>
+    <% } %>
+    <ul class="nav room-nav navbar-nav navbar-right">
+      <li>
+        <% if (user) { %>
+        <a href="<%= auth_urls.logout_url %>">
+          Log Out
+        </a>
+        <% } else { %>
+        <a href="<%= auth_urls.login_url %>">
+          Log In
+        </a>
+        <% } %>
+      </li>
+    </ul>
+  </div>
 </div>
 <div class="row room-container">
   <% if (user) { %>
@@ -113,13 +139,13 @@
             <div class="error"></div>
             <% if (user) { %>
               <span class="button disabled" id="btn-dj-placeholder">
-                <span class="glyphicon glyphicon-play"></span>
+                <span class="glyphicon glyphicon-play-circle"></span>
               </span>
               <a id="btn-begin-dj" href="#" class="button">
-                <span class="glyphicon glyphicon-play"></span>
+                <span class="glyphicon glyphicon-play-circle"></span>
               </a>
               <a id="btn-end-dj" href="#" class="button">
-                <span class="glyphicon glyphicon-stop"></span>
+                <span class="glyphicon glyphicon-remove-circle"></span>
               </a>
             <% } %>
           </h1>
@@ -163,8 +189,30 @@
 
 <script type="text/template" id="activity-song-template">
   <div class="timestamp">
-    <span class="fuzzytime" title="{{prettyDate}}"></span>
-    <span class="glyphicon glyphicon-time"></span>
+    {{#if enqueueings}}
+    <div class="activity-badge" title="{{enqueueings}} people just added this song to their queue.">
+      <span class="glyphicon glyphicon-plus"></span>
+      <span class="value">{{enqueueings}}</span>
+    </div>
+    {{/if}}
+    {{#if skipVotes}}
+    <div class="activity-badge {{#if skipVoted}}emphasized{{/if}}"
+         title="{{skipVotes}} people voted to skip this song.">
+      <span class="glyphicon glyphicon-thumbs-down"></span>
+      <span class="value">{{skipVotes}}</span>
+    </div>
+    {{/if}}
+    {{#if likes}}
+    <div class="activity-badge"
+         title="{{likes}} people liked this song.">
+      <span class="glyphicon glyphicon-thumbs-up"></span>
+      <span class="value">{{likes}}</span>
+    </div>
+    {{/if}}
+    <span class="timestamp-time">
+      <span class="fuzzytime" title="{{prettyDate}}"></span>
+      <span class="glyphicon glyphicon-time"></span>
+    </span>
   </div>
   <div class="artwork" {{#if image_url}}style="background-image: url('{{image_url}}');"{{/if}}></div>
   <h1><span class="name">{{fullName}}</span> played:</h1>
@@ -277,7 +325,11 @@
     class="fg"
     title="&quot;{{title}}&quot;{{#if artist}} by {{artist}}{{/if}}{{#if album}} on {{album}}{{/if}}">
     <span class="title">{{#if playing}}&#9658; {{/if}}{{title}}</span>
-    <span class="artist">{{formattedDuration}} - {{artist}}</span>
+    <span class="artist">
+      {{formattedDuration}}
+      {{#if artist}} - {{/if}}
+      {{artist}}
+    </span>
     <div class="controls">
       {{#unless playing}}
         <a href="#" class="btn-escalate" title="Move to top of queue (play next)">
@@ -321,13 +373,20 @@
               <span class="glyphicon glyphicon-step-forward"></span>
             </a>
           {{/if}}
+          <a href="#" class="btn-skipvote">
+            <span class="glyphicon glyphicon-thumbs-down"></span>
+            <span class="value"></span>
+          </a>
+          <a href="#" class="btn-like">
+            <span class="glyphicon glyphicon-thumbs-up"></span>
+            <span class="value"></span>
+          </a>
+          </a>
         </div>
       </div>
       <div class="timeline">
         <div class="played-container">
           <div class="played"></div>
-          <div class="shape-top"></div>
-          <div class="shape-bottom"></div>
         </div>
         <div class="left progress-timestamp"></div>
         <div class="right duration-timestamp"></div>
@@ -343,12 +402,24 @@
 </script>
 
 <script type="text/x-handlebars-template" id="user-template">
-  {{#if dj}}{{#if firstDJ}}
-  <span
-    class="glyphicon glyphicon-music"
-    title="{{firstName}} is the current DJ."></span>
-  {{/if}}{{/if}}
-  {{fullName}}
+  <div class="li-container">
+    <div class="name">
+      {{#if dj}}{{#if firstDJ}}
+      <span
+        class="glyphicon glyphicon-music glyphicon-inverted"
+        title="{{firstName}} is the current DJ."></span>
+      {{/if}}{{/if}}
+      {{fullName}}
+    </div>
+    <div class="votes">
+      <div class="vote like">
+        <span class="glyphicon glyphicon-thumbs-up"></span>
+      </div>
+      <div class="vote skipvote">
+        <span class="glyphicon glyphicon-thumbs-down"></span>
+      </div>
+    </div>
+  </div>
 </script>
 
 <script>

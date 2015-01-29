@@ -1,11 +1,20 @@
 {
   "name": "DJ",
   "description": "A virtual DJ website, where you can play and listen to music together. Inspired by turntable.fm.",
-  "version": "1.4.1-alpha",
+  "version": "1.5.0-alpha",
   "author": "Drew Gottlieb (dag10) <gottlieb.drew@gmail.com>",
   "repository": {
     "type": "git",
-    "url": "git://github.com/dag10/DJ.git"
+    "url": "https://github.com/dag10/DJ.git"
+  },
+  "contributors": [
+    {
+      "name": "Drew Gottlieb",
+      "email": "gottlieb.drew@gmail.com"
+    }
+  ],
+  "bugs": {
+    "url": "https://github.com/dag10/DJ/issues"
   },
   "main": "./app.js",
   "dependencies": {

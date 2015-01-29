@@ -1,7 +1,9 @@
+/*jshint es5: true */
+
 $(function() {
   var error = function(msg) {
     console.error(msg);
-    $('.room-alert').text('Error: ' + msg);
+    $('.alert-text').text('Error: ' + msg);
   };
 
   var headerErrorTimeout = {};
@@ -40,7 +42,6 @@ $(function() {
       this.get('queue').on('escalate', function(queued_song) {
         this.sendEscalation(queued_song.id);
       }, this);
-      this.get('queue').on('skip', this.sendSkip, this);
       this.get('queue').on('removeFromQueue', this.removeFromQueue, this);
       this.connect();
     },
@@ -80,6 +81,7 @@ $(function() {
         socket.on('song:add:added', _.bind(this.handleSongAddAdded, this));
         socket.on('song:add:failed', _.bind(this.handleSongAddFailed, this));
         socket.on('song:add:status', _.bind(this.handleSongAddStatus, this));
+        socket.on('room:votes', _.bind(this.handleVoteInfo, this));
       }, this);
 
       if (this.get('connected')) {
@@ -193,8 +195,20 @@ $(function() {
       this.get('socket').emit('skip');
     },
 
+    sendSkipVote: function() {
+      this.get('socket').emit('skipvote');
+    },
+
+    sendLike: function() {
+      this.get('socket').emit('like');
+    },
+
     removeFromQueue: function(queued_song) {
       this.get('socket').emit('queue:remove', queued_song.id);
+    },
+
+    enqueuedActivity: function(activity_id) {
+      this.get('socket').emit('room:activity:enqueue', activity_id);
     },
 
     enqueueFromSource: function(source, source_id, callback) {
@@ -240,7 +254,7 @@ $(function() {
 
     handleReconnecting: function() {
       var attempts = this.get('reconnect_attempts') + 1;
-      $('.room-alert').text(
+      $('.alert-text').text(
         'Disconnected. Attempting to reconnect. (' + attempts + ')');
       this.set({ reconnect_attempts: attempts });
 
@@ -342,7 +356,15 @@ $(function() {
       };
 
       this.trigger('song:add:status:' + song_add.job_id, song_add);
-    }
+    },
+
+    handleVoteInfo: function(info) {
+      this.get('room').get('playback').set({
+        skipVotes: info.skipVotes,
+        skipVotesNeeded: info.skipVotesNeeded,
+        likes: info.likes,
+      });
+    },
   });
 });
 
