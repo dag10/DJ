@@ -56,6 +56,7 @@ exports.SongActivity = exports.Activity.extend({
   defaults: {
     skipVotes: 0,
     skipVoted: false,
+    enqueueings: 0,
     type: 'song'
   },
 
@@ -90,6 +91,7 @@ exports.SongActivity = exports.Activity.extend({
       'skipVoted',
       'song_url',
       'image_url',
+      'enqueueings',
       'song_id'].forEach(function(field) {
         json[field] = _this.get(field);
     });

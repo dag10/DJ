@@ -769,6 +769,7 @@ $(function() {
 
     enqueue: function(callback) {
       this.set({ enqueueing: true });
+      this.collection.room.get('connection').enqueuedActivity(this.id);
       this.collection.room.get('connection').enqueueFromSource(
         'upload', this.get('song_id'), _.bind(function() {
         this.set({

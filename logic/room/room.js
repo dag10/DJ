@@ -386,6 +386,14 @@ module.exports = BackboneDBModel.extend({
     this.playNextSong();
   },
 
+  /* Activity Management */
+
+  activityEnqueued: function(activity_id) {
+    var songActivity = this.activities().get(activity_id);
+    if (!songActivity) return;
+    songActivity.set({ enqueueings: songActivity.get('enqueueings') + 1 });
+  },
+
   /* DJ Management */
 
   makeDJ: function(conn) {

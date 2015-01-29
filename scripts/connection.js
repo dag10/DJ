@@ -203,6 +203,10 @@ $(function() {
       this.get('socket').emit('queue:remove', queued_song.id);
     },
 
+    enqueuedActivity: function(activity_id) {
+      this.get('socket').emit('room:activity:enqueue', activity_id);
+    },
+
     enqueueFromSource: function(source, source_id, callback) {
       this.get('socket').emit('search:add', {
         source: source,

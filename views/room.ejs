@@ -189,8 +189,15 @@
 
 <script type="text/template" id="activity-song-template">
   <div class="timestamp">
+    {{#if enqueueings}}
+    <div class="activity-badge" title="{{enqueueings}} people just added this song to their queue.">
+      <span class="glyphicon glyphicon-plus"></span>
+      <span class="value">{{enqueueings}}</span>
+    </div>
+    {{/if}}
     {{#if skipVotes}}
-    <div class="activity-badge {{#if skipVoted}}emphasized{{/if}}">
+    <div class="activity-badge {{#if skipVoted}}emphasized{{/if}}"
+         title="{{skipVotes}} people voted to skip this song.">
       <span class="glyphicon glyphicon-thumbs-down"></span>
       <span class="value">{{skipVotes}}</span>
     </div>

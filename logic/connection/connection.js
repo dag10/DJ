@@ -38,6 +38,8 @@ module.exports = Backbone.Model.extend({
     socket.on('room:leave', _.bind(this.handleRoomLeaveRequest, this));
     socket.on('room:dj:begin', _.bind(this.handleBeginDJ, this));
     socket.on('room:dj:end', _.bind(this.handleEndDJ, this));
+    socket.on(
+      'room:activity:enqueue', _.bind(this.handleActivityEnqueue, this));
     socket.on('search', _.bind(this.handleSearch, this));
     socket.on('search:source', _.bind(this.handleSourceSearch, this));
     socket.on('search:add', _.bind(this.handleSearchAdd, this));
@@ -356,6 +358,11 @@ module.exports = Backbone.Model.extend({
 
     var err = this.get('room').endDJ(this);
     fn( err ? { error: err } : {} );
+  },
+
+  // Handle notificatin that a song has been enqueued from an activity.
+  handleActivityEnqueue: function(activity_id) {
+    this.get('room').activityEnqueued(activity_id);
   },
 
   // Handle request for search results.
