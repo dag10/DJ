@@ -202,6 +202,13 @@
       <span class="value">{{skipVotes}}</span>
     </div>
     {{/if}}
+    {{#if likes}}
+    <div class="activity-badge"
+         title="{{likes}} people liked this song.">
+      <span class="glyphicon glyphicon-thumbs-up"></span>
+      <span class="value">{{likes}}</span>
+    </div>
+    {{/if}}
     <span class="timestamp-time">
       <span class="fuzzytime" title="{{prettyDate}}"></span>
       <span class="glyphicon glyphicon-time"></span>

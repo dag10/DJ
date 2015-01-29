@@ -784,6 +784,7 @@ $(function() {
   // Model representing specifically a song-playing activity.
   models.SongActivity = Backbone.Model.extend({
     defaults: {
+      likes: 0,
       skipVotes: 0,
       skipVoted: false,
     },

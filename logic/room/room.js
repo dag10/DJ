@@ -70,13 +70,17 @@ module.exports = BackboneDBModel.extend({
     this.on(
       'change:numSkipVotes change:numSkipVotesNeeded change:numLikes',
       function() {
+        var likes = this.numLikes();
         var skipVotes = this.numSkipVotes();
         var skipVotesNeeded = this.numSkipVotesNeeded();
 
-        // Update the song activity's skip vote count.
+        // Update the song activity's vote count.
         var songActivity = this.get('currentSongActivity');
         if (songActivity) {
-          songActivity.set({ skipVotes: skipVotes });
+          songActivity.set({
+            skipVotes: skipVotes,
+            likes: likes,
+          });
         }
 
         // Decide if the vote has been one.
