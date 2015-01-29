@@ -215,7 +215,7 @@ $(function() {
         skipVoted: true,
       });
 
-      // TODO
+      this.get('room').get('connection').sendSkipVote();
     },
   });
 

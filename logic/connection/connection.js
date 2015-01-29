@@ -45,6 +45,7 @@ module.exports = Backbone.Model.extend({
     socket.on('queue:change:escalate', _.bind(this.handleEscalation, this));
     socket.on('queue:remove', _.bind(this.handleRemoveFromQueue, this));
     socket.on('skip', _.bind(this.handleSkip, this));
+    socket.on('skipvote', _.bind(this.handleSkipVote, this));
     socket.on('disconnect', _.bind(this.handleDisconnect, this));
     socket.on('error', _.bind(this.handleError, this));
     
@@ -261,6 +262,14 @@ module.exports = Backbone.Model.extend({
     this.socket().emit('room:song:stop');
   },
 
+  // Sends the current number of skipvotes and votes needed.
+  sendSkipVoteInfo: function(current, needed) {
+    this.socket().emit('room:skipvotes', {
+      current: current,
+      needed: needed,
+    });
+  },
+
   /* Sockets Handlers */
 
   // Handle client auth request.
@@ -411,8 +420,27 @@ module.exports = Backbone.Model.extend({
     if (!this.ensureRoom(fn)) return;
 
     var room = this.get('room');
-    if (room.getCurrentDJ() === this)
+    if (room.getCurrentDJ() === this) {
       room.playNextSong();
+      if (fn) fn();
+    } else if (fn) {
+      fn({ error: 'You\'re not the current DJ. You can\'t skip this song.' });
+    }
+  },
+
+  // Handle command to vote to skip the current song.
+  handleSkipVote: function(fn) {
+    if (!this.ensureAuth(fn)) return;
+    if (!this.ensureRoom(fn)) return;
+
+    var err = this.get('room').postSkipVote(this);
+
+    if (err) {
+      winston.warn(this.getLogName() + ' skipvote failed: ' + err.message);
+      if (fn) fn({ error: 'Failed to skip vote.' });
+    } else if (fn) {
+      fn();
+    }
   },
 
   // Handle command to remove a song from the user's queue.
