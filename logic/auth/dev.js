@@ -7,6 +7,8 @@ var Q = require('q');
 var config = require('../../config.js');
 var sanitizer = require('sanitizer');
 var user_model = require('../../models/user');
+var winston = require('winston');
+var util = require('util');
 
 /** Login url route. */
 var login_url = '/login';
@@ -136,8 +138,8 @@ exports.getSessionUser = function(req, res) {
         deferred.resolve(user);
       })
       .error(function(err) {
-        deferred.reject(new Error(
-          'Failed to update user entity.\n\n' + util.format(err)));
+        winston.error('Failed to update user entity: ' + util.format(err));
+        deferred.resolve(null);
       });
 
     } else { // Must create new user
@@ -157,8 +159,8 @@ exports.getSessionUser = function(req, res) {
         deferred.resolve(user);
       })
       .error(function(err) {
-        deferred.reject(new Error(
-          'Failed to create user entry.\n\n' + util.format(err)));
+        winston.error('Failed to create user entity: ' + util.format(err));
+        deferred.resolve(null);
       });
 
     }
