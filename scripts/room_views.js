@@ -146,12 +146,22 @@ $(function() {
     template: Handlebars.compile($('#user-template').html()), 
 
     initialize: function() {
-      this.model.on('change:skipVoted', this.updateVotes, this);
+      this.model.on('change:skipVoted change:liked', this.updateVotes, this);
     },
 
     updateVotes: function(animated) {
       if (animated === undefined) animated = true;
       var duration = animated ? 150 : 0;
+
+      if (this.model.get('liked')) {
+        this.$('.like').animate({
+          right: 0
+        }, duration);
+      } else {
+        this.$('.like').animate({
+          right: -20
+        }, duration);
+      }
 
       if (this.model.get('skipVoted')) {
         this.$('.skipvote').animate({
@@ -1065,12 +1075,14 @@ $(function() {
       'click .btn-unmute': 'unmute',
       'click .btn-skip': 'skip',
       'click .btn-skipvote': 'skipvote',
+      'click .btn-like': 'like',
     },
 
     initialize: function() {
       this.model.on('change:song change:muted', this.render, this);
       this.model.on(
-        'change:skipVotes change:skipVotesNeeded', this.updateSkipVotes, this);
+        'change:skipVotes change:skipVotesNeeded change:likes change:liked',
+        this.updateVotes, this);
       this.model.on('change:progress', this.updateProgress, this);
       this.render();
     },
@@ -1086,23 +1098,73 @@ $(function() {
       return secondsToTimestamp(duration);
     },
 
-    updateSkipVotes: function() {
+    updateVotes: function() {
       var canSkipVote = this.model.canSkipVote();
       var hasSkipVotes = (this.model.get('skipVotes') > 0);
       var canSeeSkipVotes = (canSkipVote || hasSkipVotes);
+      var skipVoted = this.model.get('skipVoted');
 
-      var $btn = this.$('.btn-skipvote');
+      var hasLikes = (this.model.get('likes') > 0);
+      var canLike = this.model.canLike();
+      var canSeeLike = (canLike || hasLikes);
+
+      var $btnSkipVote = this.$('.btn-skipvote');
+      var $btnLike = this.$('.btn-like');
+
+      if (canSeeLike) {
+        $btnLike.show();
+
+        if (hasLikes) {
+          $btnLike.addClass('btn-value');
+        } else {
+          $btnLike.removeClass('btn-value');
+        }
+
+        if (this.model.get('liked')) {
+          $btnLike.addClass('liked');
+        } else {
+          $btnLike.removeClass('liked');
+        }
+        
+        if (canLike) {
+          $btnLike.removeClass('disabled');
+          $btnLike.tooltip({
+            title: 'Like This Song',
+            trigger: 'hover',
+            placement: 'left',
+            container: '#playback',
+            delay: {
+              show: 400,
+              hide: 0,
+            }
+          });
+        } else {
+          $btnLike.addClass('disabled');
+          $btnLike.tooltip('destroy');
+          $btnLike.attr('title', 'You liked this song.');
+        }
+
+        $btnLike.find('.value').text(this.model.get('likes'));
+      } else {
+        $btnLike.hide();
+      }
 
       if (canSeeSkipVotes) {
         if (hasSkipVotes) {
-          $btn.addClass('btn-value');
+          $btnSkipVote.addClass('btn-value');
         } else {
-          $btn.removeClass('btn-value');
+          $btnSkipVote.removeClass('btn-value');
+        }
+
+        if (skipVoted) {
+          $btnSkipVote.addClass('skipvoted');
+        } else {
+          $btnSkipVote.removeClass('skipvoted');
         }
 
         if (canSkipVote) {
-          $btn.removeClass('disabled');
-          $btn.tooltip({
+          $btnSkipVote.removeClass('disabled');
+          $btnSkipVote.tooltip({
             title: 'Vote to Skip',
             trigger: 'hover',
             placement: 'left',
@@ -1112,20 +1174,20 @@ $(function() {
               hide: 0,
             }
           });
-          $btn.attr('title', '');
+          $btnSkipVote.attr('title', '');
         } else {
-          $btn.addClass('disabled');
-          $btn.tooltip('destroy');
-          $btn.attr('title', 'Votes to Skip Song');
+          $btnSkipVote.addClass('disabled');
+          $btnSkipVote.tooltip('destroy');
+          $btnSkipVote.attr('title', 'Votes to Skip Song');
         }
 
         var valueText = (this.model.get('skipVotes') + '/' +
                          this.model.get('skipVotesNeeded'));
 
-        $btn.find('.value').text(valueText);
-        $btn.show();
+        $btnSkipVote.find('.value').text(valueText);
+        $btnSkipVote.show();
       } else {
-        $btn.hide();
+        $btnSkipVote.hide();
       }
     },
 
@@ -1166,7 +1228,7 @@ $(function() {
       this.$el.html(this.template(context));
       this.delegateEvents();
       this.updateProgress();
-      this.updateSkipVotes();
+      this.updateVotes();
 
       if (this.model.get('muted')) {
         this.$('.btn-unmute').tooltip({
@@ -1228,7 +1290,13 @@ $(function() {
       this.model.skipVote();
       event.preventDefault();
       return false;
-    }
+    },
+
+    like: function(event) {
+      this.model.like();
+      event.preventDefault();
+      return false;
+    },
   });
 });
 

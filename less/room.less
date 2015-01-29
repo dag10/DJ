@@ -1027,7 +1027,7 @@
         -webkit-transition: border-color 1s;
         transition: border-color 1s;
 
-        &.btn-skipvote {
+        &.btn-skipvote, &.btn-like {
           font-size: 16px;
           position: relative;
           bottom: 3px;
@@ -1035,6 +1035,20 @@
           .value {
             margin-bottom: 0px;
           }
+        }
+
+        &.btn-skipvote.skipvoted {
+          border-color: @skipvote-color;
+          color: @skipvote-color;
+
+          .value {
+            color: @skipvote-color;
+          }
+        }
+
+        &.btn-like.liked {
+          border-color: @like-color;
+          color: @like-color;
         }
 
         &.btn-value {
@@ -1196,8 +1210,14 @@
         display: inline-block;
         margin-top: 5px;
         margin-right: 2px;
-        position: relative;
+        position: absolute;
         right: -20px;
+        padding-right: 4px;
+        float: right;
+
+        &.like {
+          color: @like-color;
+        }
 
         &.skipvote {
           color: @skipvote-color;

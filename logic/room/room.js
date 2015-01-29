@@ -32,7 +32,7 @@ module.exports = BackboneDBModel.extend({
     });
 
     // Initially reset all voting numbers.
-    this.resetSkipVotes();
+    this.resetVotes();
 
     // Handle when a song starts playing.
     this.playback().on('play', function() {
@@ -63,24 +63,28 @@ module.exports = BackboneDBModel.extend({
     // When the current song ends for any reason...
     this.playback().on('end', function() {
       this.unset('currentSongActivity'); // Forget its associated activity.
-      this.resetSkipVotes();
+      this.resetVotes();
     }, this);
 
-    // When the skip vote numbers change...
+    // When any vote numbers change...
     this.on(
-      'change:numSkipVotes change:numSkipVotesNeeded',
+      'change:numSkipVotes change:numSkipVotesNeeded change:numLikes',
       function() {
+        var likes = this.numLikes();
         var skipVotes = this.numSkipVotes();
         var skipVotesNeeded = this.numSkipVotesNeeded();
 
-        // Update the song activity's skip vote count.
+        // Update the song activity's vote count.
         var songActivity = this.get('currentSongActivity');
         if (songActivity) {
-          songActivity.set({ skipVotes: skipVotes });
+          songActivity.set({
+            skipVotes: skipVotes,
+            likes: likes,
+          });
         }
 
         // Decide if the vote has been one.
-        this.broadcastSkipVoteInfo();
+        this.broadcastVotes();
         if (skipVotes >= skipVotesNeeded && skipVotes > 0) {
           this.skipVotePassed();
         }
@@ -157,6 +161,14 @@ module.exports = BackboneDBModel.extend({
     return this.getDJs().length;
   },
 
+  likes: function() {
+    return this.get('likes');
+  },
+
+  numLikes: function() {
+    return this.get('numLikes');
+  },
+
   skipVotes: function() {
     return this.get('skipVotes');
   },
@@ -202,9 +214,10 @@ module.exports = BackboneDBModel.extend({
     });
   },
 
-  broadcastSkipVoteInfo: function() {
+  broadcastVotes: function() {
     this.eachConnection(function(conn) {
-      conn.sendSkipVoteInfo(this.numSkipVotes(), this.numSkipVotesNeeded());
+      conn.sendVotes(
+        this.numSkipVotes(), this.numSkipVotesNeeded(), this.numLikes());
     });
   },
 
@@ -233,6 +246,7 @@ module.exports = BackboneDBModel.extend({
     conn.set({
       room: this,
       skipVoted: false,
+      liked: false,
       isDJ: false
     });
 
@@ -255,7 +269,10 @@ module.exports = BackboneDBModel.extend({
     conn.sendUserList(this.getAuthenticatedConnections());
     conn.sendNumAnonymous(this.numAnonymous());
     conn.sendRoomActivities(this.activities());
-    conn.sendSkipVoteInfo(this.numSkipVotes(), this.numSkipVotesNeeded());
+    conn.sendVotes(
+      this.numSkipVotes(), this.numSkipVotesNeeded(), this.numLikes());
+    conn.sendVotes(
+      this.numSkipVotes(), this.numSkipVotesNeeded(), this.numLikes());
 
     conn.on('change', this.connectionUpdated, this);
   },
@@ -272,6 +289,7 @@ module.exports = BackboneDBModel.extend({
     }
     
     this.removeSkipVote(conn);
+    this.removeLike(conn);
     this.updateSkipVotesNeeded();
 
     // Broadcast information to others
@@ -289,7 +307,8 @@ module.exports = BackboneDBModel.extend({
   },
 
   connectionUpdated: function(conn) {
-    var relevantAttributes = ['isDJ', 'djOrder', 'admin', 'skipVoted'];
+    var relevantAttributes = [
+      'isDJ', 'djOrder', 'admin', 'skipVoted', 'liked'];
     var changedAttributes = Object.keys(conn.changedAttributes());
 
     if (_.intersection(relevantAttributes, changedAttributes).length === 0)
@@ -337,25 +356,52 @@ module.exports = BackboneDBModel.extend({
     }
   },
 
-  /* Skip Vote Management */
+  /* Vote Management */
 
-  resetSkipVotes: function() {
+  resetVotes: function() {
     this.set({
+      likes: [],
+      numLikes: 0,
       skipVotes: [],
       numSkipVotes: 0,
       numSkipVotesNeeded: skipVotesForUserCount(this.numUsers()),
     });
 
     this.eachConnection(function(conn) {
-      conn.set({ skipVoted: false });
+      conn.set({
+        skipVoted: false,
+        liked: false,
+      });
     });
+  },
+
+  postLike: function(conn) {
+    if (this.getCurrentDJ() === conn) {
+      return new Error('User is the current DJ.');
+    } else if (this.voted(conn)) {
+      return new Error('User already voted.');
+    }
+
+    conn.set({ liked: true });
+    var likes = this.likes();
+    likes.push(conn);
+    this.set({ 'numLikes': likes.length });
+  },
+
+  removeLike: function(conn) {
+    var likes = this.likes();
+    var index = likes.indexOf(conn);
+    if (index < 0) return;
+    likes.splice(index, 1);
+    this.set({ 'numLikes': likes.length });
+    conn.set({ liked: false });
   },
 
   postSkipVote: function(conn) {
     if (this.getCurrentDJ() === conn) {
       return new Error('User is the current DJ.');
-    } else if (this.skipVoted(conn)) {
-      return new Error('User already skip voted.');
+    } else if (this.voted(conn)) {
+      return new Error('User already voted.');
     }
 
     conn.set({ skipVoted: true });
@@ -373,8 +419,16 @@ module.exports = BackboneDBModel.extend({
     conn.set({ skipVoted: false });
   },
 
+  liked: function(conn) {
+    return (this.likes().indexOf(conn) >= 0);
+  },
+
   skipVoted: function(conn) {
     return (this.skipVotes().indexOf(conn) >= 0);
+  },
+
+  voted: function(conn) {
+    return this.liked(conn) || this.skipVoted(conn);
   },
 
   updateSkipVotesNeeded: function() {
