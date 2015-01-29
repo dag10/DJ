@@ -81,7 +81,7 @@ $(function() {
         socket.on('song:add:added', _.bind(this.handleSongAddAdded, this));
         socket.on('song:add:failed', _.bind(this.handleSongAddFailed, this));
         socket.on('song:add:status', _.bind(this.handleSongAddStatus, this));
-        socket.on('room:skipvotes', _.bind(this.handleSkipVoteInfo, this));
+        socket.on('room:votes', _.bind(this.handleVoteInfo, this));
       }, this);
 
       if (this.get('connected')) {
@@ -197,6 +197,10 @@ $(function() {
 
     sendSkipVote: function() {
       this.get('socket').emit('skipvote');
+    },
+
+    sendLike: function() {
+      this.get('socket').emit('like');
     },
 
     removeFromQueue: function(queued_song) {
@@ -354,10 +358,11 @@ $(function() {
       this.trigger('song:add:status:' + song_add.job_id, song_add);
     },
 
-    handleSkipVoteInfo: function(info) {
+    handleVoteInfo: function(info) {
       this.get('room').get('playback').set({
-        skipVotes: info.current,
-        skipVotesNeeded: info.needed,
+        skipVotes: info.skipVotes,
+        skipVotesNeeded: info.skipVotesNeeded,
+        likes: info.likes,
       });
     },
   });

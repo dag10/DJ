@@ -53,6 +53,8 @@ $(function() {
       selfIsDJ: false,
       skipVoted: false,
       progress: 0,
+      liked: false,
+      likes: 0,
       skipVotes: 0,
       skipVotesNeeded: 0,
       muted: false
@@ -91,6 +93,8 @@ $(function() {
 
       this.set({
         selfIsDJ: isDJ,
+        liked: false,
+        likes: 0,
         skipVoted: false,
         skipVotes: 0,
         skipVotesNeeded: 0,
@@ -190,7 +194,12 @@ $(function() {
     },
 
     canSkipVote: function() {
-      return (!!window.user && !this.get('skipVoted') &&
+      return (!!window.user && !this.get('skipVoted') && !this.get('liked') &&
+              !this.get('selfIsDJ'));
+    },
+
+    canLike: function() {
+      return (!!window.user && !this.get('skipVoted') && !this.get('liked') &&
               !this.get('selfIsDJ'));
     },
 
@@ -217,6 +226,18 @@ $(function() {
 
       this.get('room').get('connection').sendSkipVote();
     },
+
+    like: function() {
+      if (!this.canLike()) return;
+
+      // Immediately assume # likes will increment
+      this.set({
+        likes: this.get('likes') + 1,
+        liked: true,
+      });
+
+      this.get('room').get('connection').sendLike();
+    }
   });
 
   // Model representing a user as it appears in the DJ and Listeners lists.

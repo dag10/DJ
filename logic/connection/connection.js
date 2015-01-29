@@ -48,6 +48,7 @@ module.exports = Backbone.Model.extend({
     socket.on('queue:remove', _.bind(this.handleRemoveFromQueue, this));
     socket.on('skip', _.bind(this.handleSkip, this));
     socket.on('skipvote', _.bind(this.handleSkipVote, this));
+    socket.on('like', _.bind(this.handleLike, this));
     socket.on('disconnect', _.bind(this.handleDisconnect, this));
     socket.on('error', _.bind(this.handleError, this));
     
@@ -265,11 +266,12 @@ module.exports = Backbone.Model.extend({
     this.socket().emit('room:song:stop');
   },
 
-  // Sends the current number of skipvotes and votes needed.
-  sendSkipVoteInfo: function(current, needed) {
-    this.socket().emit('room:skipvotes', {
-      current: current,
-      needed: needed,
+  // Sends the current voting numbers.
+  sendVotes: function(skipVotes, skipVotesNeeded, likes) {
+    this.socket().emit('room:votes', {
+      skipVotes: skipVotes,
+      skipVotesNeeded: skipVotesNeeded,
+      likes: likes,
     });
   },
 
@@ -446,6 +448,21 @@ module.exports = Backbone.Model.extend({
     if (err) {
       winston.warn(this.getLogName() + ' skipvote failed: ' + err.message);
       if (fn) fn({ error: 'Failed to skip vote.' });
+    } else if (fn) {
+      fn();
+    }
+  },
+
+  // Handle command to like the current song.
+  handleLike: function(fn) {
+    if (!this.ensureAuth(fn)) return;
+    if (!this.ensureRoom(fn)) return;
+
+    var err = this.get('room').postLike(this);
+
+    if (err) {
+      winston.warn(this.getLogName() + ' song like failed: ' + err.message);
+      if (fn) fn({ error: 'Failed to like song.' });
     } else if (fn) {
       fn();
     }
