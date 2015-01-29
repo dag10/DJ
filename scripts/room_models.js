@@ -762,6 +762,11 @@ $(function() {
 
   // Model representing specifically a song-playing activity.
   models.SongActivity = Backbone.Model.extend({
+    defaults: {
+      skipVotes: 0,
+      skipVoted: false,
+    },
+
     enqueue: function(callback) {
       this.set({ enqueueing: true });
       this.collection.room.get('connection').enqueueFromSource(
@@ -785,7 +790,7 @@ $(function() {
         model = models.SongActivity;
       }
 
-      this.add(new model(activityData));
+      this.add(new model(activityData), { merge: true });
     },
 
     resetWithActivities: function(activities) {

@@ -233,9 +233,22 @@ $(function() {
       this.$('.fuzzytime').text(moment(date).fromNow());
     },
 
+    context: function() {
+      return {};
+    },
+
     render: function() {
       if (this.template) {
-        this.$el.html(this.template(this.model.attributes));
+        var context = {};
+        var attrs = this.model.attributes;
+        Object.keys(attrs).forEach(function(key) {
+          context[key] = attrs[key];
+        });
+        var customContext = this.context();
+        Object.keys(customContext).forEach(function(key) {
+          context[key] = customContext[key];
+        });
+        this.$el.html(this.template(context));
         this.$el.addClass('activity-' + this.model.get('type'));
       } else {
         this.$el.text('Unknown activity type: ' + this.model.get('type'));

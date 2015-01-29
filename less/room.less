@@ -135,8 +135,27 @@
         float: right;
         margin-right: 5px;
         font-size: 10px;
-        color: darken(@color-grey-border, 8%);
+        @color: darken(@color-grey-border, 8%);
+        color: @color;
         text-transform: uppercase;
+
+        .activity-badge {
+          display: inline-block;
+          border: solid 1px @color;
+          border-radius: 2px;
+          padding: 0 3px;
+
+          &.emphasized {
+            font-weight: bold;
+            @color: darken(#f00, 17%);
+            color: @color;
+            border-color: @color;
+          }
+        }
+
+        .activity-badge, .timestamp-time {
+          margin-left: 4px;
+        }
 
         &.counter-padding {
           float: left;
