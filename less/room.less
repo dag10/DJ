@@ -147,7 +147,7 @@
 
           &.emphasized {
             font-weight: bold;
-            @color: darken(#f00, 17%);
+            @color: @skipvote-color;
             color: @color;
             border-color: @color;
           }
@@ -1044,7 +1044,7 @@
           color: darken(@color-grey-background, 70%);
 
           &.btn-skipvote .glyphicon {
-            color: darken(#f00, 18%);
+            color: @skipvote-color;
           }
         }
 
