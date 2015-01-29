@@ -1,3 +1,5 @@
+/*jshint es5: true */
+
 $(function() {
   function secondsToTimestamp(seconds) {
     if (seconds === 0) return '0:00';
@@ -143,8 +145,28 @@ $(function() {
   views.User = Backbone.View.extend({
     template: Handlebars.compile($('#user-template').html()), 
 
+    initialize: function() {
+      this.model.on('change:skipVoted', this.updateVotes, this);
+    },
+
+    updateVotes: function(animated) {
+      if (animated === undefined) animated = true;
+      var duration = animated ? 150 : 0;
+
+      if (this.model.get('skipVoted')) {
+        this.$('.skipvote').animate({
+          right: 0
+        }, duration);
+      } else {
+        this.$('.skipvote').animate({
+          right: -20
+        }, duration);
+      }
+    },
+
     render: function() {
       this.$el.html(this.template(this.model.attributes));
+      this.updateVotes(false);
 
       return this;
     }
@@ -175,6 +197,7 @@ $(function() {
     add: function(user) {
       var userView = new views.User({
         tagName: 'li',
+        className: 'user',
         model: user
       });
 
@@ -231,9 +254,22 @@ $(function() {
       this.$('.fuzzytime').text(moment(date).fromNow());
     },
 
+    context: function() {
+      return {};
+    },
+
     render: function() {
       if (this.template) {
-        this.$el.html(this.template(this.model.attributes));
+        var context = {};
+        var attrs = this.model.attributes;
+        Object.keys(attrs).forEach(function(key) {
+          context[key] = attrs[key];
+        });
+        var customContext = this.context();
+        Object.keys(customContext).forEach(function(key) {
+          context[key] = customContext[key];
+        });
+        this.$el.html(this.template(context));
         this.$el.addClass('activity-' + this.model.get('type'));
       } else {
         this.$el.text('Unknown activity type: ' + this.model.get('type'));
@@ -1027,11 +1063,14 @@ $(function() {
     events: {
       'click .btn-mute': 'mute',
       'click .btn-unmute': 'unmute',
-      'click .btn-skip': 'skip'
+      'click .btn-skip': 'skip',
+      'click .btn-skipvote': 'skipvote',
     },
 
     initialize: function() {
       this.model.on('change:song change:muted', this.render, this);
+      this.model.on(
+        'change:skipVotes change:skipVotesNeeded', this.updateSkipVotes, this);
       this.model.on('change:progress', this.updateProgress, this);
       this.render();
     },
@@ -1045,6 +1084,49 @@ $(function() {
       var song = this.model.get('song');
       var duration = song ? song.get('duration') || 0 : 0;
       return secondsToTimestamp(duration);
+    },
+
+    updateSkipVotes: function() {
+      var canSkipVote = this.model.canSkipVote();
+      var hasSkipVotes = (this.model.get('skipVotes') > 0);
+      var canSeeSkipVotes = (canSkipVote || hasSkipVotes);
+
+      var $btn = this.$('.btn-skipvote');
+
+      if (canSeeSkipVotes) {
+        if (hasSkipVotes) {
+          $btn.addClass('btn-value');
+        } else {
+          $btn.removeClass('btn-value');
+        }
+
+        if (canSkipVote) {
+          $btn.removeClass('disabled');
+          $btn.tooltip({
+            title: 'Vote to Skip',
+            trigger: 'hover',
+            placement: 'left',
+            container: '#playback',
+            delay: {
+              show: 400,
+              hide: 0,
+            }
+          });
+          $btn.attr('title', '');
+        } else {
+          $btn.addClass('disabled');
+          $btn.tooltip('destroy');
+          $btn.attr('title', 'Votes to Skip Song');
+        }
+
+        var valueText = (this.model.get('skipVotes') + '/' +
+                         this.model.get('skipVotesNeeded'));
+
+        $btn.find('.value').text(valueText);
+        $btn.show();
+      } else {
+        $btn.hide();
+      }
     },
 
     updateProgress: function() {
@@ -1066,6 +1148,7 @@ $(function() {
       this.$('.btn-mute').tooltip('destroy');
       this.$('.btn-unmute').tooltip('destroy');
       this.$('.btn-skip').tooltip('destroy');
+      this.$('.btn-skipvote').tooltip('destroy');
 
       var attrs = this.model.attributes;
       Object.keys(attrs).forEach(function(key) {
@@ -1083,6 +1166,7 @@ $(function() {
       this.$el.html(this.template(context));
       this.delegateEvents();
       this.updateProgress();
+      this.updateSkipVotes();
 
       if (this.model.get('muted')) {
         this.$('.btn-unmute').tooltip({
@@ -1136,6 +1220,12 @@ $(function() {
 
     skip: function(event) {
       this.model.skip();
+      event.preventDefault();
+      return false;
+    },
+
+    skipvote: function(event) {
+      this.model.skipVote();
       event.preventDefault();
       return false;
     }

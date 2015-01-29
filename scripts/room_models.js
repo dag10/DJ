@@ -1,3 +1,5 @@
+/*jshint es5: true */
+
 $(function() {
   var models = window.models = {};
 
@@ -49,7 +51,10 @@ $(function() {
   models.Playback = Backbone.Model.extend({
     defaults: {
       selfIsDJ: false,
+      skipVoted: false,
       progress: 0,
+      skipVotes: 0,
+      skipVotesNeeded: 0,
       muted: false
     },
 
@@ -84,7 +89,12 @@ $(function() {
         this.stopPlayback();
       }
 
-      this.set({ selfIsDJ: isDJ });
+      this.set({
+        selfIsDJ: isDJ,
+        skipVoted: false,
+        skipVotes: 0,
+        skipVotesNeeded: 0,
+      });
     },
 
     startPlayback: function() {
@@ -179,6 +189,11 @@ $(function() {
       this.set({ progress: seconds });
     },
 
+    canSkipVote: function() {
+      return (!!window.user && !this.get('skipVoted') &&
+              !this.get('selfIsDJ'));
+    },
+
     mute: function() {
       this.set({ muted: true });
     },
@@ -189,7 +204,19 @@ $(function() {
 
     skip: function() {
       this.get('room').get('connection').sendSkip();
-    }
+    },
+
+    skipVote: function() {
+      if (!this.canSkipVote()) return;
+
+      // Immediately assume # votes will increment
+      this.set({
+        skipVotes: this.get('skipVotes') + 1,
+        skipVoted: true,
+      });
+
+      this.get('room').get('connection').sendSkipVote();
+    },
   });
 
   // Model representing a user as it appears in the DJ and Listeners lists.
@@ -735,6 +762,11 @@ $(function() {
 
   // Model representing specifically a song-playing activity.
   models.SongActivity = Backbone.Model.extend({
+    defaults: {
+      skipVotes: 0,
+      skipVoted: false,
+    },
+
     enqueue: function(callback) {
       this.set({ enqueueing: true });
       this.collection.room.get('connection').enqueueFromSource(
@@ -758,7 +790,7 @@ $(function() {
         model = models.SongActivity;
       }
 
-      this.add(new model(activityData));
+      this.add(new model(activityData), { merge: true });
     },
 
     resetWithActivities: function(activities) {

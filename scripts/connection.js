@@ -1,3 +1,5 @@
+/*jshint es5: true */
+
 $(function() {
   var error = function(msg) {
     console.error(msg);
@@ -40,7 +42,6 @@ $(function() {
       this.get('queue').on('escalate', function(queued_song) {
         this.sendEscalation(queued_song.id);
       }, this);
-      this.get('queue').on('skip', this.sendSkip, this);
       this.get('queue').on('removeFromQueue', this.removeFromQueue, this);
       this.connect();
     },
@@ -80,6 +81,7 @@ $(function() {
         socket.on('song:add:added', _.bind(this.handleSongAddAdded, this));
         socket.on('song:add:failed', _.bind(this.handleSongAddFailed, this));
         socket.on('song:add:status', _.bind(this.handleSongAddStatus, this));
+        socket.on('room:skipvotes', _.bind(this.handleSkipVoteInfo, this));
       }, this);
 
       if (this.get('connected')) {
@@ -191,6 +193,10 @@ $(function() {
 
     sendSkip: function() {
       this.get('socket').emit('skip');
+    },
+
+    sendSkipVote: function() {
+      this.get('socket').emit('skipvote');
     },
 
     removeFromQueue: function(queued_song) {
@@ -342,7 +348,14 @@ $(function() {
       };
 
       this.trigger('song:add:status:' + song_add.job_id, song_add);
-    }
+    },
+
+    handleSkipVoteInfo: function(info) {
+      this.get('room').get('playback').set({
+        skipVotes: info.current,
+        skipVotesNeeded: info.needed,
+      });
+    },
   });
 });
 

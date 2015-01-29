@@ -45,6 +45,7 @@ module.exports = Backbone.Model.extend({
     socket.on('queue:change:escalate', _.bind(this.handleEscalation, this));
     socket.on('queue:remove', _.bind(this.handleRemoveFromQueue, this));
     socket.on('skip', _.bind(this.handleSkip, this));
+    socket.on('skipvote', _.bind(this.handleSkipVote, this));
     socket.on('disconnect', _.bind(this.handleDisconnect, this));
     socket.on('error', _.bind(this.handleError, this));
     
@@ -141,7 +142,7 @@ module.exports = Backbone.Model.extend({
   },
 
   // Returns an object with sendable user data.
-  userData: function() {
+  toJSON: function() {
     var user = this.user() || {};
 
     return {
@@ -149,6 +150,7 @@ module.exports = Backbone.Model.extend({
       firstName: user.firstName,
       lastName: user.lastName,
       fullName: user.fullName,
+      skipVoted: this.get('skipVoted') || false,
       dj: this.get('isDJ') || false,
       djOrder: this.get('djOrder'),
       admin: user.admin
@@ -206,23 +208,23 @@ module.exports = Backbone.Model.extend({
 
   // Sends a user that joined their room.
   sendJoinedUser: function(conn) {
-    this.socket().emit('room:user:join', conn.userData());
+    this.socket().emit('room:user:join', conn.toJSON());
   },
 
   // Sends a user that left their room.
   sendLeftUser: function(conn) {
-    this.socket().emit('room:user:leave', conn.userData());
+    this.socket().emit('room:user:leave', conn.toJSON());
   },
 
   // Sends a user that was updated in their room.
   sendUpdatedUser: function(conn) {
-    this.socket().emit('room:user:update', conn.userData());
+    this.socket().emit('room:user:update', conn.toJSON());
   },
 
   // Sends a list of all users in their room.
   sendUserList: function(conns) {
     this.socket().emit('room:users', _.map(conns, function(conn) {
-      return conn.userData();
+      return conn.toJSON();
     }));
   },
 
@@ -259,6 +261,14 @@ module.exports = Backbone.Model.extend({
   // Sends an indication that the playing song has stopped.
   sendSongPlaybackStopped: function() {
     this.socket().emit('room:song:stop');
+  },
+
+  // Sends the current number of skipvotes and votes needed.
+  sendSkipVoteInfo: function(current, needed) {
+    this.socket().emit('room:skipvotes', {
+      current: current,
+      needed: needed,
+    });
   },
 
   /* Sockets Handlers */
@@ -411,8 +421,27 @@ module.exports = Backbone.Model.extend({
     if (!this.ensureRoom(fn)) return;
 
     var room = this.get('room');
-    if (room.getCurrentDJ() === this)
+    if (room.getCurrentDJ() === this) {
       room.playNextSong();
+      if (fn) fn();
+    } else if (fn) {
+      fn({ error: 'You\'re not the current DJ. You can\'t skip this song.' });
+    }
+  },
+
+  // Handle command to vote to skip the current song.
+  handleSkipVote: function(fn) {
+    if (!this.ensureAuth(fn)) return;
+    if (!this.ensureRoom(fn)) return;
+
+    var err = this.get('room').postSkipVote(this);
+
+    if (err) {
+      winston.warn(this.getLogName() + ' skipvote failed: ' + err.message);
+      if (fn) fn({ error: 'Failed to skip vote.' });
+    } else if (fn) {
+      fn();
+    }
   },
 
   // Handle command to remove a song from the user's queue.

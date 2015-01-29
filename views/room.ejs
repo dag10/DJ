@@ -189,8 +189,16 @@
 
 <script type="text/template" id="activity-song-template">
   <div class="timestamp">
-    <span class="fuzzytime" title="{{prettyDate}}"></span>
-    <span class="glyphicon glyphicon-time"></span>
+    {{#if skipVotes}}
+    <div class="activity-badge {{#if skipVoted}}emphasized{{/if}}">
+      <span class="glyphicon glyphicon-thumbs-down"></span>
+      <span class="value">{{skipVotes}}</span>
+    </div>
+    {{/if}}
+    <span class="timestamp-time">
+      <span class="fuzzytime" title="{{prettyDate}}"></span>
+      <span class="glyphicon glyphicon-time"></span>
+    </span>
   </div>
   <div class="artwork" {{#if image_url}}style="background-image: url('{{image_url}}');"{{/if}}></div>
   <h1><span class="name">{{fullName}}</span> played:</h1>
@@ -351,6 +359,10 @@
               <span class="glyphicon glyphicon-step-forward"></span>
             </a>
           {{/if}}
+          <a href="#" class="btn-skipvote">
+            <span class="glyphicon glyphicon-thumbs-down"></span>
+            <span class="value">3/4</span>
+          </a>
         </div>
       </div>
       <div class="timeline">
@@ -371,12 +383,21 @@
 </script>
 
 <script type="text/x-handlebars-template" id="user-template">
-  {{#if dj}}{{#if firstDJ}}
-  <span
-    class="glyphicon glyphicon-music"
-    title="{{firstName}} is the current DJ."></span>
-  {{/if}}{{/if}}
-  {{fullName}}
+  <div class="li-container">
+    <div class="name">
+      {{#if dj}}{{#if firstDJ}}
+      <span
+        class="glyphicon glyphicon-music glyphicon-inverted"
+        title="{{firstName}} is the current DJ."></span>
+      {{/if}}{{/if}}
+      {{fullName}}
+    </div>
+    <div class="votes">
+      <div class="vote skipvote">
+        <span class="glyphicon glyphicon-thumbs-down"></span>
+      </div>
+    </div>
+  </div>
 </script>
 
 <script>
