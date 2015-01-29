@@ -54,6 +54,8 @@ exports.Activity = Backbone.Model.extend({
 /** Activity model representing a song having been played. */
 exports.SongActivity = exports.Activity.extend({
   defaults: {
+    skipVotes: 0,
+    skipVoted: false,
     type: 'song'
   },
 
@@ -84,6 +86,8 @@ exports.SongActivity = exports.Activity.extend({
     [ 'title',
       'artist',
       'album',
+      'skipVotes',
+      'skipVoted',
       'song_url',
       'image_url',
       'song_id'].forEach(function(field) {

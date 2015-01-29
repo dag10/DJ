@@ -31,41 +31,66 @@ module.exports = BackboneDBModel.extend({
       playback: new SongPlayback(),
     });
 
+    // Initially reset all voting numbers.
     this.resetSkipVotes();
 
+    // Handle when a song starts playing.
     this.playback().on('play', function() {
       winston.info(
         this.playback().dj().getLogName() + ' started playing song ' +
         this.playback().song().getLogName() + ' in room ' + this.getLogName());
-      this.activities().add(new activity.SongActivity({
+      var songActivity = new activity.SongActivity({
         user_model: this.playback().dj().user(),
         song_model: this.playback().song()
-      }));
+      });
+      this.set({ currentSongActivity: songActivity });
+      this.activities().add(songActivity);
     }, this);
 
+    // When songs are no longer being played...
     this.playback().on('stop', function() {
       winston.info(this.getLogName() + ' is no longer playing a song.');
     }, this);
 
+    // When the song playback finishes normally, start the next song.
     this.playback().on('finish', this.playNextSong, this);
 
-    this.activities().on('add', function(activity) {
+    // When an activity is added or changed, notify the room's users.
+    this.activities().on('add change', function(activity) {
       this.broadcastActivity(activity);
     }, this);
 
-    this.playback().on('end', this.resetSkipVotes, this);
+    // When the current song ends for any reason...
+    this.playback().on('end', function() {
+      this.unset('currentSongActivity'); // Forget its associated activity.
+      this.resetSkipVotes();
+    }, this);
+
+    // When the skip vote numbers change...
     this.on(
       'change:numSkipVotes change:numSkipVotesNeeded',
       function() {
+        var skipVotes = this.numSkipVotes();
+        var skipVotesNeeded = this.numSkipVotesNeeded();
+
+        // Update the song activity's skip vote count.
+        var songActivity = this.get('currentSongActivity');
+        if (songActivity) {
+          songActivity.set({ skipVotes: skipVotes });
+        }
+
+        // Decide if the vote has been one.
         this.broadcastSkipVoteInfo();
-        if (this.numSkipVotes() >= this.numSkipVotesNeeded() &&
-            this.numSkipVotes() > 0) {
+        if (skipVotes >= skipVotesNeeded && skipVotes > 0) {
           this.skipVotePassed();
         }
       }, this);
 
+    // Call event handlers when a user joins or leaves.
     this.connections().on('add', this.connectionAdded, this);
     this.connections().on('remove', this.connectionRemoved, this);
+    
+    // BackboneDBModel initializer.
     this.constructor.__super__.initialize.apply(this, arguments);
   },
 
@@ -350,6 +375,7 @@ module.exports = BackboneDBModel.extend({
   },
 
   skipVotePassed: function() {
+    this.get('currentSongActivity').set({ skipVoted: true });
     this.playNextSong();
   },
 
