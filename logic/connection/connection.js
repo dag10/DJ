@@ -142,7 +142,7 @@ module.exports = Backbone.Model.extend({
   },
 
   // Returns an object with sendable user data.
-  userData: function() {
+  toJSON: function() {
     var user = this.user() || {};
 
     return {
@@ -207,23 +207,23 @@ module.exports = Backbone.Model.extend({
 
   // Sends a user that joined their room.
   sendJoinedUser: function(conn) {
-    this.socket().emit('room:user:join', conn.userData());
+    this.socket().emit('room:user:join', conn.toJSON());
   },
 
   // Sends a user that left their room.
   sendLeftUser: function(conn) {
-    this.socket().emit('room:user:leave', conn.userData());
+    this.socket().emit('room:user:leave', conn.toJSON());
   },
 
   // Sends a user that was updated in their room.
   sendUpdatedUser: function(conn) {
-    this.socket().emit('room:user:update', conn.userData());
+    this.socket().emit('room:user:update', conn.toJSON());
   },
 
   // Sends a list of all users in their room.
   sendUserList: function(conns) {
     this.socket().emit('room:users', _.map(conns, function(conn) {
-      return conn.userData();
+      return conn.toJSON();
     }));
   },
 
