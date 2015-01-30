@@ -37,6 +37,7 @@
     "sequelize": "2.0.0-dev12",
     "moment": "2.7.0",
     "request": "2.39.0",
+    "ldapjs": "0.7.1",
     "lame": "git://github.com/dag10/node-lame.git#v1.0.3b"
   }
 }

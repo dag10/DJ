@@ -51,8 +51,35 @@ module.exports = {
   },
 
   auth: {
-    // Method of authentication (only available mode is 'dev').
-    method: 'dev'
+    // Method of authentication (options are 'dev' or 'ldap').
+    method: 'dev',
+
+    // Settings relating to the LDAP method of authentication.
+    ldap: {
+      // If true, create full name by joining first and last.
+      strictFullName: true,
+
+      // URL of LDAP server, with protocol and optionally a port.
+      // No trailing slash.
+      baseURL: 'ldap://ldap.csh.rit.edu',
+
+      // Base dn for user searches.
+      dnBase: 'ou=Users,dc=csh,dc=rit,dc=edu',
+
+      // DN format for auth. Put %username% where the username will be.
+      dnFormat: 'uid=%username%,ou=Users,dc=csh,dc=rit,dc=edu',
+
+      // Filter for searching for the user. Put %username% as a placeholder.
+      filter: '(&(objectclass=houseMember)(uid=%username%))',
+
+      // Attributes for fetching name info from a found user entry.
+      // Required: firstName, lastName, fullName.
+      attributes: {
+        firstName: 'givenName',
+        lastName: 'sn',
+        fullName: 'cn'
+      }
+    }
   },
 
   db: {

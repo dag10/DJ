@@ -1,10 +1,11 @@
-/* auth/dev.js
- * Development authentication method.
+/* auth/ldap.js
+ * LDAP authentication method.
  */
 /*jshint es5: true */
 
 var Q = require('q');
 var config = require('../../config.js');
+var ldap = require('ldapjs');
 var sanitizer = require('sanitizer');
 var user_model = require('../../models/user');
 var winston = require('winston');
@@ -24,6 +25,84 @@ var logout_url = '/logout';
 exports.init = function() {
   return Q();
 };
+
+/**
+ * Authenticates against an LDAP server, returning info for the user.
+ *
+ * @param username Username of user.
+ * @param password Password of user.
+ * @return Promise resolving with an object of user info or rejecting.
+ */
+function auth(username, password) {
+  var deferred = Q.defer();
+
+  var dn = config.auth.ldap.dnFormat.replace('%username%', username);
+
+  var client = ldap.createClient({
+    url: config.auth.ldap.baseURL + '/' + config.auth.ldap.dnBase
+  });
+
+  var ldapAttrs = Object.keys(config.auth.ldap.attributes).map(function(key) {
+    return config.auth.ldap.attributes[key];
+  });
+
+  var opts = {
+    filter: config.auth.ldap.filter.replace('%username%', username),
+    scope: 'sub',
+    attributes: ldapAttrs,
+  };
+
+  client.bind(dn, password, function(err) {
+    if (err) {
+      deferred.reject(err);
+      return;
+    }
+
+    client.search(config.auth.ldap.dnBase, opts, function(err, search) {
+      if (err) {
+        deferred.reject(err);
+        return;
+      }
+
+      var resolved = false;
+
+      search.on('searchEntry', function(entry) {
+        if (resolved) return;
+        resolved = true;
+
+        var attrs = {};
+
+        entry.attributes.forEach(function(attr) {
+          attrs[attr.type] = attr.vals[0];
+        });
+
+        var user = {};
+
+        Object.keys(config.auth.ldap.attributes).forEach(function(userAttr) {
+          user[userAttr] = attrs[config.auth.ldap.attributes[userAttr]];
+        });
+
+        deferred.resolve(user);
+      });
+
+      search.on('error', function(err) {
+        deferred.reject(err);
+      });
+    });
+  });
+
+  var promise = deferred.promise;
+  promise.finally(function() {
+    client.unbind(function(err) {
+      if (err) {
+        winston.error(
+          'Error unbinding LDAP: ' + err.name + ': ' + err.message);
+      }
+    });
+  });
+
+  return promise;
+}
 
 /**
  * If no ret_url is set for the request, set it to its referer or index.
@@ -185,7 +264,6 @@ function handleLoginGetRequest(render, req, res) {
   setReturnUrl(req);
 
   render(res, 'login.ejs', {
-    dev: true,
     hide_login: true
   });
 }
@@ -200,14 +278,13 @@ function handleLoginGetRequest(render, req, res) {
  * @param res Express response object.
  */
 function handleLoginPostRequest(render, req, res) {
-  var required_fields = ['username', 'first_name', 'last_name'];
+  var required_fields = ['username', 'password'];
 
   for (var i = 0; i < required_fields.length; i++) {
     var field = required_fields[i];
 
     if (!req.body || !req.body[field]) {
       render(res, 'login.ejs', {
-        dev: true,
         error: 'Missing field: ' + field,
         values: req.body,
         hide_login: true
@@ -216,14 +293,41 @@ function handleLoginPostRequest(render, req, res) {
     }
   }
 
-  req.session.user = {
-    username: sanitizer.escape(req.body.username),
-    firstName: sanitizer.escape(req.body.first_name),
-    lastName: sanitizer.escape(req.body.last_name),
-    fullName: sanitizer.escape(req.body.first_name + ' ' + req.body.last_name),
-  };
+  var username = sanitizer.escape(req.body.username);
+  var password = sanitizer.escape(req.body.password);
 
-  returnToRetUrl(req, res);
+  auth(username, password)
+  .then(function(user) {
+    var cleanuser = {
+      username: sanitizer.escape(user.username),
+      firstName: sanitizer.escape(user.firstName),
+      lastName: sanitizer.escape(user.lastName),
+    };
+
+    if (config.auth.ldap.strictFullName) {
+      cleanuser.fullName = sanitizer.escape(
+        user.firstName + ' ' + user.lastName);
+    } else {
+      cleanuser.fullName = sanitizer.escape(user.fullName);
+    }
+
+    req.session.user = cleanuser;
+    returnToRetUrl(req, res);
+  })
+  .catch(function(err) {
+    var msg = 'Invalid credentials.';
+
+    if (err.name !== 'InvalidCredentialsError') {
+      msg = 'An error occured with LDAP.';
+      winston.error('Error with LDAP authentication: ' + err.stack);
+    }
+
+    render(res, 'login.ejs', {
+      error: msg,
+      values: req.body,
+      hide_login: true
+    });
+  });
 }
 
 /**
