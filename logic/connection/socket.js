@@ -30,6 +30,7 @@ exports.init = function(server) {
     io.set('heartbeat timeout', 25);
     io.set('heartbeat interval', 3);
     io.set('log level', 1);
+    io.set('transports', ['websocket']);
   });
 
   io.sockets.on('connection', function(socket) {
