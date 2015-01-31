@@ -214,7 +214,15 @@
       <span class="glyphicon glyphicon-time"></span>
     </span>
   </div>
-  <div class="artwork" {{#if image_url}}style="background-image: url('{{image_url}}');"{{/if}}></div>
+  <div class="artwork" {{#if image_url}}style="background-image: url('{{image_url}}');"{{/if}}>
+    <a href="#" class="btn-preview" data-preview-url="{{song_url}}" title="Preview This Song">
+      <div class="soundbars-container">
+        <div class="soundbars">
+        </div>
+      </div>
+      <span class="glyphicon glyphicon-headphones"></span>
+    </a>
+  </div>
   <h1><span class="name">{{fullName}}</span> played:</h1>
   <div class="song-info">
     <div class="title">{{title}}</div>
@@ -319,6 +327,12 @@
   <div
     class="artwork"
     style="{{#if artwork_path}}background-image: url('{{artwork_path}}'){{/if}}">
+    <a href="#" class="btn-preview" data-preview-url="{{song_url}}" title="Preview This Song">
+      <div class="soundbars-container">
+        <div class="soundbars"></div>
+      </div>
+      <span class="glyphicon glyphicon-headphones"></span>
+    </a>
   </div>
 
   <div

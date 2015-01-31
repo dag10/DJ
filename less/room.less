@@ -37,6 +37,101 @@
   position: relative;
 }
 
+.btn-preview {
+  @transition-time: 0.20s;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background-color: fade(#000, 40%);
+  color: #fff;
+  opacity: 0;
+  @transition: opacity @transition-time;
+  -webkit-transition: @transition;
+  transition: @transition;
+  border-radius: 5px;
+  overflow: hidden;
+
+  .glyphicon, .soundbars-container {
+    display: block;
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 50%;
+    bottom: 0;
+    font-size: 12px;
+    text-align: center;
+    @transform: translateY(-50%);
+    -webkit-transform: @transform;
+    -ms-transform: @transform;
+    transform: @transform;
+    @transition: all @transition-time;
+    -webkit-transition: @transition;
+    transition: @transition;
+  }
+
+  .soundbars-container {
+    top: 150%;
+    width: 100%;
+    height: 100%;
+
+    .soundbars {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      right: 0;
+      bottom: 0;
+      @transform: translate(-50%, -50%);
+      -webkit-transform: @transform;
+      -ms-transform: @transform;
+      transform: @transform;
+      @size: 23px;
+      width: @size;
+      height: @size;
+      background: url('/images/soundbars_white.gif');
+      background-size: contain;
+      @transition: all @transition-time;
+      -webkit-transition: @transition;
+      transition: @transition;
+    }
+  }
+
+  &.playing {
+    .soundbars-container {
+      top: 50%;
+      opacity: 1;
+    }
+
+    .glyphicon-headphones {
+      top: 0%;
+      opacity: 0;
+    }
+  }
+
+  &.playing, &:hover, &:active {
+    opacity: 1;
+    color: white;
+
+    .glyphicon {
+      font-size: 24px;
+    }
+  }
+
+  &:active {
+    background-color: fade(#000, 50%);
+    .glyphicon {
+      font-size: 20px;
+    }
+
+    .soundbars {
+      @size: 18px;
+      width: @size;
+      height: @size;
+    }
+  }
+}
+
 .room-activity {
   @media only screen and (min-width: @single-col-width) {
     position: absolute;
@@ -753,6 +848,20 @@
             }
           }
 
+          &.queued-song.ui-sortable-helper {
+            .btn-preview {
+              cursor: -webkit-grabbing;
+            }
+
+            .btn-preview:not(.playing) {
+              opacity: 0;
+            }
+
+            .btn-preview.playing {
+              background-color: fade(#000, 40%) !important;
+            }
+          }
+
           .artwork {
             width: @inner-height;
             height: @inner-height;
@@ -763,6 +872,31 @@
             display: inline-block;
             border-radius: 3px;
             margin-top: -1px;
+            position: relative;
+
+            .btn-preview {
+              .glyphicon {
+                font-size: 8px;
+              }
+
+              .soundbars {
+                @size: 15px;
+                width: @size;
+                height: @size;
+              }
+
+              &:hover, &:active {
+                .glyphicon {
+                  font-size: 16px;
+                }
+              }
+
+              &:active {
+                .glyphicon {
+                  font-size: 13px;
+                }
+              }
+            }
           }
 
           .fg {

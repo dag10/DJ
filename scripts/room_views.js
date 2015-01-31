@@ -306,7 +306,8 @@ $(function() {
     template: Handlebars.compile($('#activity-song-template').html()),
 
     events: {
-      'click .action-enqueue': 'enqueue'
+      'click .action-enqueue': 'enqueue',
+      'click .btn-preview': 'preview',
     },
 
     initialize: function() {
@@ -322,6 +323,11 @@ $(function() {
       }
 
       return false;
+    },
+
+    preview: function() {
+      // TODO Temporary implementation:
+      this.$('.btn-preview').toggleClass('playing');
     }
   });
 
@@ -623,7 +629,8 @@ $(function() {
     events: {
       'drop': 'drop',
       'click .btn-escalate': 'escalate',
-      'click .btn-remove': 'remove'
+      'click .btn-remove': 'remove',
+      'click .btn-preview': 'preview',
     },
 
     drop: function(event, index) {
@@ -731,6 +738,11 @@ $(function() {
       }
 
       return this;
+    },
+
+    preview: function() {
+      // TODO Temporary implementation:
+      this.$('.btn-preview').toggleClass('playing');
     }
   });
 
