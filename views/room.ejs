@@ -324,7 +324,7 @@
   <div
     class="fg"
     title="&quot;{{title}}&quot;{{#if artist}} by {{artist}}{{/if}}{{#if album}} on {{album}}{{/if}}">
-    <span class="title">{{#if playing}}&#9658; {{/if}}{{title}}</span>
+    <span class="title">{{title}}</span>
     <span class="artist">
       {{formattedDuration}}
       {{#if artist}} - {{/if}}
@@ -340,7 +340,10 @@
         </a>
       {{/unless}}
     </div>
-    <div class="faded-edge"></div>
+    <div class="faded-edge">
+      <div class="soundbars">
+      </div>
+    </div>
   </div>
 </script>
 

@@ -793,6 +793,18 @@
               transition: @transition;
               -moz-transition: @transition;
               -webkit-transition: @transition;
+
+              .soundbars {
+                display: none;
+                background: url('/images/soundbars_white.gif');
+                background-size: contain;
+                @size: 15px;
+                width: @size;
+                height: @size;
+                position: absolute;
+                right: 10px;
+                top: 12px;
+              }
             }
 
             .controls {
@@ -864,10 +876,14 @@
               }
 
               .faded-edge {
-                @box-shadow: inset -30px 0 24px -15px @color-purple;
+                @box-shadow: inset -55px 0 24px -15px @color-purple;
                 -webkit-box-shadow: @box-shadow;
                 -moz-box-shadow: @box-shadow;
                 box-shadow: @box-shadow;
+
+                .soundbars {
+                  display: block;
+                }
               }
             }
           }
