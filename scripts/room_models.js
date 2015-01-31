@@ -5,6 +5,7 @@ $(function() {
 
   var progressInterval = 350;
   var search_throttle_ms = 200;
+  var previewFadeDuration = 1200;
 
   // Model managing cookies.
   models.Cookies = Backbone.Model.extend({
@@ -38,6 +39,106 @@ $(function() {
         $.cookie(key, this.get(key));
       }, this));
     }
+  });
+
+  // Model to manage song previews, similar to Playback.
+  models.PreviewController = Backbone.Model.extend({
+    defaults: {
+      preview: null,
+      audio: null,
+    },
+
+    initialize: function() {
+      var audio = new Audio();
+      audio.autoplay = true;
+      audio.volume = 0;
+      this.set({ audio: audio });
+      this.on('change:preview', this.previewChanged, this);
+    },
+
+    preview: function(cid, url) {
+      this.set({ preview: { cid: cid, url: url }});
+    },
+
+    endPreview: function() {
+      this.unset('preview');
+    },
+
+    previewChanged: function() {
+      var oldPreview = this.previous('preview');
+      var preview = this.get('preview');
+      var audio = this.get('audio');
+
+      if (oldPreview && preview) {
+        // TODO: Clean any timeout.
+        $(audio).stop().animate({ volume: 0 }, {
+          easing: 'easeOutQuad',
+          duration: previewFadeDuration * 0.5,
+          complete: function() {
+            // TODO: Create timeout for song completion.
+            audio.src = preview.url;
+            $(audio).stop().prop('volume', 0).animate({ volume: 1 }, {
+              duration: previewFadeDuration * 0.5,
+              easing: 'easeInQuad',
+            });
+          },
+        });
+        this.trigger('preview:change');
+      } else if (oldPreview) {
+        // TODO: Clear any timeout.
+        $(audio).stop().animate({ volume: 0 }, {
+          duration: previewFadeDuration,
+          easing: 'easeOutQuad',
+          complete: function() {
+            audio.src = '';
+          },
+        });
+        this.trigger('preview:end');
+      } else if (preview) {
+        audio.src = preview.url;
+        $(audio).stop().prop('volume', 0).animate({ volume: 1 }, {
+          duration: previewFadeDuration,
+          easing: 'easeInQuad',
+        });
+        this.trigger('preview:start');
+      }
+    },
+  });
+
+  // Base model for a song that is previewable.
+  models.Previewable = Backbone.Model.extend({
+    defaults: {
+      song_url: '',
+      previewing: false,
+    },
+
+    // Abstract function for getting the connection's playbackController.
+    // Child models must override.
+    getPreviewController: function() {
+      throw Error('Not implemented.');
+    },
+
+    // When the user wants to start the preview.
+    preview: function() {
+      if (this.get('previewing')) return;
+
+      var controller = this.getPreviewController();
+
+      controller.preview(this.cid, this.get('song_url'));
+      controller.once('preview:end preview:change', function() {
+        this.set({ previewing: false });
+      }, this);
+      
+
+      this.set({ previewing: true });
+    },
+
+    // When the user wants to stop the preview.
+    endPreview: function() {
+      if (!this.get('previewing')) return;
+
+      this.getPreviewController().endPreview();
+    },
   });
 
   // Model representing a song's information.
@@ -554,7 +655,7 @@ $(function() {
   });
 
   // Model representing a song in the song queue.
-  models.QueuedSong = Backbone.Model.extend({
+  models.QueuedSong = models.Previewable.extend({
     defaults: {
       order: 0,
       next: false
@@ -563,8 +664,18 @@ $(function() {
     initialize: function() {
       this.on('change:order', this.orderChanged, this);
       this.on('change:order', this.checkIfNext, this);
+      this.on('change:song_path', this.updateSongUrl, this);
       this.collection.on('change:playing', this.checkIfNext, this);
       this.checkIfNext();
+      this.updateSongUrl();
+    },
+
+    updateSongUrl: function() {
+      this.set({ song_url: this.get('song_path') });
+    },
+
+    getPreviewController: function() {
+      return this.collection.connection.get('previewController');
     },
 
     changePosition: function(position) {
@@ -784,11 +895,15 @@ $(function() {
   });
 
   // Model representing specifically a song-playing activity.
-  models.SongActivity = Backbone.Model.extend({
+  models.SongActivity = models.Previewable.extend({
     defaults: {
       likes: 0,
       skipVotes: 0,
       skipVoted: false,
+    },
+
+    getPreviewController: function() {
+      return this.collection.room.get('connection').get('previewController');
     },
 
     enqueue: function(callback) {
@@ -801,7 +916,7 @@ $(function() {
           enqueued: true
         });
       }, this));
-    }
+    },
   });
 
   // Collection holding activities.

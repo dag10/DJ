@@ -29,11 +29,15 @@ $(function() {
     defaults: {
       connected: false,
       reconnect_attempts: 0,
-      queue: new models.Queue()
     },
 
     initialize: function() {
-      this.set({ song_adds: [] });
+      this.set({
+        song_adds: [],
+        queue: new models.Queue(),
+        previewController: new models.PreviewController(),
+      });
+      this.get('queue').connection = this;
       this.get('queue').on('changeOrder', function(data) {
         var queued_song = data[0];
         var order = data[1];

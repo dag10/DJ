@@ -268,6 +268,10 @@ $(function() {
       return {};
     },
 
+    postRender: function() {
+      // nothing.
+    },
+
     render: function() {
       if (this.template) {
         var context = {};
@@ -286,6 +290,8 @@ $(function() {
       }
 
       this.updateRelativeDate();
+      this.postRender();
+
       return this;
     }
   });
@@ -314,7 +320,14 @@ $(function() {
       views.Activity.prototype.initialize.apply(this);
 
       this.model.set({ enqueued: false });
-      this.model.on('change', this.render, this);
+      this.model.on(
+        'change:likes, change:skipVotes, change:skipVoted, change:enqueueings',
+        this.render, this);
+      this.model.on('change:previewing', this.updatePreviewButton, this);
+    },
+
+    postRender: function() {
+      this.updatePreviewButton();
     },
 
     enqueue: function() {
@@ -325,10 +338,24 @@ $(function() {
       return false;
     },
 
-    preview: function() {
-      // TODO Temporary implementation:
-      this.$('.btn-preview').toggleClass('playing');
-    }
+    updatePreviewButton: function() {
+      if (this.model.get('previewing')) {
+        this.$('.btn-preview').addClass('playing');
+      } else {
+        this.$('.btn-preview').removeClass('playing');
+      }
+    },
+
+    preview: function(event) {
+      if (this.model.get('previewing')) {
+        this.model.endPreview();
+      } else {
+        this.model.preview();
+      }
+
+      event.preventDefault();
+      return false;
+    },
   });
 
   views.Activities = Backbone.View.extend({
@@ -623,6 +650,7 @@ $(function() {
       this.model.on('reindex', this.reindex, this);
       this.model.on('change:playing', this.render, this);
       this.model.on('change:next', this.render, this);
+      this.model.on('change:previewing', this.updatePreviewButton, this);
       this.firstRender = true;
     },
 
@@ -737,13 +765,29 @@ $(function() {
         this.$el.removeClass('next');
       }
 
+      this.updatePreviewButton();
+
       return this;
     },
 
-    preview: function() {
-      // TODO Temporary implementation:
-      this.$('.btn-preview').toggleClass('playing');
-    }
+    updatePreviewButton: function() {
+      if (this.model.get('previewing')) {
+        this.$('.btn-preview').addClass('playing');
+      } else {
+        this.$('.btn-preview').removeClass('playing');
+      }
+    },
+
+    preview: function(event) {
+      if (this.model.get('previewing')) {
+        this.model.endPreview();
+      } else {
+        this.model.preview();
+      }
+
+      event.preventDefault();
+      return false;
+    },
   });
 
   views.Queue = Backbone.View.extend({
