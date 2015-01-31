@@ -29,6 +29,12 @@
   }
 %>
 
+<% if (!user) { %>
+<style>
+  .btn-preview { display: none; }
+</style>
+<% } %>
+
 <div class="row room-container mobile-top-controls">
   <div class="navbar-container">
     <ul class="nav room-nav navbar-nav navbar-left">
