@@ -20,6 +20,16 @@
 @-o-keyframes loading_shimmer {.loading-shimmer-frames;}
 @keyframes loading_shimmer {.loading-shimmer-frames;}
 
+a {
+  &:focus {
+    outline: none;
+  }
+
+  &::-moz-focus-inner {
+    border: none;
+  }
+}
+
 .glyphicon-inverted(@fg, @bg) {
   text-align: center;
   color: @fg;
@@ -39,6 +49,7 @@
 
 .btn-preview {
   @transition-time: 0.20s;
+  outline: none;
   position: absolute;
   top: 0;
   bottom: 0;
@@ -300,6 +311,7 @@
         padding-top: @vertical-padding;
         margin-top: 0;
         border-top: solid 1px @color-activity-border;
+        display: relative;
 
         &:after {
           clear: both;
@@ -851,6 +863,16 @@
           &.queued-song.ui-sortable-helper {
             .btn-preview {
               cursor: -webkit-grabbing;
+
+              .glyphicon {
+                font-size: 8px !important;
+              }
+
+              .soundbars {
+                @size: 15px;
+                width: @size !important;
+                height: @size !important;
+              }
             }
 
             .btn-preview:not(.playing) {
@@ -894,6 +916,12 @@
               &:active {
                 .glyphicon {
                   font-size: 13px;
+                }
+
+                .soundbars {
+                  @size: 12px;
+                  width: @size;
+                  height: @size;
                 }
               }
             }
