@@ -46,6 +46,7 @@ $(function() {
     defaults: {
       preview: null,
       audio: null,
+      timeout: null,
     },
 
     initialize: function() {
@@ -56,12 +57,32 @@ $(function() {
       this.on('change:preview', this.previewChanged, this);
     },
 
-    preview: function(cid, url) {
-      this.set({ preview: { cid: cid, url: url }});
+    preview: function(cid, url, duration) {
+      this.set({ preview: { cid: cid, url: url, duration: duration }});
     },
 
     endPreview: function() {
       this.unset('preview');
+    },
+
+    clearTimeout: function() {
+      var timeout = this.get('timeout');
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    },
+
+    setTimeout: function() {
+      this.clearTimeout();
+      var preview = this.get('preview');
+      if (!preview) return;
+      var timeout = setTimeout(_.bind(function() {
+        var audio = this.get('audio');
+        audio.volume = 0;
+        audio.src = '';
+        this.trigger('preview:end');
+      }, this), (preview.duration * 1000) + 500);
+      this.set({ timeout: timeout });
     },
 
     previewChanged: function() {
@@ -70,22 +91,25 @@ $(function() {
       var audio = this.get('audio');
 
       if (oldPreview && preview) {
-        // TODO: Clean any timeout.
+        this.clearTimeout();
+
         $(audio).stop().animate({ volume: 0 }, {
           easing: 'easeOutQuad',
           duration: previewFadeDuration * 0.5,
-          complete: function() {
-            // TODO: Create timeout for song completion.
+          complete: _.bind(function() {
+            this.setTimeout();
             audio.src = preview.url;
             $(audio).stop().prop('volume', 0).animate({ volume: 1 }, {
               duration: previewFadeDuration * 0.5,
               easing: 'easeInQuad',
             });
-          },
+          }, this),
         });
         this.trigger('preview:change');
+
       } else if (oldPreview) {
-        // TODO: Clear any timeout.
+        this.clearTimeout();
+
         $(audio).stop().animate({ volume: 0 }, {
           duration: previewFadeDuration,
           easing: 'easeOutQuad',
@@ -94,7 +118,9 @@ $(function() {
           },
         });
         this.trigger('preview:end');
+
       } else if (preview) {
+        this.setTimeout();
         audio.src = preview.url;
         $(audio).stop().prop('volume', 0).animate({ volume: 1 }, {
           duration: previewFadeDuration,
@@ -124,7 +150,7 @@ $(function() {
 
       var controller = this.getPreviewController();
 
-      controller.preview(this.cid, this.get('song_url'));
+      controller.preview(this.cid, this.get('song_url'), this.get('duration'));
       controller.once('preview:end preview:change', function() {
         this.set({ previewing: false });
       }, this);
