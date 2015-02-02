@@ -1024,8 +1024,6 @@
         border: solid 1px @nav-background;
         border-radius: 3px;
         padding: 1px 3px;
-        -webkit-transition: border-color 1s;
-        transition: border-color 1s;
 
         &.btn-skipvote, &.btn-like {
           font-size: 16px;
@@ -1049,6 +1047,10 @@
         &.btn-like.liked {
           border-color: @like-color;
           color: @like-color;
+
+          .value {
+            color: @like-color;
+          }
         }
 
         &.btn-value {
@@ -1073,6 +1075,10 @@
 
           &.btn-skipvote .glyphicon {
             color: @skipvote-color;
+          }
+
+          &.btn-like .glyphicon {
+            color: @like-color;
           }
         }
 
