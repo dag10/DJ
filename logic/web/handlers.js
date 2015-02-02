@@ -16,12 +16,11 @@ var socket = require('../connection/socket');
 var stream = require('stream');
 var song_sources = require('../../song_sources');
 var package = require('../../package.json');
+var git = require('git-rev');
 
 var base_dir = __dirname + '/../..';
 
 exports.init = function(app) {
-  var deferred = Q.defer();
-
   app.enable('trust proxy');
   app.set('views', base_dir + '/views');
   app.set('view engine', 'ejs');
@@ -54,7 +53,29 @@ exports.init = function(app) {
     package: package,
     config: config,
     rooms: rooms,
+    git: {},
   };
+
+  // Get git information for template context.
+  var gitLogDeferred = Q.defer();
+  var gitBranchDeferred = Q.defer();
+  var gitCommitDeferred = Q.defer();
+
+  git.log(function(log) {
+    default_objects.git.log = log;
+    gitLogDeferred.resolve();
+  });
+  
+  git.branch(function(branch) {
+    default_objects.git.branch = branch;
+    gitBranchDeferred.resolve();
+  });
+
+  git.long(function(hash) {
+    default_objects.git.hash = hash;
+    gitCommitDeferred.resolve();
+  });
+
 
   function renderResult(res, template, objects) {
     var objs = {};
@@ -281,7 +302,6 @@ exports.init = function(app) {
     });
   });
 
-  deferred.resolve();
-  return deferred.promise;
+  return Q.allSettled([gitLogDeferred, gitCommitDeferred, gitBranchDeferred]);
 };
 

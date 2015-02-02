@@ -77,6 +77,13 @@
         DJ <%= package.version %>
       </a>
     </div>
+    <% if (git.branch && git.branch !== 'master') { %>
+      <div class="footer-section">
+        <a href="#" class="git-branch">
+          <%= git.branch %>
+        </a>
+      </div>
+    <% } %>
     <div class="footer-section">
       Made with <span class="heart">&hearts;</span> by Drew
     </div>
@@ -84,6 +91,8 @@
       <a href="<%= package.bugs.url %>" target="_blank">Issues, Feature Requests</a>
     </div>
     </footer>
+    <script src="/scripts/jquery-1.10.2.js"></script>
+    <script src="/scripts/bootstrap.js"></script>
     <script>
       window.config = {
         max_file_size: <%= config.web.max_file_size*1024*1024 %>
@@ -98,11 +107,45 @@
           hash: '<%= user.hash() %>'
         };
       <% } %>
-      // Enable :hover for links on Mobile Safari
-      document.addEventListener("touchstart", function() {},false);
+
+      $(function() {
+        // Enable :hover for links on Mobile Safari
+        document.addEventListener("touchstart", function() {},false);
+
+        <% if (git.branch && git.branch !== 'master') { %>
+        // Git branch in footer.
+        var $gitBtn = $('.git-branch');
+        if ($gitBtn) {
+          <%
+            var commit = {
+              message: '',
+              author: '',
+            };
+            if (git.log && git.log.length > 0) {
+              var commitArray = git.log[0];
+              commit.message = commitArray[1];
+              commit.author = commitArray[3];
+            }
+          %>
+          var commit = <%- JSON.stringify(commit) %>;
+          var branch = '<%= git.branch %>';
+          var hash = '<%= git.hash %>';
+          $gitBtn.tooltip({
+            container: 'body',
+            title: 'Click to view version info.'
+          }).click(function(event) {
+            var info = 'You are currently experiencing the ' + branch + ' branch.';
+            info += '\n\n';
+            info += 'The last commit was by ' + commit.author + '.\n';
+            info += 'Its description is:\n___\n\n' + commit.message + '\n___\n\n';
+            info += 'The commit\'s sha1 is selected below:';
+            prompt(info, hash);
+            event.preventDefault();
+          });
+        }
+        <% } %>
+      });
     </script>
-    <script src="/scripts/jquery-1.10.2.js"></script>
-    <script src="/scripts/bootstrap.js"></script>
     <%- scripts %>
   </body>
 </html>
