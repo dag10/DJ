@@ -321,7 +321,7 @@ $(function() {
 
       this.model.set({ enqueued: false });
       this.model.on(
-        'change:likes, change:skipVotes, change:skipVoted, change:enqueueings',
+        'change:likes change:skipVotes change:skipVoted change:enqueueings',
         this.render, this);
       this.model.on('change:previewing', this.updatePreviewButton, this);
     },
