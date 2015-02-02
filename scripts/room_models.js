@@ -53,8 +53,13 @@ $(function() {
       var audio = new Audio();
       audio.autoplay = true;
       audio.volume = 0;
+      $(audio).on('playing', _.bind(this.setTimeout, this));
       this.set({ audio: audio });
       this.on('change:preview', this.previewChanged, this);
+    },
+
+    isPlaying: function() {
+      return this.has('preview');
     },
 
     preview: function(cid, url, duration) {
@@ -77,10 +82,7 @@ $(function() {
       var preview = this.get('preview');
       if (!preview) return;
       var timeout = setTimeout(_.bind(function() {
-        var audio = this.get('audio');
-        audio.volume = 0;
-        audio.src = '';
-        this.trigger('preview:end');
+        this.endPreview();
       }, this), (preview.duration * 1000) + 500);
       this.set({ timeout: timeout });
     },
@@ -97,7 +99,6 @@ $(function() {
           easing: 'easeOutQuad',
           duration: previewFadeDuration * 0.5,
           complete: _.bind(function() {
-            this.setTimeout();
             audio.src = preview.url;
             $(audio).stop().prop('volume', 0).animate({ volume: 1 }, {
               duration: previewFadeDuration * 0.5,
@@ -120,7 +121,6 @@ $(function() {
         this.trigger('preview:end');
 
       } else if (preview) {
-        this.setTimeout();
         audio.src = preview.url;
         $(audio).stop().prop('volume', 0).animate({ volume: 1 }, {
           duration: previewFadeDuration,
@@ -177,6 +177,7 @@ $(function() {
   // Model of the current song being played back.
   models.Playback = Backbone.Model.extend({
     defaults: {
+      connection: null,
       selfIsDJ: false,
       skipVoted: false,
       progress: 0,
@@ -192,10 +193,32 @@ $(function() {
 
       this.on('change:song', this.songChanged, this);
       this.on('change:muted', this.mutedChanged, this);
+      
+      var preview = this.get('connection').get('previewController');
+      preview.on('preview:start', this.fadeDown, this);
+      preview.on('preview:end', this.fadeUp, this);
     },
 
     reset: function() {
       this.unset('song');
+    },
+
+    fadeDown: function() {
+      if (this.has('audio')) {
+        $(this.get('audio')).stop().animate({ volume: 0 }, {
+          duration: previewFadeDuration,
+          easing: 'easeOutQuad',
+        });
+      }
+    },
+
+    fadeUp: function() {
+      if (this.has('audio')) {
+        $(this.get('audio')).stop().animate({ volume: 1 }, {
+          duration: previewFadeDuration,
+          easing: 'easeInQuad',
+        });
+      }
     },
 
     songChanged: function() {
@@ -249,6 +272,11 @@ $(function() {
       var audio = new Audio();
       audio.autoplay = true;
       audio.muted = this.get('muted');
+      if (this.get('connection').get('previewController').isPlaying()) {
+        audio.volume = 0;
+      } else {
+        audio.volume = 1;
+      }
       this.set({ audio: audio });
     },
 
@@ -979,7 +1007,9 @@ $(function() {
         activities: new models.Activities(),
         listeners: new models.Users(),
         djs: new models.Users(),
-        playback: new models.Playback()
+        playback: new models.Playback({
+          connection: this.get('connection')
+        })
       });
       this.get('activities').room = this;
       this.get('playback').set({ room: this });
