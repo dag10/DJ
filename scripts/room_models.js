@@ -47,6 +47,7 @@ $(function() {
       preview: null,
       audio: null,
       timeout: null,
+      fade: true,
     },
 
     initialize: function() {
@@ -88,6 +89,7 @@ $(function() {
     },
 
     previewChanged: function() {
+      var fadeTime = this.get('fade') ? previewFadeDuration : 0;
       var oldPreview = this.previous('preview');
       var preview = this.get('preview');
       var audio = this.get('audio');
@@ -97,11 +99,11 @@ $(function() {
 
         $(audio).stop().animate({ volume: 0 }, {
           easing: 'easeOutQuad',
-          duration: previewFadeDuration * 0.5,
+          duration: fadeTime * 0.5,
           complete: _.bind(function() {
             audio.src = preview.url;
             $(audio).stop().prop('volume', 0).animate({ volume: 1 }, {
-              duration: previewFadeDuration * 0.5,
+              duration: fadeTime * 0.5,
               easing: 'easeInQuad',
             });
           }, this),
@@ -112,7 +114,7 @@ $(function() {
         this.clearTimeout();
 
         $(audio).stop().animate({ volume: 0 }, {
-          duration: previewFadeDuration,
+          duration: fadeTime,
           easing: 'easeOutQuad',
           complete: function() {
             audio.src = '';
@@ -123,7 +125,7 @@ $(function() {
       } else if (preview) {
         audio.src = preview.url;
         $(audio).stop().prop('volume', 0).animate({ volume: 1 }, {
-          duration: previewFadeDuration,
+          duration: fadeTime,
           easing: 'easeInQuad',
         });
         this.trigger('preview:start');
@@ -134,21 +136,45 @@ $(function() {
   // Base model for a song that is previewable.
   models.Previewable = Backbone.Model.extend({
     defaults: {
+      connection: null,
       song_url: '',
       previewing: false,
     },
 
-    // Abstract function for getting the connection's playbackController.
-    // Child models must override.
-    getPreviewController: function() {
-      throw Error('Not implemented.');
+    initialize: function() {
+      this.on('change:connection', this.connectionChanged, this);
+      this.connectionChanged();
+    },
+
+    connectionChanged: function() {
+      var conn = this.get('connection');
+      var oldConn = this.previous('connection');
+
+      if (conn) {
+        conn.on('change:connected', this.connectionStatusChanged, this);
+      }
+
+      if (oldConn) {
+        oldConn.off('change:connected', this.connectionStatusChanged, this);
+      }
+    },
+
+    connectionStatusChanged: function() {
+      var conn = this.get('connection');
+      if (!conn || !conn.get('connected')) {
+        this.endPreview(false);
+      }
+    },
+
+    previewController: function() {
+      return this.get('connection').get('previewController');
     },
 
     // When the user wants to start the preview.
     preview: function() {
       if (this.get('previewing')) return;
 
-      var controller = this.getPreviewController();
+      var controller = this.previewController();
 
       controller.preview(this.cid, this.get('song_url'), this.get('duration'));
       controller.once('preview:end preview:change', function() {
@@ -160,10 +186,18 @@ $(function() {
     },
 
     // When the user wants to stop the preview.
-    endPreview: function() {
+    endPreview: function(fade) {
       if (!this.get('previewing')) return;
+      var controller = this.previewController();
 
-      this.getPreviewController().endPreview();
+      if (typeof fade !== 'undefined' && !fade) {
+        controller.set({ fade: false });
+        controller.once('preview:end', function() {
+          controller.set({ fade: true });
+        });
+      }
+
+      controller.endPreview();
     },
   });
 
@@ -716,20 +750,19 @@ $(function() {
     },
 
     initialize: function() {
+      this.constructor.__super__.initialize.apply(this, arguments);
+
       this.on('change:order', this.orderChanged, this);
       this.on('change:order', this.checkIfNext, this);
       this.on('change:song_path', this.updateSongUrl, this);
       this.collection.on('change:playing', this.checkIfNext, this);
+      this.set({ connection: this.collection.connection });
       this.checkIfNext();
       this.updateSongUrl();
     },
 
     updateSongUrl: function() {
       this.set({ song_url: this.get('song_path') });
-    },
-
-    getPreviewController: function() {
-      return this.collection.connection.get('previewController');
     },
 
     changePosition: function(position) {
@@ -956,8 +989,14 @@ $(function() {
       skipVoted: false,
     },
 
-    getPreviewController: function() {
-      return this.collection.room.get('connection').get('previewController');
+    initialize: function() {
+      this.constructor.__super__.initialize.apply(this, arguments);
+
+      if (this.collection) {
+        this.collection.on('reset', function() {
+          this.endPreview(false);
+        }, this);
+      }
     },
 
     enqueue: function(callback) {
@@ -984,7 +1023,13 @@ $(function() {
         model = models.SongActivity;
       }
 
-      this.add(new model(activityData), { merge: true });
+      activityData.connection = this.room.get('connection');
+
+      this.add(new model(activityData, {
+        collection: this,
+      }), {
+        merge: true,
+      });
     },
 
     resetWithActivities: function(activities) {
