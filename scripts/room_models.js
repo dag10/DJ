@@ -755,6 +755,7 @@ $(function() {
       this.on('change:order', this.orderChanged, this);
       this.on('change:order', this.checkIfNext, this);
       this.on('change:song_path', this.updateSongUrl, this);
+      this.on('remove', this.endPreview, this);
       this.collection.on('change:playing', this.checkIfNext, this);
       this.set({ connection: this.collection.connection });
       this.checkIfNext();
