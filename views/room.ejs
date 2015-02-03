@@ -6,7 +6,7 @@
   script('/scripts/underscore-min.js');
   script('/scripts/backbone-min.js');
   script('/scripts/handlebars.js');
-  script('/scripts/jquery-ui.custom.min.js');
+  script('/scripts/jquery-ui.min.js');
   script('/scripts/jquery.cookie.js');
   script('/scripts/moment.min.js');
   script('/scripts/room_models.js');
@@ -28,6 +28,12 @@
     };
   }
 %>
+
+<% if (!user) { %>
+<style>
+  .btn-preview { display: none; }
+</style>
+<% } %>
 
 <div class="row room-container mobile-top-controls">
   <div class="navbar-container">
@@ -214,7 +220,15 @@
       <span class="glyphicon glyphicon-time"></span>
     </span>
   </div>
-  <div class="artwork" {{#if image_url}}style="background-image: url('{{image_url}}');"{{/if}}></div>
+  <div class="artwork" {{#if image_url}}style="background-image: url('{{image_url}}');"{{/if}}>
+    <a href="#" class="btn-preview" data-preview-url="{{song_url}}" title="Preview This Song">
+      <div class="soundbars-container">
+        <div class="soundbars">
+        </div>
+      </div>
+      <span class="glyphicon glyphicon-headphones"></span>
+    </a>
+  </div>
   <h1><span class="name">{{fullName}}</span> played:</h1>
   <div class="song-info">
     <div class="title">{{title}}</div>
@@ -319,12 +333,18 @@
   <div
     class="artwork"
     style="{{#if artwork_path}}background-image: url('{{artwork_path}}'){{/if}}">
+    <a href="#" class="btn-preview" data-preview-url="{{song_url}}" title="Preview This Song">
+      <div class="soundbars-container">
+        <div class="soundbars"></div>
+      </div>
+      <span class="glyphicon glyphicon-headphones"></span>
+    </a>
   </div>
 
   <div
     class="fg"
     title="&quot;{{title}}&quot;{{#if artist}} by {{artist}}{{/if}}{{#if album}} on {{album}}{{/if}}">
-    <span class="title">{{#if playing}}&#9658; {{/if}}{{title}}</span>
+    <span class="title">{{title}}</span>
     <span class="artist">
       {{formattedDuration}}
       {{#if artist}} - {{/if}}
@@ -340,7 +360,10 @@
         </a>
       {{/unless}}
     </div>
-    <div class="faded-edge"></div>
+    <div class="faded-edge">
+      <div class="soundbars">
+      </div>
+    </div>
   </div>
 </script>
 

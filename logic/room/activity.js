@@ -71,6 +71,7 @@ exports.SongActivity = exports.Activity.extend({
         artist: song.artist,
         album: song.album,
         song_id: song.id,
+        duration: song.duration,
         song_url: '/songs/' + song.file.filename,
       });
       if (song.artwork) {
@@ -91,6 +92,7 @@ exports.SongActivity = exports.Activity.extend({
       'likes',
       'skipVotes',
       'skipVoted',
+      'duration',
       'song_url',
       'image_url',
       'enqueueings',
