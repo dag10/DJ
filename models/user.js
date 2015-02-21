@@ -62,6 +62,9 @@ exports.define = function(sequelize, DataTypes) {
           as: 'Queueings',
           through: models.QueuedSong
         });
+        this.hasMany(models.SongStatistic, {
+          as: 'SongStatistics'
+        });
       },
       hashUsername: function(username) {
         return crypto.createHash('sha1')
