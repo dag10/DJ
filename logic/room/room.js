@@ -436,7 +436,11 @@ module.exports = BackboneDBModel.extend({
   },
 
   skipVotePassed: function() {
-    this.get('currentSongActivity').set({ skipVoted: true });
+    var activity = this.get('currentSongActivity');
+    if (activity) {
+      activity.set({ skipVoted: true });
+    }
+
     this.playNextSong();
   },
 
