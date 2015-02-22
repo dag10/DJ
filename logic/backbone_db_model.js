@@ -125,11 +125,11 @@ module.exports = Backbone.Model.extend({
           this.trigger('save');
         })
         .catch(function(err) {
-          winston.error(err.message);
+          winston.error(err.event[0].message);
         });
       })
       .catch(function(err) {
-        winston.error(err.message);
+        winston.error(err.event[0].message);
       })
       .done();
 
