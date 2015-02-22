@@ -10,6 +10,8 @@ var ConnectionManager = require('../connection/connection_manager');
 var BackboneDBModel = require('../backbone_db_model');
 var connections = require('../connection/connections');
 var SongPlayback = require('../song/song_playback.js');
+var SongStatistic = require('../song/statistic.js');
+var song_statistic_model = require('../../models/songstatistic');
 var activity = require('./activity');
 
 /**
@@ -31,8 +33,9 @@ module.exports = BackboneDBModel.extend({
       playback: new SongPlayback(),
     });
 
-    // Initially reset all voting numbers.
+    // Initially reset all voting numbers and statistics.
     this.resetVotes();
+    this.resetStatistics();
 
     // Handle when a song starts playing.
     this.playback().on('play', function() {
@@ -45,6 +48,18 @@ module.exports = BackboneDBModel.extend({
       });
       this.set({ currentSongActivity: songActivity });
       this.activities().add(songActivity);
+
+      // Add 'play' statistic.
+      var song = this.playback().song();
+      var user = this.playback().dj().user();
+      if (song && user) {
+        var stat = new SongStatistic({
+          event: song_statistic_model.EVENT.PLAY,
+          SongId: song.id,
+          UserId: user.id,
+        });
+        stat.save();
+      }
     }, this);
 
     // When songs are no longer being played...
@@ -331,6 +346,22 @@ module.exports = BackboneDBModel.extend({
 
   /* Song Management */
 
+  skipSong: function() {
+    this.playNextSong();
+
+    // Add 'skip' statistic.
+    var song = this.playback().song();
+    var user = this.playback().dj().user();
+    if (song && user) {
+      var stat = new SongStatistic({
+        event: song_statistic_model.EVENT.SKIP,
+        SongId: song.id,
+        UserId: user.id,
+      });
+      stat.save();
+    }
+  },
+
   playNextSong: function() {
     this.rotateDJs();
 
@@ -382,6 +413,18 @@ module.exports = BackboneDBModel.extend({
       return new Error('User already voted.');
     }
 
+    // Add 'upvote' statistic.
+    var song = this.playback().song();
+    var user = conn.user();
+    if (song && user) {
+      var stat = new SongStatistic({
+        event: song_statistic_model.EVENT.UPVOTE,
+        SongId: song.id,
+        UserId: user.id,
+      });
+      stat.save();
+    }
+
     conn.set({ liked: true });
     var likes = this.likes();
     likes.push(conn);
@@ -395,6 +438,17 @@ module.exports = BackboneDBModel.extend({
     likes.splice(index, 1);
     this.set({ 'numLikes': likes.length });
     conn.set({ liked: false });
+
+    // Delete 'upvote' statistic.
+    var song = this.playback().song();
+    var user = conn.user();
+    if (song && user) {
+      song_statistic_model.Model.destroy({
+        event: song_statistic_model.EVENT.UPVOTE,
+        SongId: song.id,
+        UserId: user.id,
+      });
+    }
   },
 
   postSkipVote: function(conn) {
@@ -402,6 +456,18 @@ module.exports = BackboneDBModel.extend({
       return new Error('User is the current DJ.');
     } else if (this.voted(conn)) {
       return new Error('User already voted.');
+    }
+
+    // Add 'downvote' statistic.
+    var song = this.playback().song();
+    var user = conn.user();
+    if (song && user) {
+      var stat = new SongStatistic({
+        event: song_statistic_model.EVENT.DOWNVOTE,
+        SongId: song.id,
+        UserId: user.id,
+      });
+      stat.save();
     }
 
     conn.set({ skipVoted: true });
@@ -417,6 +483,17 @@ module.exports = BackboneDBModel.extend({
     skipVotes.splice(index, 1);
     this.set({ 'numSkipVotes': skipVotes.length });
     conn.set({ skipVoted: false });
+
+    // Delete 'downvote' statistic.
+    var song = this.playback().song();
+    var user = conn.user();
+    if (song && user) {
+      song_statistic_model.Model.destroy({
+        event: song_statistic_model.EVENT.DOWNVOTE,
+        SongId: song.id,
+        UserId: user.id,
+      });
+    }
   },
 
   liked: function(conn) {
@@ -441,15 +518,47 @@ module.exports = BackboneDBModel.extend({
       activity.set({ skipVoted: true });
     }
 
+    // Add 'voteskip' statistic.
+    var song = this.playback().song();
+    var user = this.playback().dj().user();
+    if (song && user) {
+      var stat = new SongStatistic({
+        event: song_statistic_model.EVENT.VOTESKIP,
+        SongId: song.id,
+        UserId: user.id,
+      });
+      stat.save();
+    }
+
     this.playNextSong();
+  },
+
+  /* Song Statistic Management */
+
+  resetStatistics: function() {
+    this.set({
+      statistics: [],
+    });
   },
 
   /* Activity Management */
 
-  activityEnqueued: function(activity_id) {
+  activityEnqueued: function(activity_id, conn) {
     var songActivity = this.activities().get(activity_id);
     if (!songActivity) return;
     songActivity.set({ enqueueings: songActivity.get('enqueueings') + 1 });
+
+    // Add 'enqueue' statistic.
+    var song = this.playback().song();
+    var user = conn.user();
+    if (song && user) {
+      var stat = new SongStatistic({
+        event: song_statistic_model.EVENT.ENQUEUE,
+        SongId: song.id,
+        UserId: user.id,
+      });
+      stat.save();
+    }
   },
 
   /* DJ Management */
