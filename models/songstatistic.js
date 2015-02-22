@@ -7,6 +7,15 @@
 exports.Model = null;
 exports.name = 'SongStatistic';
 
+exports.EVENT = {
+  PLAY: 'play',
+  UPVOTE: 'upvote',
+  DOWNVOTE: 'downvote',
+  ENQUEUE: 'enqueue',
+  SKIP: 'skip',
+  VOTESKIP: 'voteskip',
+};
+
 exports.define = function(sequelize, DataTypes) {
   exports.Model = sequelize.define(exports.name, {
     event: {
