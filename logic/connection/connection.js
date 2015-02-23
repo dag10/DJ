@@ -363,9 +363,9 @@ module.exports = Backbone.Model.extend({
     fn( err ? { error: err } : {} );
   },
 
-  // Handle notificatin that a song has been enqueued from an activity.
+  // Handle notification that a song has been enqueued from an activity.
   handleActivityEnqueue: function(activity_id) {
-    this.get('room').activityEnqueued(activity_id);
+    this.get('room').activityEnqueued(activity_id, this);
   },
 
   // Handle request for search results.
@@ -432,7 +432,7 @@ module.exports = Backbone.Model.extend({
 
     var room = this.get('room');
     if (room.getCurrentDJ() === this) {
-      room.playNextSong();
+      room.skipSong();
       if (fn) fn();
     } else if (fn) {
       fn({ error: 'You\'re not the current DJ. You can\'t skip this song.' });
