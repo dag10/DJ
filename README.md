@@ -31,8 +31,8 @@ the database.
 
 Installing Plugins
 --
-To install music sources such as YouTube, follow the instructions on the
-[Installing Music Sources](https://github.com/dag10/DJ/wiki/Installing-Music-Sources)
+To install music sources such as Soundcloud, follow the instructions on the
+[Installing Music Source Plugins](https://github.com/dag10/DJ/wiki/Installing-Music-Source-Plugins)
 section of the wiki.
 
 Updating

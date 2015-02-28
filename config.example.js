@@ -72,20 +72,19 @@ module.exports = {
   song_sources: {
     // List of song source packages installed in the node_modules directory.
     external_modules: [
-      //'cshdj-youtube'
+      //'cshdj-soundcloud'
     ],
 
     // Optional configuration objects for a song source.
     configurations: {
-      //'cshdj-youtube': { }
+      //'cshdj-soundcloud': { }
     },
 
     // The order of song sources to display in search results, and the
     // maximum number of results to show per source.
-    // Again, youtube is just a placeholder for future sources.
     results_format: {
       upload: 6
-      //'cshdj-youtube': 4
+      //'cshdj-soundcloud': 4
     }
   }
 
