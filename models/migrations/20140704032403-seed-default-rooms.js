@@ -23,14 +23,14 @@ function seedRoom(sequelize, name, slots) {
     .query(
       'SELECT * FROM Rooms WHERE shortname=?',
       null, { raw: true }, [newRoom.shortname])
-    .success(function(rooms) {
+    .then(function(rooms) {
       if (rooms.length > 0) {
         deferred.resolve();
         return;
       }
 
-      newRoom.save().success(deferred.resolve).error(deferred.reject);
-    }).error(deferred.reject);
+      newRoom.save().then(deferred.resolve).catch(deferred.reject);
+    }).catch(deferred.reject);
 
   return deferred.promise;
 }

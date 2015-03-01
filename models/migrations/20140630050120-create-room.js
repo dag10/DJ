@@ -39,13 +39,13 @@ module.exports = {
     });
 
     // Migrate existing rooms from old room table.
-    sequelize.query('SHOW TABLES LIKE "room"').success(function(tables) {
+    sequelize.query('SHOW TABLES LIKE "room"').then(function(tables) {
       if (tables.length === 0) {
         deferred.resolve();
         return;
       }
 
-      sequelize.query('SELECT * FROM room').success(function(rooms) {
+      sequelize.query('SELECT * FROM room').then(function(rooms) {
         rooms.forEach(function(room) {
           sequelize.models.Room.create({
             id: room.id,
@@ -57,7 +57,7 @@ module.exports = {
           });
         });
       }).done(deferred.resolve);
-    }).error(deferred.resolve);
+    }).catch(deferred.resolve);
   },
 
   down: function(migration, DataTypes, done) {

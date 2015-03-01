@@ -49,13 +49,13 @@ module.exports = {
     });
 
     // Migrate existing users from old user table.
-    sequelize.query('SHOW TABLES LIKE "user"').success(function(tables) {
+    sequelize.query('SHOW TABLES LIKE "user"').then(function(tables) {
       if (tables.length === 0) {
         deferred.resolve();
         return true;
       }
 
-      sequelize.query('SELECT * FROM user').success(function(users) {
+      sequelize.query('SELECT * FROM user').then(function(users) {
         users.forEach(function(user) {
           sequelize.models.User.create({
             id: user.id,
@@ -70,7 +70,7 @@ module.exports = {
           });
         });
       }).done(deferred.resolve);
-    }).error(deferred.resolve);
+    }).catch(deferred.resolve);
   },
 
   down: function(migration, DataTypes, done) {
