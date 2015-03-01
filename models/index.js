@@ -7,14 +7,14 @@ var winston = require('winston');
 var fs = require('fs');
 var path = require('path');
 var database = require('../logic/database');
+var Umzug = require('umzug');
 var Q = require('q');
 
 // Initialized models.
 exports.init = function() {
   var sequelize = database.sequelize;
 
-  var deferred = Q.defer(),
-      models = {};
+  var models = {};
 
   var model_modules = fs.readdirSync(__dirname)
     .filter(function(file) {
@@ -38,18 +38,36 @@ exports.init = function() {
     }
   });
 
-  sequelize.getMigrator({
-    path: __dirname + '/migrations',
-    filesFilter: /\.js$/,
-    logging: winston.info
-  })
-  .migrate()
-  .then(function() {
-    winston.info('Completed sequelize migrations.');
-    deferred.resolve();
-  })
-  .catch(deferred.reject);
+  var umzug = new Umzug({
+    storage: 'sequelize',
+    storageOptions: {
+      sequelize: sequelize,
+    },
+    logging: winston.info,
+    migrations: {
+      path: __dirname + '/migrations',
+      pattern: /\.js$/,
+    },
+  });
 
-  return deferred.promise;
+  // TODO: I cannot switch migrators because of an incompatile meta table format.
+  // I created an issue: https://github.com/sequelize/umzug/issues/23
+
+  return umzug
+  .pending()
+  .then(function(migrations) {
+    if (migrations) {
+      winston.info('Found ' + migrations.length + ' pending migrations.');
+      return; // TODO: Delete this line when it works.
+      return umzug.execute({
+        migrations: migrations,
+        method: 'up',
+      })
+      .then(function(migrations) {
+        winston.info(
+          'Successfully executed ' + migrations.length + ' migrations.');
+      });
+    }
+  });
 };
 

@@ -35,6 +35,7 @@
     "q": "1.0.1",
     "git-rev": "git://github.com/kulak-at/git-rev.git#7388956471a1fc8e9f935e5a1e363fbb1462955b",
     "sequelize": "2.0.3",
+    "umzug": "1.6.0",
     "moment": "2.7.0",
     "request": "2.39.0",
     "lame": "git://github.com/dag10/node-lame.git#v1.0.3b"
