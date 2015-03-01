@@ -10,31 +10,34 @@ module.exports = {
 
     deferred.promise.done(done);
 
-    // Create table.
-    migration.createTable('roomadmins', {
-      UserId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0
-      },
-      RoomId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-        defaultValue: 0
-      },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      }
-    });
-
     // Migrate existing room admin settings from old room table.
-    sequelize.query('SHOW TABLES LIKE "room"').then(function(tables) {
-      if (tables.length === 0) {
+    sequelize.query(
+      'SHOW TABLES LIKE "room"',
+      { type: sequelize.QueryTypes.SHOWTABLES }).then(function(tables) {
+
+      // Create table.
+      migration.createTable('roomadmins', {
+        UserId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          defaultValue: 0
+        },
+        RoomId: {
+          type: DataTypes.INTEGER,
+          allowNull: false,
+          defaultValue: 0
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        }
+      });
+
+      if (tables.length === 0 || tables[0].length === 0) {
         deferred.resolve();
         return;
       }

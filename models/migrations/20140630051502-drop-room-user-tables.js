@@ -1,4 +1,5 @@
 /* Migration to drop old room and user tables. */
+/*jshint es5: true */
 
 var Q = require('q');
 
@@ -60,19 +61,16 @@ function populateOldUsers(migration, done) {
   return deferred.promise;
 }
 
-function tryDrop(migration, table) {
-  try {
-    migration.dropTable(table);
-  } catch (err) {
-    // nothing
-  }
-}
-
 module.exports = {
   up: function(migration, DataTypes, done) {
-    tryDrop(migration, 'user');
-    tryDrop(migration, 'room');
-    done();
+    migration.showAllTables().then(function(tables) {
+      if (tables.indexOf('user') >= 0) {
+        migration.dropTable('user');
+      }
+      if (tables.indexOf('room') >= 0) {
+        migration.dropTable('room');
+      }
+    }).done(done);
   },
 
   down: function(migration, DataTypes, done) {

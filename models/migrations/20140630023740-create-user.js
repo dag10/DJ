@@ -10,46 +10,49 @@ module.exports = {
     
     deferred.promise.done(done);
 
-    // Create table.
-    migration.createTable('users', {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-      },
-      username: {
-        type: DataTypes.STRING,
-        unique: true
-      },
-      firstName: {
-        type: DataTypes.STRING
-      },
-      lastName: {
-        type: DataTypes.STRING
-      },
-      fullName: {
-        type: DataTypes.STRING
-      },
-      admin: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-      },
-      lastVisitedAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      }
-    });
-
     // Migrate existing users from old user table.
-    sequelize.query('SHOW TABLES LIKE "user"').then(function(tables) {
+    sequelize.query(
+      'SHOW TABLES LIKE "user"',
+      { type: sequelize.QueryTypes.SHOWTABLES }).then(function(tables) {
+
+      // Create table.
+      migration.createTable('users', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        },
+        firstName: {
+          type: DataTypes.STRING
+        },
+        lastName: {
+          type: DataTypes.STRING
+        },
+        fullName: {
+          type: DataTypes.STRING
+        },
+        admin: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false
+        },
+        lastVisitedAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        }
+      });
+
       if (tables.length === 0) {
         deferred.resolve();
         return true;

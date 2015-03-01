@@ -22,7 +22,10 @@ function seedRoom(sequelize, name, slots) {
   sequelize
     .query(
       'SELECT * FROM Rooms WHERE shortname=?',
-      null, { raw: true }, [newRoom.shortname])
+      {
+        type: sequelize.QueryTypes.SELECT,
+        replacements: [newRoom.shortname],
+      })
     .then(function(rooms) {
       if (rooms.length > 0) {
         deferred.resolve();

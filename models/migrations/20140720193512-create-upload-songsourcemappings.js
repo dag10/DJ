@@ -7,7 +7,7 @@ exports.up = function(migration, DataTypes, done) {
   var sequelize = migration.migrator.sequelize;
 
   sequelize
-  .query('SELECT * FROM Songs')
+  .query('SELECT * FROM Songs', { type: sequelize.QueryTypes.SELECT })
   .then(function(songs) {
     var ops = [];
     songs.forEach(function(song) {
