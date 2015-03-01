@@ -39,14 +39,9 @@ exports.define = function(sequelize, DataTypes) {
           onDelete: 'cascade',
           hooks: true
         });
-        this.hasMany(models.User, {
+        this.belongsToMany(models.User, {
           as: 'Queueings',
           through: models.QueuedSong
-        });
-        this.hasMany(models.SongStatistic, {
-          as: 'Statistics',
-          onDelete: 'cascade',
-          hooks: true
         });
         this.hasMany(models.SongSourceMap, {
           as: 'SourceMappings'

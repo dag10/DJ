@@ -49,21 +49,17 @@ exports.define = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function(models) {
-        this.hasMany(models.Room, {
+        this.belongsToMany(models.Room, {
           as: 'Rooms',
           through: models.RoomAdmin
         });
         this.hasMany(models.Song, {
           foreignKey: 'UploaderId',
-          as: 'UploadedSongs',
-          through: null
+          as: 'UploadedSongs'
         });
-        this.hasMany(models.Song, {
+        this.belongsToMany(models.Song, {
           as: 'Queueings',
           through: models.QueuedSong
-        });
-        this.hasMany(models.SongStatistic, {
-          as: 'SongStatistics'
         });
       },
       hashUsername: function(username) {
