@@ -444,9 +444,11 @@ module.exports = BackboneDBModel.extend({
     var user = conn.user();
     if (song && user) {
       song_statistic_model.Model.destroy({
-        event: song_statistic_model.EVENT.UPVOTE,
-        SongId: song.id,
-        UserId: user.id,
+        where: {
+          event: song_statistic_model.EVENT.UPVOTE,
+          SongId: song.id,
+          UserId: user.id,
+        }
       });
     }
   },
@@ -489,9 +491,11 @@ module.exports = BackboneDBModel.extend({
     var user = conn.user();
     if (song && user) {
       song_statistic_model.Model.destroy({
-        event: song_statistic_model.EVENT.DOWNVOTE,
-        SongId: song.id,
-        UserId: user.id,
+        where: {
+          event: song_statistic_model.EVENT.DOWNVOTE,
+          SongId: song.id,
+          UserId: user.id,
+        }
       });
     }
   },

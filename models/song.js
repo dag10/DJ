@@ -2,6 +2,8 @@
  * Song model.
  */
 
+var queued_song_model = require('./queuedsong');
+
 exports.Model = null;
 exports.name = 'Song';
 
@@ -51,8 +53,10 @@ exports.define = function(sequelize, DataTypes) {
     hooks: {
       // When a song is deleted, delete its queueings.
       beforeDestroy: function(song, fn) {
-        models.QueuedSong.destroy({
-          SongId: song.id
+        queued_song_model.Model.destroy({
+          where: {
+            SongId: song.id
+          }
         }).done(fn);
       }
     },

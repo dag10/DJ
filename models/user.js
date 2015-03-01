@@ -5,6 +5,7 @@
 var config = require('../config');
 var secret = Math.random() + config.web.secret;
 var crypto = require('crypto');
+var queued_song_model = require('./queuedsong');
 
 exports.Model = null;
 exports.name = 'User';
@@ -71,8 +72,10 @@ exports.define = function(sequelize, DataTypes) {
     hooks: {
       // When a user is deleted, delete its queueings.
       beforeDestroy: function(user, fn) {
-        models.QueuedSong.destroy({
-          UserId: user.id
+        queued_song_model.Model.destroy({
+          where: {
+            UserId: user.id
+          }
         }).done(fn);
       }
     },
