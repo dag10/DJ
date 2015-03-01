@@ -117,20 +117,32 @@ module.exports = Backbone.Model.extend({
 
       this
       .setAssociations(new_instance)
-      .then(function() {
+      .then(_.bind(function() {
         new_instance
         .save()
         .then(function() {
           this.set({ new_instance: new_instance });
           this.trigger('save');
         })
-        .catch(function(err) {
+        .catch(_.bind(function(err) {
+          if (err && err.event && err.event[0] && err.event[0].message) {
+            winston.error(err.event[0].message);
+          } else {
+            winston.error(
+              'An unknown error occurred while saving BackboneDBModel for ' +
+              this.model().name + ': ' + err.stack);
+          }
+        }, this));
+      }, this))
+      .catch(_.bind(function(err) {
+        if (err && err.event && err.event[0] && err.event[0].message) {
           winston.error(err.event[0].message);
-        });
-      })
-      .catch(function(err) {
-        winston.error(err.event[0].message);
-      })
+        } else {
+          winston.error(
+            'An unknown error occurred while setting assocations in ' +
+            'BackboneDBModel for ' + this.model().name + ': ' + err.stack);
+        }
+      }, this))
       .done();
 
     } else if (method === 'update') {
