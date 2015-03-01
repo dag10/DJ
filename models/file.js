@@ -27,13 +27,6 @@ exports.define = function(sequelize, DataTypes) {
         this.belongsTo(models.User, {
           as: 'Uploader'
         });
-
-        // When a user is delete, delete their queueings.
-        this.beforeDestroy(function(user, fn) {
-          models.QueuedSong.destroy({
-            UserId: user.id
-          }).done(fn);
-        });
       }
     },
     getterMethods: {

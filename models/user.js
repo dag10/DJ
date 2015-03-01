@@ -72,6 +72,14 @@ exports.define = function(sequelize, DataTypes) {
           .digest('hex');
       }
     },
+    hooks: {
+      // When a user is deleted, delete its queueings.
+      beforeDestroy: function(user, fn) {
+        models.QueuedSong.destroy({
+          UserId: user.id
+        }).done(fn);
+      }
+    },
     instanceMethods: {
       hash: function() {
         return this.Model.hashUsername(this.username);
