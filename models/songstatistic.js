@@ -43,7 +43,7 @@ exports.define = function(sequelize, DataTypes) {
       }
     },
     getterMethods: {
-      logNameTitle: function() { return this.title; }
+      logNameTitle: function() { return this.event; }
     }
   });
 
