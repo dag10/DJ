@@ -120,10 +120,10 @@ module.exports = Backbone.Model.extend({
       .then(_.bind(function() {
         new_instance
         .save()
-        .then(function() {
+        .then(_.bind(function() {
           this.set({ new_instance: new_instance });
           this.trigger('save');
-        })
+        }, this))
         .catch(_.bind(function(err) {
           if (err && err.event && err.event[0] && err.event[0].message) {
             winston.error(err.event[0].message);
