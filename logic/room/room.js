@@ -522,10 +522,14 @@ module.exports = BackboneDBModel.extend({
       activity.set({ skipVoted: true });
     }
 
+    var playback = this.playback();
+
     // Add 'voteskip' statistic.
-    var song = this.playback().song();
-    var user = this.playback().dj().user();
-    if (song && user) {
+    var song = playback.song();
+    var dj = playback.dj();
+    var user = dj ? dj.user() : null;
+
+    if (song && dj && user) {
       var stat = new SongStatistic({
         event: song_statistic_model.EVENT.VOTESKIP,
         SongId: song.id,
