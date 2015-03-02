@@ -296,7 +296,7 @@ module.exports = Backbone.Model.extend({
         where: {
           username: data.username
         }
-      }).success(_.bind(function(user) {
+      }).then(_.bind(function(user) {
         if (user) {
           this.set({
             authenticated: true,
@@ -308,7 +308,7 @@ module.exports = Backbone.Model.extend({
         } else {
           fn({ error: 'User not found.' });
         }
-      }, this)).error(function(err) {
+      }, this)).catch(function(err) {
         winston.error('Error fetching user for auth request: ' + err.message);
         fn(err.message);
       });

@@ -26,16 +26,24 @@ module.exports = BackboneDBModel.extend({
     return queued_song_model.Model;
   },
 
+  song: function() {
+    return this.get('Song');
+  },
+
+  user: function() {
+    return this.get('User');
+  },
+
   setAssociations: function(instance) {
     if (!instance) instance = this.get('instance');
     var opts = [];
 
-    if (this.has('song')) {
-      opts.push(instance.setSong(this.get('song')));
+    if (this.has('Song')) {
+      opts.push(instance.setSong(this.song()));
     }
 
-    if (this.has('user')) {
-      opts.push(instance.setUser(this.get('user')));
+    if (this.has('User')) {
+      opts.push(instance.setUser(this.user()));
     }
     
     return Q.all(opts).then(_.bind(function() {
@@ -63,13 +71,13 @@ module.exports = BackboneDBModel.extend({
       ]
     })
     .then(_.bind(function(song) {
-      this.set({ song: song }, { silent: true });
+      this.set({ Song: song }, { silent: true });
     }, this));
 
     var userPromise = user_model.Model
     .find(instance.attributes.UserId)
     .then(_.bind(function(user) {
-      this.set({ user: user }, { silent: true });
+      this.set({ User: user }, { silent: true });
     }, this));
 
     return Q.all([
@@ -78,8 +86,8 @@ module.exports = BackboneDBModel.extend({
     ])
     .then(_.bind(function() {
       this.trigger('associations:load');
-      this.trigger('change:song', this.get('song'));
-      this.trigger('change:user', this.get('user'));
+      this.trigger('change:Song', this.song());
+      this.trigger('change:User', this.user());
       return Q();
     }, this))
     .catch(_.bind(function(err) {
@@ -102,7 +110,7 @@ module.exports = BackboneDBModel.extend({
   },
 
   getLogName: function() {
-    var song = this.get('song');
+    var song = this.song();
     if (song) {
       return song.title + ' (S:' + song.id + ', QS:' + this.id + ')';
     } else {
@@ -111,10 +119,10 @@ module.exports = BackboneDBModel.extend({
   },
 
   toJSON: function() {
-    var song = this.get('song');
+    var song = this.song();
 
-    var artwork_file = song.artwork;
-    var song_file = song.file;
+    var artwork_file = song.Artwork;
+    var song_file = song.File;
 
     return {
       order: this.get('order'),
@@ -125,7 +133,7 @@ module.exports = BackboneDBModel.extend({
       playing: this.get('playing'),
       id: this.id,
       song_id: song.id,
-      song_path: '/songs/' + song.file.filename,
+      song_path: '/songs/' + song_file.filename,
       artwork_path: (
         artwork_file ? '/artwork/' + artwork_file.filename : null)
     };

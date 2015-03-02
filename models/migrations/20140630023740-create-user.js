@@ -10,52 +10,55 @@ module.exports = {
     
     deferred.promise.done(done);
 
-    // Create table.
-    migration.createTable('users', {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-      },
-      username: {
-        type: DataTypes.STRING,
-        unique: true
-      },
-      firstName: {
-        type: DataTypes.STRING
-      },
-      lastName: {
-        type: DataTypes.STRING
-      },
-      fullName: {
-        type: DataTypes.STRING
-      },
-      admin: {
-        type: DataTypes.BOOLEAN,
-        defaultValue: false
-      },
-      lastVisitedAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      }
-    });
-
     // Migrate existing users from old user table.
-    sequelize.query('SHOW TABLES LIKE "user"').success(function(tables) {
+    sequelize.query(
+      'SHOW TABLES LIKE "user"',
+      { type: sequelize.QueryTypes.SHOWTABLES }).then(function(tables) {
+
+      // Create table.
+      migration.createTable('users', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        username: {
+          type: DataTypes.STRING,
+          unique: true
+        },
+        firstName: {
+          type: DataTypes.STRING
+        },
+        lastName: {
+          type: DataTypes.STRING
+        },
+        fullName: {
+          type: DataTypes.STRING
+        },
+        admin: {
+          type: DataTypes.BOOLEAN,
+          defaultValue: false
+        },
+        lastVisitedAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        }
+      });
+
       if (tables.length === 0) {
         deferred.resolve();
         return true;
       }
 
-      sequelize.query('SELECT * FROM user').success(function(users) {
+      sequelize.query('SELECT * FROM user').then(function(users) {
         users.forEach(function(user) {
           sequelize.models.User.create({
             id: user.id,
@@ -70,7 +73,7 @@ module.exports = {
           });
         });
       }).done(deferred.resolve);
-    }).error(deferred.resolve);
+    }).catch(deferred.resolve);
   },
 
   down: function(migration, DataTypes, done) {

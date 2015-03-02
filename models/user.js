@@ -5,6 +5,7 @@
 var config = require('../config');
 var secret = Math.random() + config.web.secret;
 var crypto = require('crypto');
+var queued_song_model = require('./queuedsong');
 
 exports.Model = null;
 exports.name = 'User';
@@ -49,27 +50,33 @@ exports.define = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function(models) {
-        this.hasMany(models.Room, {
+        this.belongsToMany(models.Room, {
           as: 'Rooms',
           through: models.RoomAdmin
         });
         this.hasMany(models.Song, {
           foreignKey: 'UploaderId',
-          as: 'UploadedSongs',
-          through: null
+          as: 'UploadedSongs'
         });
-        this.hasMany(models.Song, {
+        this.belongsToMany(models.Song, {
           as: 'Queueings',
           through: models.QueuedSong
-        });
-        this.hasMany(models.SongStatistic, {
-          as: 'SongStatistics'
         });
       },
       hashUsername: function(username) {
         return crypto.createHash('sha1')
           .update(username + '_' + secret)
           .digest('hex');
+      }
+    },
+    hooks: {
+      // When a user is deleted, delete its queueings.
+      beforeDestroy: function(user, fn) {
+        queued_song_model.Model.destroy({
+          where: {
+            UserId: user.id
+          }
+        }).done(fn);
       }
     },
     instanceMethods: {

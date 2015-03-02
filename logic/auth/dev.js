@@ -121,7 +121,7 @@ exports.getSessionUser = function(req, res) {
     where: {
       username: user_info.username
     }
-  }).success(function(user) {
+  }).then(function(user) {
     if (user) {
       user_info.id = user.id;
 
@@ -134,10 +134,10 @@ exports.getSessionUser = function(req, res) {
 
       user
       .save()
-      .success(function() {
+      .then(function() {
         deferred.resolve(user);
       })
-      .error(function(err) {
+      .catch(function(err) {
         winston.error('Failed to update user entity: ' + util.format(err));
         deferred.resolve(null);
       });
@@ -154,17 +154,17 @@ exports.getSessionUser = function(req, res) {
         lastVisit: new Date(),
         admin: config.superadmin == user_info.username
       })
-      .success(function(user) {
+      .then(function(user) {
         winston.info('Created user ' + user.getLogName());
         deferred.resolve(user);
       })
-      .error(function(err) {
+      .catch(function(err) {
         winston.error('Failed to create user entity: ' + util.format(err));
         deferred.resolve(null);
       });
 
     }
-  }).error(deferred.reject);
+  }).catch(deferred.reject);
 
   return deferred.promise;
 };

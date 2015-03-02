@@ -14,7 +14,7 @@ function migrateToNewFiles(migration) {
       sequelize = migration.migrator.sequelize;
   
   sequelize
-  .query('SELECT * FROM file')
+  .query('SELECT * FROM file', { type: sequelize.QueryTypes.SELECT})
   .then(function(files) {
     var ops = [];
     files.forEach(function(file) {
@@ -54,7 +54,7 @@ function migrateToNewSongs(migration) {
       sequelize = migration.migrator.sequelize;
 
   sequelize
-  .query('SELECT * FROM song')
+  .query('SELECT * FROM song', { type: sequelize.QueryTypes.SELECT})
   .then(function(songs) {
     var ops = [];
     songs.forEach(function(song) {
@@ -100,7 +100,7 @@ function migrateToNewQueuedSongs(migration) {
       sequelize = migration.migrator.sequelize;
 
   sequelize
-  .query('SELECT * FROM queued_song')
+  .query('SELECT * FROM queued_song', { type: sequelize.QueryTypes.SELECT})
   .then(function(queueings) {
     var now = new Date();
     var ops = [];
@@ -151,7 +151,7 @@ function migrateToOldFiles(migration) {
       sequelize = migration.migrator.sequelize;
 
   sequelize
-  .query('SELECT * FROM Files')
+  .query('SELECT * FROM Files', { type: sequelize.QueryTypes.SELECT})
   .then(function(files) {
     var ops = [];
     files.forEach(function(file) {
@@ -190,7 +190,7 @@ function migrateToOldSongs(migration) {
       sequelize = migration.migrator.sequelize;
 
   sequelize
-  .query('SELECT * FROM Songs')
+  .query('SELECT * FROM Songs', { type: sequelize.QueryTypes.SELECT})
   .then(function(songs) {
     var ops = [];
     songs.forEach(function(song) {
@@ -237,7 +237,7 @@ function migrateToOldQueuedSongs(migration) {
       sequelize = migration.migrator.sequelize;
 
   sequelize
-  .query('SELECT * FROM QueuedSongs')
+  .query('SELECT * FROM QueuedSongs', { type: sequelize.QueryTypes.SELECT})
   .then(function(queueings) {
     var now = new Date();
     var ops = [];

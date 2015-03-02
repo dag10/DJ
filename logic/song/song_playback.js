@@ -29,6 +29,11 @@ module.exports = Backbone.Model.extend({
   /* Playback Control */
 
   play: function(song_entity, dj) {
+    if (!song_entity) {
+      winston.error('Attempted to play null song entity.');
+      return;
+    }
+
     if (this.playing())
       this._stop();
 
@@ -131,10 +136,10 @@ module.exports = Backbone.Model.extend({
       // ms elapsed since song start
       ret.elapsed = new Date().valueOf() - this.get('timeStarted').valueOf();
 
-      ret.song_path = '/songs/' + song.file.filename;
+      ret.song_path = '/songs/' + song.File.filename;
 
-      if (song.artwork) {
-        ret.artwork_path = '/artwork/' + song.artwork.filename;
+      if (song.Artwork) {
+        ret.artwork_path = '/artwork/' + song.Artwork.filename;
       }
     }
 
@@ -159,7 +164,7 @@ module.exports = Backbone.Model.extend({
     if (!song) return;
 
     // Create file read stream.
-    var path = config.uploads_directory + '/songs/' + song.file.filename;
+    var path = config.uploads_directory + '/songs/' + song.File.filename;
     var fileStream = fs.createReadStream(path);
 
     // Create mp3 decoder.
