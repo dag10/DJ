@@ -36,7 +36,7 @@ exports.init = function(app) {
   app.use(lessMiddleware({
     src: base_dir + '/less',
     dest: tmpDir,
-    prefix: '/styles',
+    prefix: '/less',
     compress: config.web.compress_css,
     force: config.web.debug
   }));
@@ -45,7 +45,7 @@ exports.init = function(app) {
   app.use('/images', express.static(base_dir + '/static/images'));
   app.use('/scripts', express.static(base_dir + '/static/scripts'));
   app.use('/fonts', express.static(base_dir + '/static/fonts'));
-  app.use('/styles', express.static(tmpDir));
+  app.use('/less', express.static(tmpDir));
   app.use('/artwork', express.static(upload.artwork_dir));
   app.use('/songs', express.static(upload.song_dir));
 
