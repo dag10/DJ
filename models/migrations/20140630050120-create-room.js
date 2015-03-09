@@ -10,42 +10,47 @@ module.exports = {
 
     deferred.promise.done(done);
 
-    // Create table.
-    migration.createTable('rooms', {
-      id: {
-        type: DataTypes.INTEGER,
-        primaryKey: true,
-        autoIncrement: true
-      },
-      shortname: {
-        type: DataTypes.STRING,
-        unique: true
-      },
-      name: {
-        type: DataTypes.STRING
-      },
-      slots: {
-        type: DataTypes.INTEGER,
-        defaultValue: 5
-      },
-      createdAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      },
-      updatedAt: {
-        type: DataTypes.DATE,
-        allowNull: false
-      }
-    });
-
     // Migrate existing rooms from old room table.
-    sequelize.query('SHOW TABLES LIKE "room"').success(function(tables) {
-      if (tables.length === 0) {
+    sequelize.query(
+      'SHOW TABLES LIKE "room"',
+      { type: sequelize.QueryTypes.SHOWTABLES }).then(function(tables) {
+
+      // Create table.
+      migration.createTable('rooms', {
+        id: {
+          type: DataTypes.INTEGER,
+          primaryKey: true,
+          autoIncrement: true
+        },
+        shortname: {
+          type: DataTypes.STRING,
+          unique: true
+        },
+        name: {
+          type: DataTypes.STRING
+        },
+        slots: {
+          type: DataTypes.INTEGER,
+          defaultValue: 5
+        },
+        createdAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        },
+        updatedAt: {
+          type: DataTypes.DATE,
+          allowNull: false
+        }
+      });
+
+      if (tables.length === 0 || tables[0].length === 0) {
         deferred.resolve();
         return;
       }
 
-      sequelize.query('SELECT * FROM room').success(function(rooms) {
+      sequelize.query(
+        'SELECT * FROM room',
+        { type: sequelize.QueryTypes.SELECT }).then(function(rooms) {
         rooms.forEach(function(room) {
           sequelize.models.Room.create({
             id: room.id,
@@ -57,7 +62,7 @@ module.exports = {
           });
         });
       }).done(deferred.resolve);
-    }).error(deferred.resolve);
+    }).catch(deferred.resolve);
   },
 
   down: function(migration, DataTypes, done) {

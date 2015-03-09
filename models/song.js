@@ -2,6 +2,8 @@
  * Song model.
  */
 
+var queued_song_model = require('./queuedsong');
+
 exports.Model = null;
 exports.name = 'Song';
 
@@ -39,20 +41,23 @@ exports.define = function(sequelize, DataTypes) {
           onDelete: 'cascade',
           hooks: true
         });
-        this.hasMany(models.User, {
+        this.belongsToMany(models.User, {
           as: 'Queueings',
           through: models.QueuedSong
         });
         this.hasMany(models.SongSourceMap, {
           as: 'SourceMappings'
         });
-
-        // When a song is delete, delete its queueings.
-        this.beforeDestroy(function(song, fn) {
-          models.QueuedSong.destroy({
+      }
+    },
+    hooks: {
+      // When a song is deleted, delete its queueings.
+      beforeDestroy: function(song, fn) {
+        queued_song_model.Model.destroy({
+          where: {
             SongId: song.id
-          }).done(fn);
-        });
+          }
+        }).done(fn);
       }
     },
     getterMethods: {

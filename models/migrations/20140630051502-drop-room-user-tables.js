@@ -1,4 +1,5 @@
 /* Migration to drop old room and user tables. */
+/*jshint es5: true */
 
 var Q = require('q');
 
@@ -6,7 +7,7 @@ function populateOldRooms(migration) {
   var deferred = Q.defer(),
       sequelize = migration.migrator.sequelize;
 
-  sequelize.models.RoomAdmin.findAll().success(function(rooms) {
+  sequelize.models.RoomAdmin.findAll().then(function(rooms) {
     rooms.forEach(function(room) {
       sequelize.query(
         'INSERT INTO room (id, shortname, name, slots, timeCreated) ' +
@@ -25,7 +26,7 @@ function populateOldRoomAdmins(migration, done) {
   var deferred = Q.defer(),
       sequelize = migration.migrator.sequelize;
 
-  sequelize.models.RoomAdmin.findAll().success(function(roomAdmins) {
+  sequelize.models.RoomAdmin.findAll().then(function(roomAdmins) {
     roomAdmins.forEach(function(roomAdmin) {
       sequelize.query(
         'UPDATE room SET admin_id=? WHERE id=?',
@@ -42,7 +43,7 @@ function populateOldUsers(migration, done) {
   var deferred = Q.defer(),
       sequelize = migration.migrator.sequelize;
 
-  sequelize.models.User.findAll().success(function(users) {
+  sequelize.models.User.findAll().then(function(users) {
     users.forEach(function(user) {
       sequelize.query(
         'INSERT INTO user (id, username, firstName, lastName, fullName, ' +
@@ -60,19 +61,16 @@ function populateOldUsers(migration, done) {
   return deferred.promise;
 }
 
-function tryDrop(migration, table) {
-  try {
-    migration.dropTable(table);
-  } catch (err) {
-    // nothing
-  }
-}
-
 module.exports = {
   up: function(migration, DataTypes, done) {
-    tryDrop(migration, 'user');
-    tryDrop(migration, 'room');
-    done();
+    migration.showAllTables().then(function(tables) {
+      if (tables.indexOf('user') >= 0) {
+        migration.dropTable('user');
+      }
+      if (tables.indexOf('room') >= 0) {
+        migration.dropTable('room');
+      }
+    }).done(done);
   },
 
   down: function(migration, DataTypes, done) {

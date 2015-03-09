@@ -189,10 +189,12 @@ exports.searchSource = function(source, query) {
 
   search_module.search(max_results, query)
   .then(function(results) {
+    // Shorten results list until it obeys max_results.
     while (results.length > max_results) {
       results.pop();
     }
 
+    // Cache metadata for song in case the user wants to fetch the song.
     results.forEach(function(metadata) {
       search_module.metadataCache[metadata.id] = metadata;
     });

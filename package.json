@@ -1,7 +1,7 @@
 {
   "name": "DJ",
   "description": "A virtual DJ website, where you can play and listen to music together. Inspired by turntable.fm.",
-  "version": "1.5.0-alpha",
+  "version": "1.6.0-alpha",
   "author": "Drew Gottlieb (dag10) <gottlieb.drew@gmail.com>",
   "repository": {
     "type": "git",
@@ -33,9 +33,11 @@
     "backbone": "1.1.0",
     "colors": "0.6.2",
     "q": "1.0.1",
-    "sequelize": "2.0.0-dev12",
+    "git-rev": "git://github.com/kulak-at/git-rev.git#7388956471a1fc8e9f935e5a1e363fbb1462955b",
+    "sequelize": "2.0.3",
     "moment": "2.7.0",
     "request": "2.39.0",
+    "ldapjs": "0.7.1",
     "lame": "git://github.com/dag10/node-lame.git#v1.0.3b"
   }
 }

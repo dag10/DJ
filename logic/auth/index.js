@@ -11,6 +11,7 @@ var Q = require('q');
  */
 var methods = {
   'dev': './dev',
+  'ldap': './ldap',
 };
 
 /** Loaded auth module. */

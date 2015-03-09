@@ -296,7 +296,7 @@ module.exports = Backbone.Model.extend({
         where: {
           username: data.username
         }
-      }).success(_.bind(function(user) {
+      }).then(_.bind(function(user) {
         if (user) {
           this.set({
             authenticated: true,
@@ -308,7 +308,7 @@ module.exports = Backbone.Model.extend({
         } else {
           fn({ error: 'User not found.' });
         }
-      }, this)).error(function(err) {
+      }, this)).catch(function(err) {
         winston.error('Error fetching user for auth request: ' + err.message);
         fn(err.message);
       });
@@ -363,9 +363,9 @@ module.exports = Backbone.Model.extend({
     fn( err ? { error: err } : {} );
   },
 
-  // Handle notificatin that a song has been enqueued from an activity.
+  // Handle notification that a song has been enqueued from an activity.
   handleActivityEnqueue: function(activity_id) {
-    this.get('room').activityEnqueued(activity_id);
+    this.get('room').activityEnqueued(activity_id, this);
   },
 
   // Handle request for search results.
@@ -432,7 +432,7 @@ module.exports = Backbone.Model.extend({
 
     var room = this.get('room');
     if (room.getCurrentDJ() === this) {
-      room.playNextSong();
+      room.skipSong();
       if (fn) fn();
     } else if (fn) {
       fn({ error: 'You\'re not the current DJ. You can\'t skip this song.' });

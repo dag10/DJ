@@ -268,6 +268,10 @@ $(function() {
       return {};
     },
 
+    postRender: function() {
+      // nothing.
+    },
+
     render: function() {
       if (this.template) {
         var context = {};
@@ -286,6 +290,8 @@ $(function() {
       }
 
       this.updateRelativeDate();
+      this.postRender();
+
       return this;
     }
   });
@@ -306,14 +312,23 @@ $(function() {
     template: Handlebars.compile($('#activity-song-template').html()),
 
     events: {
-      'click .action-enqueue': 'enqueue'
+      'click .action-enqueue': 'enqueue',
+      'click .btn-preview': 'preview',
     },
 
     initialize: function() {
       views.Activity.prototype.initialize.apply(this);
 
       this.model.set({ enqueued: false });
-      this.model.on('change', this.render, this);
+      this.model.on(
+        'change:likes change:skipVotes change:skipVoted change:enqueueings ' +
+        'change:enqueueing change:enqueued',
+        this.render, this);
+      this.model.on('change:previewing', this.updatePreviewButton, this);
+    },
+
+    postRender: function() {
+      this.updatePreviewButton();
     },
 
     enqueue: function() {
@@ -322,7 +337,26 @@ $(function() {
       }
 
       return false;
-    }
+    },
+
+    updatePreviewButton: function() {
+      if (this.model.get('previewing')) {
+        this.$('.btn-preview').addClass('playing');
+      } else {
+        this.$('.btn-preview').removeClass('playing');
+      }
+    },
+
+    preview: function(event) {
+      if (this.model.get('previewing')) {
+        this.model.endPreview();
+      } else {
+        this.model.preview();
+      }
+
+      event.preventDefault();
+      return false;
+    },
   });
 
   views.Activities = Backbone.View.extend({
@@ -617,13 +651,15 @@ $(function() {
       this.model.on('reindex', this.reindex, this);
       this.model.on('change:playing', this.render, this);
       this.model.on('change:next', this.render, this);
+      this.model.on('change:previewing', this.updatePreviewButton, this);
       this.firstRender = true;
     },
 
     events: {
       'drop': 'drop',
       'click .btn-escalate': 'escalate',
-      'click .btn-remove': 'remove'
+      'click .btn-remove': 'remove',
+      'click .btn-preview': 'preview',
     },
 
     drop: function(event, index) {
@@ -730,8 +766,29 @@ $(function() {
         this.$el.removeClass('next');
       }
 
+      this.updatePreviewButton();
+
       return this;
-    }
+    },
+
+    updatePreviewButton: function() {
+      if (this.model.get('previewing')) {
+        this.$('.btn-preview').addClass('playing');
+      } else {
+        this.$('.btn-preview').removeClass('playing');
+      }
+    },
+
+    preview: function(event) {
+      if (this.model.get('previewing')) {
+        this.model.endPreview();
+      } else {
+        this.model.preview();
+      }
+
+      event.preventDefault();
+      return false;
+    },
   });
 
   views.Queue = Backbone.View.extend({

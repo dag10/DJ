@@ -32,7 +32,7 @@ exports.define = function(sequelize, DataTypes) {
   }, {
     classMethods: {
       associate: function(models) {
-        this.hasMany(models.User, {
+        this.belongsToMany(models.User, {
           as: 'Admins',
           through: models.RoomAdmin
         });

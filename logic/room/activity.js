@@ -71,11 +71,12 @@ exports.SongActivity = exports.Activity.extend({
         artist: song.artist,
         album: song.album,
         song_id: song.id,
-        song_url: '/songs/' + song.file.filename,
+        duration: song.duration,
+        song_url: '/songs/' + song.File.filename,
       });
-      if (song.artwork) {
+      if (song.Artwork) {
         this.set({
-         image_url: '/artwork/' + song.artwork.filename
+         image_url: '/artwork/' + song.Artwork.filename
         });
       }
     }
@@ -91,6 +92,7 @@ exports.SongActivity = exports.Activity.extend({
       'likes',
       'skipVotes',
       'skipVoted',
+      'duration',
       'song_url',
       'image_url',
       'enqueueings',

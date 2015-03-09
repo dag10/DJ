@@ -51,8 +51,35 @@ module.exports = {
   },
 
   auth: {
-    // Method of authentication (only available mode is 'dev').
-    method: 'dev'
+    // Method of authentication (options are 'dev' or 'ldap').
+    method: 'dev',
+
+    // Settings relating to the LDAP method of authentication.
+    ldap: {
+      // If true, create full name by joining first and last.
+      strictFullName: true,
+
+      // URL of LDAP server, with protocol and optionally a port.
+      // No trailing slash.
+      baseURL: 'ldap://ldap.csh.rit.edu',
+
+      // Base dn for user searches.
+      dnBase: 'ou=Users,dc=csh,dc=rit,dc=edu',
+
+      // DN format for auth. Put %username% where the username will be.
+      dnFormat: 'uid=%username%,ou=Users,dc=csh,dc=rit,dc=edu',
+
+      // Filter for searching for the user. Put %username% as a placeholder.
+      filter: '(&(objectclass=houseMember)(uid=%username%))',
+
+      // Attributes for fetching name info from a found user entry.
+      // Required: firstName, lastName, fullName.
+      attributes: {
+        firstName: 'givenName',
+        lastName: 'sn',
+        fullName: 'cn'
+      }
+    }
   },
 
   db: {
@@ -72,20 +99,19 @@ module.exports = {
   song_sources: {
     // List of song source packages installed in the node_modules directory.
     external_modules: [
-      //'cshdj-youtube'
+      //'cshdj-soundcloud'
     ],
 
     // Optional configuration objects for a song source.
     configurations: {
-      //'cshdj-youtube': { }
+      //'cshdj-soundcloud': { }
     },
 
     // The order of song sources to display in search results, and the
     // maximum number of results to show per source.
-    // Again, youtube is just a placeholder for future sources.
     results_format: {
       upload: 6
-      //'cshdj-youtube': 4
+      //'cshdj-soundcloud': 4
     }
   }
 

@@ -23,7 +23,7 @@ var RoomManager = Backbone.Collection.extend({
   loadRooms: function() {
     var deferred = Q.defer();
 
-    room_model.Model.findAll().success(_.bind(function(rooms) {
+    room_model.Model.findAll().then(_.bind(function(rooms) {
       rooms.forEach(_.bind(function(room) {
         this.add(new Room({ instance: room }));
       }, this));

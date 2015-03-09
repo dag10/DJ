@@ -90,8 +90,8 @@ exports.search = function(max_results, query) {
   })
   .then(function(songs) {
     deferred.resolve(songs.map(function(song) {
-      var image_url = song.artwork ?
-        '/artwork/' + song.artwork.filename : null;
+      var image_url = song.Artwork ?
+        '/artwork/' + song.Artwork.filename : null;
 
       return {
         id: song.id,
