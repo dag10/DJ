@@ -5,7 +5,12 @@
 
 <%
   var _values = (typeof values !== 'undefined') ? values : {};
-  var fields = ['username', 'first_name', 'last_name'];
+  var fields = [];
+  if (typeof dev !== 'undefined') {
+    fields = ['username', 'first_name', 'last_name'];
+  } else {
+    fields = ['username', 'password'];
+  }
   for (var i = 0; i < fields.length; i++)
     if (!_values[fields[i]]) _values[fields[i]] = '';
 %>
@@ -16,6 +21,7 @@
     <div class="alert alert-danger"><%= error %></div>
   <% } %>
   <form method="post" action="/login">
+    <% if (typeof dev !== 'undefined') { %>
     <div class="row">
       <label for="inputUsername">Username</label>
       <input
@@ -46,6 +52,26 @@
         placeholder="Last Name"
         value="<%= _values['last_name'] %>" />
     </div>
+    <% } else { %>
+    <div class="row">
+      <label for="inputUsername">Username</label>
+      <input
+        type="text"
+        id="inputUsername"
+        class="form-control"
+        name="username"
+        value="<%= _values['username'] %>" />
+    </div>
+    <div class="row">
+      <label for="inputPassword">Password</label>
+      <input
+        type="password"
+        id="inputPassword"
+        class="form-control"
+        name="password"
+        value="<%= _values['password'] %>" />
+    </div>
+    <% } %>
     <div class="row">
       <input type="submit" class="btn btn-default" value="Sign In" />
     </div>

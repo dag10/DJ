@@ -29,6 +29,18 @@ var default_values = {
   },
   auth: {
     method: 'dev',
+    ldap: {
+      strictFullName: true,
+      baseURL: 'ldap://ldap.csh.rit.edu',
+      dnBase: 'ou=Users,dc=csh,dc=rit,dc=edu',
+      dnFormat: 'uid=%username%,ou=Users,dc=csh,dc=rit,dc=edu',
+      filter: '(&(objectclass=houseMember)(uid=%username%))',
+      attributes: {
+        firstName: 'givenName',
+        lastName: 'sn',
+        fullName: 'cn',
+      },
+    },
   },
   db: {
     host: 'localhost',
