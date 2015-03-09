@@ -37,7 +37,7 @@ exports.init = function(app) {
     src: base_dir + '/less',
     dest: tmpDir,
     prefix: '/styles',
-    compress: !config.web.debug,
+    compress: config.web.compress_css,
     force: config.web.debug
   }));
 

@@ -46,6 +46,9 @@ module.exports = {
     // Secret strong used for authentication. Make this unique.
     secret: 'change me!',
 
+    // Compress css generated from less.
+    compress_css: true,
+
     // Max upload file size (in mb).
     max_file_size: 50
   },
