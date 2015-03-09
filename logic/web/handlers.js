@@ -41,10 +41,10 @@ exports.init = function(app) {
     force: config.web.debug
   }));
 
-  app.use('/styles', express.static(base_dir + '/styles'));
-  app.use('/images', express.static(base_dir + '/images'));
-  app.use('/scripts', express.static(base_dir + '/scripts'));
-  app.use('/fonts', express.static(base_dir + '/fonts'));
+  app.use('/styles', express.static(base_dir + '/static/styles'));
+  app.use('/images', express.static(base_dir + '/static/images'));
+  app.use('/scripts', express.static(base_dir + '/static/scripts'));
+  app.use('/fonts', express.static(base_dir + '/static/fonts'));
   app.use('/styles', express.static(tmpDir));
   app.use('/artwork', express.static(upload.artwork_dir));
   app.use('/songs', express.static(upload.song_dir));
