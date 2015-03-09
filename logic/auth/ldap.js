@@ -76,7 +76,9 @@ function auth(username, password) {
           attrs[attr.type] = attr.vals[0];
         });
 
-        var user = {};
+        var user = {
+          username: username,
+        };
 
         Object.keys(config.auth.ldap.attributes).forEach(function(userAttr) {
           user[userAttr] = attrs[config.auth.ldap.attributes[userAttr]];
@@ -305,10 +307,9 @@ function handleLoginPostRequest(render, req, res) {
     };
 
     if (config.auth.ldap.strictFullName) {
-      cleanuser.fullName = sanitizer.escape(
-        user.firstName + ' ' + user.lastName);
+      cleanuser.fullName = user.firstName + ' ' + user.lastName;
     } else {
-      cleanuser.fullName = sanitizer.escape(user.fullName);
+      cleanuser.fullName = user.fullName;
     }
 
     req.session.user = cleanuser;

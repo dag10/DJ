@@ -25,6 +25,8 @@ var default_values = {
     debug: true,
     title: 'CSH DJ',
     secret: 'change me!',
+    compress_css: true,
+    compress_js: true,
     max_file_size: 50,
   },
   auth: {

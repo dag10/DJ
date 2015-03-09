@@ -24,12 +24,16 @@
       name="viewport"
       content="width=device-width, user-scalable=no, initial-scale=1" />
     <link
-      href='http://fonts.googleapis.com/css?family=Lato:300,400,700'
+      href='https://fonts.googleapis.com/css?family=Lato:300,400,700'
       rel='stylesheet'
       type='text/css'>
+    <% if (config.web.compress_css) { %>
+    <link rel="stylesheet" href="/styles/bootstrap.min.css" />
+    <% } else { %>
     <link rel="stylesheet" href="/styles/bootstrap.css" />
+    <% } %>
     <%- stylesheets %>
-    <link rel="stylesheet" href="/styles/style.css" />
+    <link rel="stylesheet" href="/less/style.css" />
     <link rel="shortcut icon" href="/images/csh_dj_favicon.png" />
   </head>
   <body>
@@ -92,7 +96,11 @@
     </div>
     </footer>
     <script src="/scripts/jquery-1.10.2.js"></script>
+    <% if (config.web.compress_js) { %>
+    <script src="/scripts/bootstrap.min.js"></script>
+    <% } else { %>
     <script src="/scripts/bootstrap.js"></script>
+    <% } %>
     <script>
       window.config = {
         max_file_size: <%= config.web.max_file_size*1024*1024 %>
