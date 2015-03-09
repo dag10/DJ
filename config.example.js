@@ -49,6 +49,9 @@ module.exports = {
     // Compress css generated from less.
     compress_css: true,
 
+    // Use minified js where possible.
+    compress_js: true,
+
     // Max upload file size (in mb).
     max_file_size: 50
   },
