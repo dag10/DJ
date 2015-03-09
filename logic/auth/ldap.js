@@ -76,7 +76,9 @@ function auth(username, password) {
           attrs[attr.type] = attr.vals[0];
         });
 
-        var user = {};
+        var user = {
+          username: username,
+        };
 
         Object.keys(config.auth.ldap.attributes).forEach(function(userAttr) {
           user[userAttr] = attrs[config.auth.ldap.attributes[userAttr]];
