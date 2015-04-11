@@ -295,10 +295,7 @@ function handleLoginPostRequest(render, req, res) {
     }
   }
 
-  var username = sanitizer.escape(req.body.username);
-  var password = sanitizer.escape(req.body.password);
-
-  auth(username, password)
+  auth(req.body.username, req.body.password)
   .then(function(user) {
     var cleanuser = {
       username: sanitizer.escape(user.username),
