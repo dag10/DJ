@@ -209,7 +209,7 @@ function downloadArtwork(url) {
 
   request(opts, function(err, res, body) {
     if (err) {
-      log.error('Failed to download album art from ' + url +
+      winston.warn('Failed to download album art from ' + url +
                 ': ' + (err.message || err));
       deferred.reject(err);
       return;
