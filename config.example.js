@@ -92,6 +92,9 @@ module.exports = {
     // MySQL host.
     host: 'localhost',
 
+    // MySQL port. (default uses 3306)
+    port: '3306',
+
     // MySQL username.
     username: 'user',
 

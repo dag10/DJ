@@ -21,7 +21,7 @@ exports.init = function() {
     {
       dialect: 'mysql',
       host: config.db.host,
-      port: 3306,
+      port: config.db.port,
       logging: winston.debug,
       define: {
         charset: 'utf8',
